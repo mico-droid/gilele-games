@@ -14,6 +14,8 @@ manifest.webmanifest  Manifest do portal
 icons/                Ícones do app
 engine/               Gilele Engine (módulos JS, sem build)
 games/demo/           Playground: jogo-modelo que usa tudo do motor
+games/auto-escola/    Auto Escola: simulado de direção (CTB + MBEDV)
+tests/                Ferramentas de teste (piloto automático da Auto Escola)
 ```
 
 ## O que o motor já tem
@@ -33,6 +35,9 @@ games/demo/           Playground: jogo-modelo que usa tudo do motor
 | `props.js` | Chão, árvore, nuvem, trampolim, placa com texto, moedas, checkpoint, plataforma móvel |
 | `pwa.js` | Service worker e botão "Instalar app" (Android/PC) + dica para iPhone |
 | `analytics.js` | Eventos para o Google Tag Manager / GA4 |
+| `vehicle.js` | Carro/moto/ônibus/caminhão: motor com curva de torque, embreagem com ponto de patinação, câmbio manual (5+R) ou automático (P-R-N-D), motor que morre, freio de mão, ladeira, direção tipo bicicleta, colisão (caixas orientadas), luzes e setas |
+| `road.js` | Malha viária a partir de um JSON: ruas de mão dupla/única, cruzamentos, rotatória, quarteirões com calçada e meio-fio, faixas (amarela/branca), faixa de pedestre, linha de retenção, PARE, placas de velocidade, lombada, vagas, semáforos com ciclo. Consultas: `groundAt`, `locate` (faixa, contramão, distância até a linha de retenção) |
+| `traffic.js` | Trânsito com IA: segue faixas, respeita semáforo, PARE e rotatória, mantém distância, dá preferência a pedestres; pedestres andam na calçada e atravessam na faixa |
 
 O personagem, o idioma e o som ficam salvos e valem para **todos** os jogos.
 
@@ -59,6 +64,19 @@ world.start();
 ```
 
 No console do navegador, `window.GAME` dá acesso ao mundo, ao jogador e à sala (ajuda a depurar).
+Na Auto Escola, `GAME.tick(dt)` avança a simulação manualmente (com `GAME.world.setPaused(true)`), o que permite testes rápidos com `tests/autopilot.js`.
+
+## Auto Escola
+
+Plano e decisões: `games/auto-escola/PLANO.md`. Arquivos:
+
+| Arquivo | O que faz |
+|---|---|
+| `map.js` | Bairro genérico: grade 3×3, avenida com semáforos, mão única, rotatória, ladeira, rua da escola, vagas e estrada de pista simples |
+| `rules.js` | Catálogo de infrações com os pesos das fichas do MBEDV e o "juiz" que detecta cada uma; medidor de domínio do veículo |
+| `cockpit.js` | Painel, volante, quadro de instrumentos, colunas A e os 3 retrovisores renderizados |
+| `modes.js` | Prova (3 percursos sorteados), 8 lições, 7 cenários de Trânsito Difícil e passeio livre |
+| `main.js` | Controles (teclado e toque: volante, 3 pedais, alavanca), câmeras interior/externa, HUD, minimapa, replay e menus |
 
 ## Multijogador
 

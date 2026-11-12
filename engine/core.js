@@ -83,7 +83,7 @@ export function createWorld(opt = {}) {
   addEventListener("orientationchange", () => setTimeout(resize, 200));
 
   // ---- loop
-  const updates = [];
+  const updates = [], before = [], after = [];
   let paused = false, running = false, last = 0;
   let fpsAcc = 0, fpsN = 0, fpsT = 0;
   function frame(now) {
@@ -92,7 +92,9 @@ export function createWorld(opt = {}) {
     const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
     last = now;
     if (!paused) for (const fn of updates) fn(dt, now / 1000);
+    for (const fn of before) fn(dt);
     renderer.render(scene, camera);
+    for (const fn of after) fn(dt);
     // auto quality: drop to low if the device can't keep ~40fps
     if (quality === "auto" && level === 1) {
       fpsAcc += dt; fpsN++; fpsT += dt;
@@ -110,6 +112,9 @@ export function createWorld(opt = {}) {
     setPaused(b) { paused = !!b; },
     onUpdate(fn) { updates.push(fn); return () => updates.splice(updates.indexOf(fn), 1); },
     onResize(fn) { resizeFns.push(fn); },
+    /** Runs every frame (even paused) right before / after the main render — e.g. mirrors, overlays. */
+    onBeforeRender(fn) { before.push(fn); },
+    onAfterRender(fn) { after.push(fn); },
     start() { if (running) return; running = true; last = performance.now(); requestAnimationFrame(frame); },
     /** Keep the shadow camera centered on the player. */
     followSun(x, y, z) { sun.position.set(x + sunOffset.x, y + sunOffset.y, z + sunOffset.z); sun.target.position.set(x, y, z); },

@@ -8,4 +8,7 @@
 - Público pode incluir crianças (ECA Digital): sem chat livre (só frases prontas), sem login, sem coletar dados pessoais, analytics sem nomes/códigos de sala.
 - Ao mudar arquivos cacheados de forma incompatível, subir a versão `CACHE` em `sw.js`.
 - Licença PolyForm Noncommercial (uso comercial reservado ao autor).
-- Próximos jogos planejados: Auto Escola (precisa de módulo de veículo + câmera 1ª pessoa), Corrida política, Visita a locais, RPG multiplayer, Treinamentos para empresas.
+- Próximos jogos planejados: Corrida política, Visita a locais, RPG multiplayer, Treinamentos para empresas.
+- Auto Escola (`games/auto-escola/`) v1 jogável: seguir `PLANO.md`. Pesos das infrações = fichas do MBEDV (anexo oficial de 01/02/2026), em `rules.js`.
+- Motor v0.2.0: `vehicle.js`, `road.js`, `traffic.js` + ganchos `world.onBeforeRender/onAfterRender` (retrovisores e overlays).
+- Testes da Auto Escola: `GAME.tick(dt)` + `tests/autopilot.js` (um motorista correto deve fazer a prova sem infrações). Em física, o passo interno é ≤ 2,5 ms (o modelo da embreagem fica instável com passos maiores).

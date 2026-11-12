@@ -1,0 +1,59 @@
+/* Auto Escola — HUD and touch controls */
+.ae-dash { position: absolute; left: 50%; bottom: max(10px, env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ez-bg); border-radius: 16px; padding: 6px 14px; display: flex; gap: 8px; align-items: baseline; font-weight: 700; }
+.ae-spd { font-size: 30px; min-width: 2ch; text-align: right; } .ae-dash small { opacity: .7; margin-right: 6px; }
+.ae-gear { font-size: 24px; color: #facc15; min-width: 2ch; text-align: center; }
+.ae-bl { color: #22c55e; font-size: 22px; min-width: 1ch; }
+.ae-beltico, .ae-hbico { color: #ef4444; font-size: 16px; } .ae-beltico.off, .ae-hbico.off { visibility: hidden; }
+.ae-speech { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,.95); color: #0f172a; padding: 10px 16px; border-radius: 14px; max-width: min(640px, 92vw); font-size: 17px; box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+.ae-speech b { color: #b45309; }
+.ae-obj { position: absolute; left: 10px; top: 58px; background: var(--ez-bg); border-radius: 14px; padding: 8px 12px; font-size: 14px; max-width: 290px; line-height: 1.45; }
+.ae-obj b { display: block; margin-bottom: 2px; } .ae-obj .done { color: #86efac; } .ae-obj .failed { color: #fca5a5; }
+.ae-mini { position: absolute; right: 10px; top: 58px; width: 120px; height: 120px; border-radius: 50%; }
+.ae-dom i { display: inline-block; width: 60px; height: 9px; border-radius: 6px; background: rgba(255,255,255,.25); vertical-align: middle; overflow: hidden; }
+.ae-dom i b { display: block; height: 100%; width: 100%; background: #22c55e; }
+.ez-pill.bad { background: rgba(220, 38, 38, .85); }
+.ae-score { background: rgba(37, 99, 235, .85); }
+.ae-looks { display: flex; gap: 6px; } .ae-looks .ae-b { width: 52px; height: 40px; font-size: 14px; border-radius: 12px; pointer-events: auto; }
+.ae-rotate { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(2,6,23,.8); font-size: 22px; font-weight: 700; pointer-events: auto; z-index: 9; }
+.ae-replay { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); background: rgba(220,38,38,.9); padding: 8px 14px; border-radius: 14px; font-weight: 700; z-index: 30; display: flex; gap: 10px; align-items: center; }
+.ae-phone { position: fixed; right: 14px; bottom: 40%; background: #0f172a; color: #fff; padding: 12px; border-radius: 18px; z-index: 12; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 30px rgba(0,0,0,.4); }
+/* menus */
+.ae-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ae-mode { background: #f1f5f9; color: #0f172a; border-radius: 16px; padding: 12px; text-align: left; display: flex; flex-direction: column; gap: 2px; }
+.ae-mode:hover { background: #e2e8f0; } .ae-mode .e { font-size: 32px; } .ae-mode b { font-size: 18px; } .ae-mode small { opacity: .7; }
+.ae-list { display: flex; flex-direction: column; gap: 6px; }
+.ae-item { background: #f1f5f9; color: #0f172a; border-radius: 12px; padding: 9px 12px; text-align: left; display: grid; grid-template-columns: 1fr auto; }
+.ae-item small { grid-column: 1; opacity: .7; } .ae-item .stars { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+.ae-inf { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.ae-infrow { background: #fef2f2; border-radius: 12px; padding: 8px 10px; display: flex; gap: 8px; justify-content: space-between; align-items: center; }
+.ae-infrow p { margin: 2px 0 0; font-size: 14px; opacity: .85; } .ae-infrow small { opacity: .7; }
+.ae-check { display: block; margin: 10px 0; font-weight: 600; }
+/* touch controls */
+.ae-touch { position: fixed; inset: auto 0 0 0; height: 0; z-index: 6; }
+.ae-left { position: fixed; left: max(10px, env(safe-area-inset-left)); bottom: max(10px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.ae-right { position: fixed; right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: flex-end; }
+.ae-row { display: flex; gap: 6px; }
+.ae-b { width: 46px; height: 42px; border-radius: 12px; background: rgba(15,23,42,.6); color: #fff; font-size: 18px; font-weight: 700; border: 2px solid rgba(255,255,255,.35); touch-action: none; }
+.ae-b.on { background: rgba(34,197,94,.85); } .ae-b.hb.on { background: rgba(220,38,38,.85); }
+.ae-more { display: flex; gap: 6px; flex-wrap: wrap; max-width: 260px; }
+.ae-wheel { width: 150px; height: 150px; border-radius: 50%; border: 14px solid rgba(15,23,42,.7); background: rgba(255,255,255,.08); touch-action: none; position: relative; }
+.ae-wheel-in { position: absolute; inset: 0; }
+.ae-spoke { position: absolute; left: 50%; top: 50%; width: 100%; height: 12px; transform: translate(-50%,-50%); background: rgba(15,23,42,.6); border-radius: 6px; }
+.ae-mark { position: absolute; left: 50%; top: -12px; width: 10px; height: 10px; background: #facc15; border-radius: 50%; transform: translateX(-50%); }
+.ae-pedals { display: flex; gap: 8px; align-items: flex-end; }
+.ae-pedal { width: 56px; height: 140px; border-radius: 14px; background: rgba(15,23,42,.6); border: 2px solid rgba(255,255,255,.35); position: relative; overflow: hidden; touch-action: none; display: grid; place-items: start center; font-weight: 700; }
+.ae-pedal span { position: relative; z-index: 1; margin-top: 6px; }
+.ae-pedal .ae-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; }
+.ae-pedal.cl .ae-fill { background: rgba(59,130,246,.7); } .ae-pedal.brk .ae-fill { background: rgba(220,38,38,.75); } .ae-pedal.thr .ae-fill { background: rgba(34,197,94,.75); }
+.ae-pedal.thr { height: 160px; }
+.ae-gears { display: grid; gap: 4px; background: rgba(15,23,42,.55); padding: 6px; border-radius: 12px; }
+.ae-gears.manual { grid-template-columns: repeat(3, 34px); } .ae-gears.manual button:nth-child(4) { grid-column: 1 / span 3; height: 24px; }
+.ae-gears.auto { grid-template-columns: 40px; }
+.ae-gears button { height: 32px; border-radius: 8px; background: rgba(255,255,255,.15); color: #fff; font-weight: 700; touch-action: none; }
+.ae-gears button.sel { background: #facc15; color: #0f172a; }
+@media (max-height: 430px) { .ae-wheel { width: 120px; height: 120px; border-width: 11px; } .ae-pedal { height: 110px; width: 48px; } .ae-pedal.thr { height: 126px; } .ae-obj { font-size: 12px; max-width: 230px; } .ae-speech { font-size: 14px; top: 52px; } .ae-mini { width: 90px; height: 90px; } .ae-b { width: 40px; height: 36px; font-size: 16px; } }
+@media (max-width: 560px) { .ae-modes { grid-template-columns: 1fr; } }
+
+/* on touch devices the side mirrors are shown as insets at the top corners */
+body.ae-touchui .ae-obj { top: calc(68px + var(--ae-mirror-h, 90px)); }
+body.ae-touchui .ae-mini { top: 58px; width: 110px; height: 110px; }

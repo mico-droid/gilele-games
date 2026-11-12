@@ -1,5 +1,8 @@
 # 🚗 Auto Escola: plano revisado (v1)
 
+> **Status (12/11/2026): v1 jogável.** Feito: `engine/vehicle.js`, `engine/road.js`, `engine/traffic.js`, bairro, cockpit com retrovisores reais, câmeras interior/externa, controles de toque e teclado, juiz com as fichas do MBEDV, Prova (3 percursos), 8 lições, 7 cenários, passeio livre, replay das infrações, PWA e PT/EN/ES.
+> Fica para depois: replay de 5 s com câmera lenta, cenário noturno, estacionamento a 45°, detector do art. 220, ranking, multijogador "examinador amigo", carteirinha fictícia, quiz de placas.
+
 Jogo 3D do Gilele Engine (`games/auto-escola/`), em PWA, para celular e teclado, em PT/EN/ES.
 
 ---
@@ -94,24 +97,34 @@ O jogo em si fica em `games/auto-escola/`:
 - `scenarios.js`: os cenários do Trânsito Difícil.
 - `cockpit.js`: o painel 3D.
 
-**Catálogo inicial de detectores.** Os pesos vêm da natureza da infração no CTB. Cada um será **conferido na ficha do MBEDV antes de codificar**.
+**Catálogo de detectores (pesos conferidos nas fichas do MBEDV).** Fonte: anexo "Fichas de Avaliação" do MBEDV (gov.br, 01/02/2026). Implementado em `rules.js`.
 
-| Situação no jogo | CTB | Natureza |
-|---|---|---|
-| Avançar sinal vermelho ou PARE | art. 208 | gravíssima |
-| Não dar preferência ao pedestre na faixa | art. 214 | gravíssima |
-| Excesso de velocidade (até 20% / 20–50% / >50%) | art. 218 | média / grave / gravíssima |
-| Sem cinto | art. 167 | grave |
-| Não sinalizar mudança de direção ou faixa (seta) | art. 196 | grave |
-| Contramão | art. 186 | grave / gravíssima |
-| Transitar na calçada / parar sobre faixa de pedestre | arts. 193 / 182 | gravíssima / conforme o inciso |
-| Ultrapassagem proibida (faixa contínua) | art. 203 | gravíssima |
-| Dirigir sem atenção | art. 169 | leve |
-| Estacionar irregular ou fora da vaga no percurso | art. 181 | conforme o inciso |
-| Não dar passagem a ambulância | art. 189 | gravíssima |
-| Usar o celular (cenário "mensagem chegando") | art. 252 | média / gravíssima, conforme o inciso |
-| Buzina sem necessidade | art. 227 | leve |
-| Farol apagado em túnel ou à noite | art. 250 | média |
+| Situação no jogo | Ficha | Natureza (peso) | Observação |
+|---|---|---|---|
+| Avançar sinal vermelho / não parar totalmente no PARE | art. 208 | gravíssima (6) | Pontua só ao cruzar a linha de retenção no vermelho; amarelo não pontua |
+| Não dar preferência ao pedestre na faixa | art. 214, I | gravíssima (6) | Pedestre atravessando ou parado na guia esperando |
+| Velocidade até 20% / 20–50% / >50% acima | art. 218, I / II / III | média (2) / grave (4) / gravíssima (6) | Só a faixa mais alta conta em cada episódio |
+| Não sinalizar (seta) ao sair da vaga, mudar de faixa, converter, sair da rotatória | art. 196 | grave (4) | |
+| Não ir para a faixa certa antes de converter | art. 197 | média (2) | Só em vias com 2+ faixas no sentido |
+| Contramão em via de mão dupla / de mão única | art. 186, I / II | grave (4) / gravíssima (6) | Em linha tracejada, tolera ultrapassagem rápida |
+| Ultrapassar sobre linha amarela contínua | art. 203, V | gravíssima (6) | |
+| Subir na calçada / ilha | art. 193 | gravíssima (6) | Encostar no meio-fio só baixa o domínio |
+| Não guardar distância do veículo da frente | art. 192 | grave (4) | Menos de ~0,7 s de distância por mais de 2,5 s |
+| Dirigir sem atenção (freio de mão puxado andando, marcha errada) | art. 169 | leve (1) | A ficha cita "freio de mão ou marchas incorretas" |
+| Parar sobre a faixa de pedestres na mudança de sinal | art. 183 | média (2) | **Mudou:** o plano citava o art. 182, que não tem ficha |
+| Descer a ladeira em ponto morto | art. 231, IX | média (2) | Ficha com texto divergente (fala em gravíssima); usado o campo "Gravidade" |
+| Pisca-alerta ligado em movimento | art. 251, I | média (2) | |
+| Buzina sem necessidade | art. 227 | leve (1) | Toque prolongado ou 3 toques em 6 s |
+| Ré sem necessidade (mais de 22 m) | art. 194 | grave (4) | Liberada na lição de baliza |
+| Não dar preferência a quem está na rotatória | art. 215, I, a | grave (4) | |
+| Não dar passagem à ambulância | art. 189 | gravíssima (6) | Cenário 5 |
+| Usar o celular | art. 252, VI | **média (2)** | **Mudou:** o plano dizia média/gravíssima; a ficha do MBEDV diz média |
+| Farol baixo apagado na chuva | art. 250, I | média (2) | Cenário 6 |
+| Limpador desligado na chuva | art. 230, XIX | grave (4) | Ficha com texto divergente (fala em média); usado o campo "Gravidade" |
+| Estacionar: <5 m da esquina / 50 cm–1 m da guia / >1 m / sobre a faixa | art. 181, I / II / III / VIII | média (2) / leve (1) / grave (4) / grave (4) | Avaliado no fim da Prova |
+
+**Cinto (art. 167):** o anexo de fichas **não tem ficha** para o art. 167. No jogo, sair sem cinto não soma pontos: o examinador manda parar e colocar o cinto, e o domínio cai 10.
+**Art. 220 (velocidade incompatível perto de escola):** a rua da escola tem limite de 30 km/h, então o excesso já cai no art. 218. Detector próprio do 220 fica para a v2.
 
 **Controle do veículo**, separado da pontuação: o carro morrer, trancos e "perder o controle" entram num **medidor de domínio**. Se ele zerar, a "comissão" interrompe a prova, como prevê o MBEDV. O carro morrer só gera aviso e feedback, porque não reprova mais sozinho.
 
