@@ -39,7 +39,7 @@ const cockpit = createCockpit(world, car, { lowQuality: () => world.quality === 
 
 // ---------------------------------------------------------------- cameras
 const fp = createFirstPersonCamera(world.camera, { yawOffset: Math.PI, maxYaw: 2.4, maxPitch: 0.9 });
-let camMode = "in", orbitYaw = 0, orbitT = 0, lookHold = 0, lookTarget = 0, lastShoulder = { "-1": -99, "1": -99 }, headMoved = -99;
+let camMode = "in", orbitYaw = 0, orbitT = 0, lastShoulder = { "-1": -99, "1": -99 }, headMoved = -99;
 const chase = { pos: new THREE.Vector3(), look: new THREE.Vector3(), first: true };
 function setCamera(m) {
   camMode = m; cockpit.setInterior(m === "in"); cockpit.setOverlay(m === "out" || isTouch);
@@ -52,7 +52,9 @@ function setCamera(m) {
 function updateCamera(dt) {
   if (camMode === "in") {
     // shoulder check (hold) eases the head; free look by dragging
-    if (lookHold) { fp.state.yaw += (lookTarget - fp.state.yaw) * Math.min(1, dt * 7); }
+    const hold = glance && glance.hold && performance.now() - mirrorT[glance.hold] > 350; // held → over the shoulder
+    if (hold) { const sy = glance.hold === "L" ? 2.0 : glance.hold === "R" ? -2.0 : glance.yaw; fp.state.yaw += (sy - fp.state.yaw) * Math.min(1, dt * 7); fp.state.pitch *= 1 - Math.min(1, dt * 5); }
+    else if (glance && clock < glance.until) { fp.state.yaw += (glance.yaw - fp.state.yaw) * Math.min(1, dt * 8); fp.state.pitch += (glance.pitch - fp.state.pitch) * Math.min(1, dt * 8); }
     else if (performance.now() - lastDrag > 1600) { fp.state.yaw *= 1 - Math.min(1, dt * 2.5); fp.state.pitch *= 1 - Math.min(1, dt * 2.5); }
     if (fp.state.yaw > 1.25) lastShoulder["-1"] = clock; if (fp.state.yaw < -1.25) lastShoulder["1"] = clock;
     if (Math.abs(fp.state.yaw) > 0.25) headMoved = clock;
@@ -71,45 +73,55 @@ function updateCamera(dt) {
 }
 
 // ---------------------------------------------------------------- input
+// Keyboard laid out like the car: left hand on the wheel (A/D) and the indicator stalk (W up = right, S down = left),
+// feet on Shift (clutch) · V (brake) · B (throttle), right hand on the H-gate (U I O / J K L / M , .),
+// G = ignition key, Q / Y / P = left / inner / right mirror (tap = glance, hold = look over the shoulder).
 const keys = {};
 const ctl = { thr: 0, brk: 0, cl: 0, steer: 0, touch: { wheel: null, thr: null, brk: null, cl: null } };
-let mirrorAdjust = null, lastDrag = 0, playing = false, clock = 0;
-const KEYMAP = { up: ["KeyW", "ArrowUp"], down: ["KeyS", "ArrowDown"], left: ["KeyA", "ArrowLeft"], right: ["KeyD", "ArrowRight"], clutch: ["ShiftLeft", "ShiftRight", "KeyQ"] };
+let lastDrag = 0, playing = false, clock = 0, glance = null;
+const KEYMAP = { thr: ["KeyB", "ArrowUp"], brk: ["KeyV", "ArrowDown"], left: ["KeyA", "ArrowLeft"], right: ["KeyD", "ArrowRight"], clutch: ["ShiftLeft", "ShiftRight"] };
 const isKey = (a) => KEYMAP[a].some((c) => keys[c]);
+const HGATE = { KeyU: 1, KeyI: 3, KeyO: 5, KeyJ: 0, KeyK: 0, KeyL: 0, KeyM: 2, Comma: 4, Period: -1 };
+const AUTO_SEQ = ["P", "R", "N", "D"];
+// controls (id → action) shared by keyboard, cockpit hotspots and touch
+const ACT = {
+  belt: { key: "Z", icon: "🪢", down: () => toggleBelt() },
+  key: { key: "G", icon: "🔑", down: () => ignitionDown(), up: () => ignitionUp() },
+  blinkL: { key: "S", icon: "◀", down: () => blinker(-1) },
+  blinkR: { key: "W", icon: "▶", down: () => blinker(1) },
+  lights: { key: "R", icon: "💡", down: () => toggleLights() },
+  hazard: { key: "T", icon: "⚠️", down: () => toggleHazard() },
+  horn: { key: "F", icon: "📯", down: () => hornDown(), up: () => hornUp() },
+  wipers: { key: "X", icon: "🌧", down: () => toggleWipers() },
+  handbrake: { get key() { return t("space"); }, icon: "(P)", down: () => toggleHandbrake() },
+  mirrorL: { key: "Q", icon: "🪞", down: () => mirrorDown("L"), up: () => mirrorUp("L") },
+  mirrorI: { key: "Y", icon: "🪞", down: () => mirrorDown("I"), up: () => mirrorUp("I") },
+  mirrorR: { key: "P", icon: "🪞", down: () => mirrorDown("R"), up: () => mirrorUp("R") },
+};
+const KEY2ACT = { KeyZ: "belt", KeyG: "key", KeyS: "blinkL", KeyW: "blinkR", KeyR: "lights", KeyT: "hazard", KeyF: "horn", KeyX: "wipers", Space: "handbrake", KeyQ: "mirrorL", KeyY: "mirrorI", KeyP: "mirrorR" };
 addEventListener("keydown", (e) => {
   if (document.activeElement && document.activeElement.tagName === "INPUT") return;
-  if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
+  if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].includes(e.code)) e.preventDefault();
   if (e.repeat) return;
   keys[e.code] = true;
-  if (!playing) { if (e.code === "Escape" || e.code === "KeyP") return; return; }
+  if (!playing) return;
   const auto = car.transmission === "auto";
-  const digit = e.code.startsWith("Digit") ? +e.code.slice(5) : null;
-  if (digit !== null) { if (auto) { if (digit === 0) shift("P"); else if (digit === 1) shift("D"); } else if (digit >= 1 && digit <= 5) shift(digit); else if (digit === 0) shift(0); }
-  if (e.code === "KeyR") shift(auto ? "R" : -1);
-  if (e.code === "KeyN") shift(auto ? "N" : 0);
-  if (e.code === "Space") toggleHandbrake();
-  if (e.code === "KeyZ") blinker(-1);
-  if (e.code === "KeyX") blinker(1);
-  if (e.code === "KeyH") toggleHazard();
-  if (e.code === "KeyL") toggleLights();
-  if (e.code === "KeyV") toggleWipers();
-  if (e.code === "KeyK") toggleBelt();
-  if (e.code === "KeyB") hornDown();
-  if (e.code === "KeyI") ignitionDown();
-  if (e.code === "KeyM") cycleMirror();
+  if (e.code in HGATE || e.code.startsWith("Digit")) {
+    if (auto) { if (e.code === "KeyI") autoStep(-1); else if (e.code === "KeyK") autoStep(1); }
+    else if (e.code in HGATE) shift(HGATE[e.code]);
+    else { const d = +e.code.slice(5); if (d >= 1 && d <= 5) shift(d); if (d === 0) shift(0); }
+  }
+  if (KEY2ACT[e.code]) { const a = ACT[KEY2ACT[e.code]]; a.down(); flashHot(KEY2ACT[e.code]); }
   if (e.code === "KeyC") setCamera(camMode === "in" ? "out" : "in");
-  if (e.code === "Comma") { lookHold = 1; lookTarget = 2.0; }
-  if (e.code === "Period") { lookHold = 1; lookTarget = -2.0; }
-  if (e.code === "Escape" || e.code === "KeyP") pause();
+  if (e.code === "Escape") pause();
 });
 addEventListener("keyup", (e) => {
   keys[e.code] = false;
-  if (e.code === "KeyB") hornUp();
-  if (e.code === "KeyI") ignitionUp();
-  if (e.code === "Comma" || e.code === "Period") lookHold = 0;
+  const id = KEY2ACT[e.code]; if (id && ACT[id].up) ACT[id].up();
 });
 addEventListener("blur", () => { for (const k in keys) keys[k] = false; hornUp(); });
 
+function autoStep(d) { const i = AUTO_SEQ.indexOf(car.autoMode); shift(AUTO_SEQ[Math.max(0, Math.min(3, i + d))]); }
 function shift(g) {
   const ok = car.shift(g);
   if (!ok && car._ev.grind) msg("m_grind");
@@ -129,26 +141,27 @@ function hornUp() { car.data.horn = false; clearInterval(hornSound); }
 let ignT = null;
 function ignitionDown() {
   if (car.engineOn) { car.stopEngine(); Audio.play("click"); updateButtons(); mode && mode.onEngineOff && mode.onEngineOff(); return; }
-  ignT = setTimeout(() => { car.startEngine(); if (car._ev.jolt) msg("m_jolt"); if (car._ev.needPN) msg("m_needPN"); }, 150);
+  ignT = setTimeout(() => { car.startEngine(); if (car._ev.jolt) msg("m_jolt"); if (car._ev.needPN) msg("m_needPN"); }, 120);
 }
 function ignitionUp() { clearTimeout(ignT); }
-function cycleMirror() {
-  const order = [cockpit.left, cockpit.right, cockpit.inner, null];
-  mirrorAdjust = order[(order.indexOf(mirrorAdjust) + 1) % order.length];
-  if (mirrorAdjust) { setCamera("in"); toast("🪞 " + t("mirrors") + ": " + { left: "◀", right: "▶", in: "⬆" }[mirrorAdjust.name]); car.data.mirrors = (car.data.mirrors || 0) | 1; }
-  cockpit.mirrors.forEach((m) => m.frame.material = m.frame.material); // no-op; highlight below
-  cockpit.mirrors.forEach((m) => m.frame.scale.setScalar(m === mirrorAdjust ? 1.15 : 1));
+// mirrors: tap = quick glance (counts as "checked/adjusted"), hold = look over the shoulder (blind spot)
+const MIRROR_VIEW = { L: [0.95, -0.05], I: [-0.32, 0.12], R: [-1.0, -0.05] }, MIRROR_BIT = { L: 1, I: 4, R: 2 };
+let mirrorT = {};
+function mirrorDown(w) {
+  mirrorT[w] = performance.now(); car.data.mirrors = (car.data.mirrors || 0) | MIRROR_BIT[w];
+  if (camMode === "in") glance = { yaw: MIRROR_VIEW[w][0], pitch: MIRROR_VIEW[w][1], until: clock + 1.1, hold: w };
   updateButtons();
 }
-// canvas drag: look around / adjust mirrors / orbit
+function mirrorUp(w) { if (glance && glance.hold === w) { const held = performance.now() - mirrorT[w] > 350; glance.hold = null; if (held) glance.until = clock; } }
+
+// canvas drag: free look (interior) / orbit (exterior); taps on cockpit hotspots are DOM buttons
 const canvas = world.renderer.domElement;
 let dragId = null, dragLast = null;
 canvas.addEventListener("pointerdown", (e) => { if (!playing) return; dragId = e.pointerId; dragLast = { x: e.clientX, y: e.clientY }; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} });
 canvas.addEventListener("pointermove", (e) => {
   if (e.pointerId !== dragId) return;
   const dx = e.clientX - dragLast.x, dy = e.clientY - dragLast.y; dragLast = { x: e.clientX, y: e.clientY };
-  lastDrag = performance.now();
-  if (mirrorAdjust) { cockpit.adjust(mirrorAdjust, -dx * 0.003, -dy * 0.003); car.data.mirrors = 3; return; }
+  lastDrag = performance.now(); glance = null;
   if (camMode === "in") fp.look(dx, dy, e.pointerType === "touch"); else orbitYaw -= dx * 0.006;
 });
 const endDrag = (e) => { if (e.pointerId === dragId) dragId = null; };
@@ -157,11 +170,9 @@ canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
 function readControls(dt) {
   const T = ctl.touch, v = car.kmh();
-  // throttle / brake ramps for keys
-  if (isKey("up")) ctl.thr = Math.min(1, Math.max(ctl.thr, 0.3) + dt * 0.55); else ctl.thr = 0;
-  if (isKey("down")) ctl.brk = Math.min(1, Math.max(ctl.brk, 0.3) + dt * 1.1); else ctl.brk = 0;
+  if (isKey("thr")) ctl.thr = Math.min(1, Math.max(ctl.thr, 0.3) + dt * 0.55); else ctl.thr = 0;
+  if (isKey("brk")) ctl.brk = Math.min(1, Math.max(ctl.brk, 0.3) + dt * 1.1); else ctl.brk = 0;
   if (isKey("clutch")) ctl.cl = Math.min(1, ctl.cl + dt * 7); else ctl.cl = Math.max(0, ctl.cl - dt * (ctl.cl > 0.65 ? 2.2 : 0.75)); // slow through the biting point
-  // steering
   const kd = (isKey("right") ? 1 : 0) - (isKey("left") ? 1 : 0);
   const maxK = 1 / (1 + v / 28);
   if (kd) ctl.steer += Math.max(-dt * 2.2, Math.min(dt * 2.2, kd * maxK - ctl.steer));
@@ -170,79 +181,114 @@ function readControls(dt) {
   c.throttle = T.thr != null ? T.thr : ctl.thr;
   c.brake = T.brk != null ? T.brk : ctl.brk;
   c.clutch = T.cl != null ? T.cl : ctl.cl;
-  // steer: +1 = right. Vehicle steerAngle > 0 → positive yaw → LEFT turn, so invert.
   const s = T.wheel != null ? T.wheel : ctl.steer;
-  c.steer = -s;
-  // blinker auto-cancel after the turn
+  c.steer = -s; // +s = right; vehicle steerAngle > 0 turns left
   const L = car.lights;
   if (L.blinker) { const dh = Math.abs(((car.heading - blinkStartH + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI); if (dh > 1.0) blinkTurned = true; if (blinkTurned && Math.abs(s) < 0.12) { L.blinker = 0; updateButtons(); } }
+  // pedal fill (keyboard and touch)
+  pedalFill(clutchPedal, c.clutch); pedalFill(brakePedal, c.brake); pedalFill(thrPedal, c.throttle);
 }
 
-// ---------------------------------------------------------------- touch controls (custom)
-const tc = h("div.ae-touch" + (isTouch ? "" : ".ez-hidden"));
-const wheelEl = h("div.ae-wheel", h("div.ae-wheel-in", h("div.ae-spoke"), h("div.ae-mark")));
+// ---------------------------------------------------------------- on-screen controls (always visible, nothing hidden)
+const tc = h("div.ae-touch");
+const wheelEl = h("div.ae-wheel" + (isTouch ? "" : ".ez-hidden"), h("div.ae-wheel-in", h("div.ae-spoke"), h("div.ae-mark")));
 const pedals = h("div.ae-pedals");
-const pedal = (key, label, cls) => {
-  const el = h("div.ae-pedal." + cls, h("span", label), h("div.ae-fill"));
-  const set = (e) => { const r = el.getBoundingClientRect(); const v = Math.max(0.12, Math.min(1, (r.bottom - e.clientY) / r.height)); ctl.touch[key] = v; el.lastChild.style.height = v * 100 + "%"; };
+const pedalFill = (el, v) => (el.lastChild.style.height = Math.round(v * 100) + "%");
+const pedal = (key, label, kb, cls) => {
+  const el = h("div.ae-pedal." + cls, h("span", label), h("kbd", kb), h("div.ae-fill"));
+  const set = (e) => { const r = el.getBoundingClientRect(); ctl.touch[key] = Math.max(0.15, Math.min(1, (r.bottom - e.clientY) / r.height)); };
   el.addEventListener("pointerdown", (e) => { e.preventDefault(); el.setPointerCapture(e.pointerId); set(e); });
   el.addEventListener("pointermove", (e) => { if (el.hasPointerCapture(e.pointerId)) set(e); });
-  const up = () => { ctl.touch[key] = key === "cl" ? null : null; el.lastChild.style.height = "0"; if (key === "cl") { ctl.cl = 1; } };
+  const up = () => { ctl.touch[key] = null; if (key === "cl") ctl.cl = 1; };
   el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
   return el;
 };
-const clutchPedal = pedal("cl", "E", "cl"), brakePedal = pedal("brk", "F", "brk"), thrPedal = pedal("thr", "A", "thr");
+const clutchPedal = pedal("cl", "E", "Shift", "cl"), brakePedal = pedal("brk", "F", "V", "brk"), thrPedal = pedal("thr", "A", "B", "thr");
 pedals.append(clutchPedal, brakePedal, thrPedal);
 {
-  let id = null, a0 = 0, base = 0, val = 0;
+  let id = null, a0 = 0, val = 0;
   const ang = (e) => { const r = wheelEl.getBoundingClientRect(); return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)); };
-  wheelEl.addEventListener("pointerdown", (e) => { e.preventDefault(); id = e.pointerId; wheelEl.setPointerCapture(id); a0 = ang(e); base = val; });
+  wheelEl.addEventListener("pointerdown", (e) => { e.preventDefault(); id = e.pointerId; wheelEl.setPointerCapture(id); a0 = ang(e); });
   wheelEl.addEventListener("pointermove", (e) => {
     if (e.pointerId !== id) return; let d = ang(e) - a0; d = ((d + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
-    const turns = Math.PI * 1.25; val = Math.max(-1, Math.min(1, base + d / turns)); a0 = ang(e); base = val; ctl.touch.wheel = val;
+    val = Math.max(-1, Math.min(1, val + d / (Math.PI * 1.25))); a0 = ang(e); ctl.touch.wheel = val;
   });
   const up = (e) => { if (e.pointerId !== id) return; id = null; const back = () => { if (id !== null) return; val *= 0.8; if (Math.abs(val) < 0.02) val = 0; ctl.touch.wheel = val; if (val) requestAnimationFrame(back); else ctl.touch.wheel = null; }; back(); };
   wheelEl.addEventListener("pointerup", up); wheelEl.addEventListener("pointercancel", up);
 }
 const gearBox = h("div.ae-gears");
+const GEAR_KEYS = { 1: "U", 3: "I", 5: "O", N: "K", 2: "M", 4: ",", R: "." };
 function updateGearUI() {
-  const cur = car.transmission === "auto" ? car.autoMode : car.gear === -1 ? "R" : car.gear === 0 ? "N" : String(car.gear);
-  const opts = car.transmission === "auto" ? ["P", "R", "N", "D"] : ["1", "3", "5", "N", "2", "4", "R"];
+  const auto = car.transmission === "auto";
+  const cur = auto ? car.autoMode : car.gear === -1 ? "R" : car.gear === 0 ? "N" : String(car.gear);
+  const opts = auto ? AUTO_SEQ : ["1", "3", "5", "N", "2", "4", "R"];
   gearBox.className = "ae-gears " + car.transmission;
-  gearBox.replaceChildren(...opts.map((g) => h("button" + (g === cur ? ".sel" : ""), { onpointerdown: (e) => { e.preventDefault(); shift(car.transmission === "auto" ? g : g === "R" ? -1 : g === "N" ? 0 : +g); } }, g)));
+  gearBox.replaceChildren(...opts.map((g) => h("button" + (g === cur ? ".sel" : ""), { onpointerdown: (e) => { e.preventDefault(); shift(auto ? g : g === "R" ? -1 : g === "N" ? 0 : +g); } }, g, isTouch ? null : h("kbd", auto ? "" : GEAR_KEYS[g]))));
+  if (auto && !isTouch) gearBox.appendChild(h("small", "I ▲ · K ▼"));
   gearPill.textContent = car.gearLabel();
 }
-const tbtn = (label, fn, cls = "") => h("button.ae-b" + cls, { onpointerdown: (e) => { e.preventDefault(); e.stopPropagation(); fn(true); }, onpointerup: () => fn(false), onpointercancel: () => fn(false) }, label);
-const bl = tbtn("◀", (d) => d && blinker(-1)), br = tbtn("▶", (d) => d && blinker(1)), hb = tbtn("(P)", (d) => d && toggleHandbrake(), ".hb");
-const beltB = tbtn("🪢", (d) => d && toggleBelt()), keyB = tbtn("🔑", (d) => (d ? ignitionDown() : ignitionUp()));
-const hazB = tbtn("⚠️", (d) => d && toggleHazard()), lightB = tbtn("💡", (d) => d && toggleLights()), hornB = tbtn("📯", (d) => (d ? hornDown() : hornUp())), wipB = tbtn("🌧", (d) => d && toggleWipers()), mirB = tbtn("🪞", (d) => d && cycleMirror());
-const lookLB = tbtn("👀◀", (d) => { lookHold = d ? 1 : 0; lookTarget = 2.0; }), lookRB = tbtn("▶👀", (d) => { lookHold = d ? 1 : 0; lookTarget = -2.0; });
-const moreP = h("div.ae-more.ez-hidden", hazB, lightB, hornB, wipB, mirB);
-const moreB = tbtn("☰", (d) => d && moreP.classList.toggle("ez-hidden"));
-tc.append(
-  h("div.ae-left", h("div.ae-row", bl, hb, br), h("div.ae-row", beltB, keyB, moreB), moreP, wheelEl),
-  h("div.ae-right", gearBox, pedals),
-);
-document.body.appendChild(tc);
+const rightPanel = h("div.ae-right", gearBox, pedals);
+tc.append(wheelEl, rightPanel);
+// cockpit hotspots: each control floats over its real place in the car (key letter on PC, tap on phones)
+const HOT_ANCHOR = {
+  mirrorL: [0.95, 1.08, 0.5], mirrorI: [0.02, 1.36, 0.48], mirrorR: [-0.95, 1.08, 0.5],
+  belt: [0.7, 1.36, 0.36], lights: [0.64, 0.99, 0.58], blinkR: [0.6, 0.97, 0.44], blinkL: [0.6, 0.86, 0.44],
+  horn: [0.36, 0.9, 0.42], wipers: [0.13, 0.93, 0.44], key: [0.14, 0.83, 0.47], hazard: [0.0, 1.05, 0.66], handbrake: [0.1, 0.96, 0.34],
+};
+const hotEls = {};
+const hotLayer = h("div.ae-hot.ez-hidden");
+for (const id in HOT_ANCHOR) {
+  const a = ACT[id];
+  const el = h("button.ae-hs.hs-" + id, { onpointerdown: (e) => { e.preventDefault(); e.stopPropagation(); a.down(); flashHot(id); }, onpointerup: () => a.up && a.up(), onpointercancel: () => a.up && a.up(), onpointerleave: () => a.up && a.up() },
+    h("span", a.icon), isTouch ? null : h("kbd", a.key));
+  hotEls[id] = el; hotLayer.appendChild(el);
+}
+// exterior camera: the cockpit is not visible, so the essentials stay on a visible bar
+const extBar = h("div.ae-extbar.ez-hidden", ...["blinkL", "handbrake", "hazard", "blinkR"].map((id) => h("button.ae-b", { onpointerdown: (e) => { e.preventDefault(); ACT[id].down(); } }, ACT[id].icon, isTouch ? null : h("kbd", ACT[id].key))));
+document.body.append(hotLayer, extBar, tc);
+const tmpV = new THREE.Vector3();
+function placeHotspots() {
+  const show = playing && camMode === "in";
+  hotLayer.classList.toggle("ez-hidden", !show); extBar.classList.toggle("ez-hidden", !(playing && camMode === "out"));
+  if (!show) return;
+  car.mesh.body.updateWorldMatrix(true, false);
+  const W = innerWidth, H = innerHeight;
+  const placed = [];
+  const blockRects = [wheelEl, rightPanel, dashPill].filter((e) => e.getClientRects().length).map((e) => e.getBoundingClientRect());
+  for (const id in HOT_ANCHOR) {
+    tmpV.set(...HOT_ANCHOR[id]).applyMatrix4(car.mesh.body.matrixWorld).project(world.camera);
+    const el = hotEls[id], mir = id.startsWith("mirror"), always = mir || id === "handbrake" || id === "key";
+    const vis = tmpV.z < 1 && (always || (Math.abs(tmpV.x) < 1.1 && Math.abs(tmpV.y) < 1.1));
+    el.style.display = vis ? "" : "none"; if (!vis) continue;
+    let x = Math.max(26, Math.min(W - 26, (tmpV.x * 0.5 + 0.5) * W)), y = Math.max(70, Math.min(H - 26, (-tmpV.y * 0.5 + 0.5) * H));
+    if (isTouch && mir && id !== "mirrorI" && cockpit.miniRects) { const r = cockpit.miniRects[id === "mirrorL" ? 0 : 1]; x = r[0] + r[2] / 2; y = r[1] + r[3] - 18; } // on phones: on the mirror inset
+    for (const r of blockRects) if (x > r.left - 22 && x < r.right + 22 && y > r.top - 22 && y < r.bottom + 22) y = r.top - 26; // never cover the wheel / pedals / gears
+    for (let k = 0; k < 6 && placed.some((p) => Math.abs(p[0] - x) < 44 && Math.abs(p[1] - y) < 42); k++) x -= 46; // no overlaps
+    placed.push([x, y]);
+    el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+  }
+}
+function flashHot(id) { const el = hotEls[id]; if (!el) return; el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
 
 // ---------------------------------------------------------------- HUD
 const modePill = h("div.ez-pill"), ptsPill = h("div.ez-pill.ez-hidden"), domPill = h("div.ez-pill.ae-dom.ez-hidden", h("span"), h("i", h("b")));
 const gearPill = h("b.ae-gear"), spdPill = h("b.ae-spd"), blPill = h("span.ae-bl"), beltPill = h("span.ae-beltico", "🪢"), hbPill = h("span.ae-hbico", "(P)");
 const dashPill = h("div.ae-dash", blPill, spdPill, h("small", "km/h"), gearPill, beltPill, hbPill);
 const speech = h("div.ae-speech.ez-hidden", h("b"), h("span"));
-const objBox = h("div.ae-obj.ez-hidden");
+const objBox = h("div.ae-focus.ez-hidden");
 const mini = h("canvas.ae-mini", { width: 150, height: 150 });
 const camBtn = h("button.ez-rbtn", { title: t("cam_in"), onclick: () => setCamera(camMode === "in" ? "out" : "in") }, "🎥");
 const rotateHint = h("div.ae-rotate.ez-hidden", t("rotate"));
 const hud = h("div.ez-hud.ez-hidden",
-  h("div.ez-top", modePill, ptsPill, domPill, h("div.ez-spacer"), isTouch ? h("div.ae-looks", lookLB, lookRB) : null, camBtn, h("button.ez-rbtn", { onclick: () => pause() }, "⏸")),
-  speech, objBox, mini, dashPill, rotateHint);
+  h("div.ez-top", modePill, ptsPill, domPill, h("div.ez-spacer"), camBtn, h("button.ez-rbtn", { onclick: () => pause() }, "⏸")),
+  objBox, speech, mini, dashPill, rotateHint);
 document.body.appendChild(hud);
 function updateButtons() {
-  const L = car.lights;
-  bl.classList.toggle("on", L.blinker < 0); br.classList.toggle("on", L.blinker > 0); hb.classList.toggle("on", car.controls.handbrake > 0.5);
-  beltB.classList.toggle("on", !!car.data.belt); keyB.classList.toggle("on", car.engineOn); hazB.classList.toggle("on", L.hazard); lightB.classList.toggle("on", L.head);
-  wipB.classList.toggle("on", !!car.data.wipers); mirB.classList.toggle("on", !!mirrorAdjust);
+  const L = car.lights, on = (id, v) => { hotEls[id] && hotEls[id].classList.toggle("on", !!v); };
+  on("blinkL", L.blinker < 0); on("blinkR", L.blinker > 0); on("handbrake", car.controls.handbrake > 0.5); on("belt", car.data.belt); on("key", car.engineOn);
+  on("hazard", L.hazard); on("lights", L.head); on("wipers", car.data.wipers);
+  const m = car.data.mirrors || 0; on("mirrorL", m & 1); on("mirrorR", m & 2); on("mirrorI", m & 4);
+  [...extBar.children].forEach((b, i) => b.classList.toggle("on", [L.blinker < 0, car.controls.handbrake > 0.5, L.hazard, L.blinker > 0][i]));
   beltPill.classList.toggle("off", !!car.data.belt); hbPill.classList.toggle("off", car.controls.handbrake < 0.5);
 }
 let speechT = 0;
@@ -252,10 +298,21 @@ function say(who, key, vars, secs = 6) {
 }
 let msgCool = {};
 function msg(key, secs = 2.6) { if ((msgCool[key] || 0) > clock) return; msgCool[key] = clock + 4; toast(t(key), secs * 1000); }
+// lessons: ONE instruction at a time, with the control to use highlighted
+const CTRL_EL = () => ({ clutch: clutchPedal, brake: brakePedal, throttle: thrPedal, gear: gearBox });
+let focusCtrl = null;
 function setObjectives(list) {
-  if (!list) { objBox.classList.add("ez-hidden"); return; }
+  document.querySelectorAll(".ae-pulse").forEach((e) => e.classList.remove("ae-pulse"));
+  if (!list) { objBox.classList.add("ez-hidden"); focusCtrl = null; return; }
+  const steps = list.filter((o) => !o.passive), i = steps.findIndex((o) => !o.done), cur = steps[i];
+  const failed = list.find((o) => o.failed);
+  if (!cur && !failed) { objBox.classList.add("ez-hidden"); return; }
+  const o = failed || cur;
   objBox.classList.remove("ez-hidden");
-  objBox.replaceChildren(h("b", "🎯 " + t("obj")), ...list.map((o) => h("div" + (o.done ? ".done" : o.failed ? ".failed" : ""), (o.done ? "✅ " : o.failed ? "❌ " : "⬜ ") + t(o.key, o.vars))));
+  const ids = [].concat(o.ctrl || []);
+  const chips = ids.map((id) => ACT[id] ? (isTouch ? ACT[id].icon : ACT[id].key) : id === "gear" ? (isTouch ? "⚙️" : car.transmission === "auto" ? "I/K" : "U I O · M , .") : id === "clutch" ? "Shift" : id === "brake" ? "V" : id === "throttle" ? "B" : "");
+  objBox.replaceChildren(h("small", failed ? "❌" : `${i + 1}/${steps.length}`), h("span", t(o.key, o.vars)), ...chips.filter(Boolean).map((c) => h("kbd", c)));
+  for (const id of ids) { const el = hotEls[id] || CTRL_EL()[id]; if (el) el.classList.add("ae-pulse"); }
 }
 // minimap
 const mctx = mini.getContext("2d");
@@ -384,7 +441,7 @@ function startMode(factory, arg) {
   setCamera(store.get("cam_" + mode.id, mode.defaultCam || "in"));
   mode.start && mode.start();
   playing = true; world.setPaused(false);
-  hud.classList.remove("ez-hidden"); tc.classList.toggle("ez-hidden", !isTouch);
+  hud.classList.remove("ez-hidden"); tc.classList.remove("ez-hidden");
   updateGearUI(); updateButtons(); updatePts();
   car.enableSound(); Audio.init();
   track("ae_start", { game: GAME_ID, mode: mode.id, gearbox: car.transmission });
@@ -522,7 +579,8 @@ function frame(dt) {
     if (speechT > 0) { speechT -= dt; if (speechT <= 0) speech.classList.add("ez-hidden"); }
     if ((clock * 10 | 0) % 2 === 0) drawMini();
     rotateHint.classList.toggle("ez-hidden", !(isTouch && innerHeight > innerWidth));
-  } else car.updateMesh(dt);
+    placeHotspots();
+  } else { car.updateMesh(dt); placeHotspots(); }
   rain.update(dt);
   driver.animate(dt, 0, true, "drive");
   mate.animate(dt, 0, true, "drive"); mate.av.armL.rotation.x = mate.av.armR.rotation.x = -0.5;

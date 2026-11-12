@@ -101,9 +101,9 @@ export const RULES = {
     en: ["Low beams off in the rain", "In rain, fog, tunnels or at night: low beams on."],
     es: ["Luz baja apagada con lluvia", "Con lluvia, niebla, túnel o de noche: luz baja encendida."] } },
   r230: { art: "230, XIX", nat: "grave", lesson: 0, txt: {
-    pt: ["Limpador desligado na chuva", "Ligue o limpador (V) assim que a chuva começar."],
-    en: ["Wipers off in the rain", "Turn the wipers on (V) as soon as it starts raining."],
-    es: ["Limpiaparabrisas apagado con lluvia", "Enciende el limpiaparabrisas (V) apenas empiece a llover."] } },
+    pt: ["Limpador desligado na chuva", "Ligue o limpador 🌧 assim que a chuva começar."],
+    en: ["Wipers off in the rain", "Turn the wipers on 🌧 as soon as it starts raining."],
+    es: ["Limpiaparabrisas apagado con lluvia", "Enciende el limpiaparabrisas 🌧 apenas empiece a llover."] } },
   r181_1: { art: "181, I", nat: "media", lesson: 8, txt: {
     pt: ["Estacionou a menos de 5 m da esquina", "Deixe pelo menos 5 m do alinhamento da via transversal."],
     en: ["Parked less than 5 m from the corner", "Leave at least 5 m from the cross street."],

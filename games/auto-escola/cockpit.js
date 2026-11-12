@@ -67,9 +67,11 @@ export function createCockpit(world, car, { lowQuality = () => false, hideInMirr
     const w = Math.min(touch ? 130 : 170, W * 0.2), h = w * 0.72;
     // touch: top corners (the bottom has the pedals and the wheel); desktop: bottom corners
     const y = touch ? H - 60 - h / 2 : 70 + h / 2, xr = touch ? W - 140 - w / 2 : W - 12 - w / 2;
+    api.miniRects = [[12, H - y - h / 2, w, h], [xr - w / 2, H - y - h / 2, w, h]];
     mini[0].scale.set(w, h, 1); mini[0].position.set(12 + w / 2, y, 0); mini[1].scale.set(w, h, 1); mini[1].position.set(xr, y, 0);
     document.documentElement.style.setProperty("--ae-mirror-h", h + "px");
   }
+  const api = {};
   addEventListener("resize", layoutMini); layoutMini();
 
   function drawCluster() {
@@ -109,9 +111,10 @@ export function createCockpit(world, car, { lowQuality = () => false, hideInMirr
     }
     const every = low ? 3 : 2;
     if (frameN % every) return;
+    const pass = Math.floor(frameN / every);
     const r = world.renderer, prevTarget = r.getRenderTarget(), wasShadow = r.shadowMap.autoUpdate;
     r.shadowMap.autoUpdate = false;
-    const list = enabled ? (low ? [inner, left, right].filter((m, i) => i === frameN % 3 || i === 0) : [inner, left, right]) : [left, right];
+    const list = enabled ? (low ? [[inner, left], [inner, right]][pass % 2] : [inner, left, right]) : [left, right];
     for (const p of mini) p.visible = overlay;
     g.visible = false; const hv = hideInMirrors.map((o) => o.visible); hideInMirrors.forEach((o) => (o.visible = false));
     for (const m of list) { placeCam(m); r.setRenderTarget(m.target); r.render(world.scene, m.cam); }
@@ -122,12 +125,12 @@ export function createCockpit(world, car, { lowQuality = () => false, hideInMirr
     if (!overlay) return;
     const r = world.renderer; const ac = r.autoClear; r.autoClear = false; r.clearDepth(); r.render(oScene, oCam); r.autoClear = ac;
   });
-  return {
+  return Object.assign(api, {
     group: g, mirrors, inner, left, right, wheel,
     setInterior(v) { enabled = v; g.visible = v; (car.mesh.glass || []).forEach((m) => (m.visible = !v)); },
     setOverlay(v) { overlay = v; },
     /** Adjust a mirror by drag (radians). */
     adjust(m, dyaw, dpitch) { m.yaw = Math.max(m.baseYaw - 0.35, Math.min(m.baseYaw + 0.35, m.yaw + dyaw)); m.pitch = Math.max(-0.3, Math.min(0.2, m.pitch + dpitch)); },
     eye: new THREE.Vector3(S.eye[0], S.eye[1], S.eye[2]),
-  };
+  });
 }

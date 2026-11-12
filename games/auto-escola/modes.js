@@ -183,7 +183,7 @@ export function createLesson(ctx, idx = 0) {
   const set = () => ctx.setObjectives(objs.filter((o) => !o.hide || !o.hide()));
   const done = (k) => { const o = objs.find((x) => x.key === k); if (o && !o.done) { o.done = true; Audio.play("coin"); set(); } };
   const fail = (k) => { const o = objs.find((x) => x.key === k); if (o && !o.done) { o.failed = true; set(); } };
-  const all = () => objs.filter((o) => !o.hide || !o.hide()).every((o) => o.done);
+  const all = () => objs.filter((o) => (!o.hide || !o.hide()) && !o.passive).every((o) => o.done);
   function finish() {
     if (finished || !alive) return; finished = true;
     const J = ctx.judge, nInf = J.infractions.length, failed = objs.some((o) => o.failed);
@@ -213,11 +213,11 @@ export function createLesson(ctx, idx = 0) {
     const e = road.E.h10, sl = e.slots[2], p = road.toWorld(e, (sl.s0 + sl.s1) / 2, sl.u - 0.15);
     ctx.resetCar({ x: p[0], z: p[1], h: e.h, hb: 1, engine: false, gear: auto() ? 0 : 1 });
     extra = parkCars(ctx, "h10", [1, 4]);
-    objs = [{ key: "o_belt" }, { key: "o_mirror" }, { key: "o_neutral" }, { key: "o_clutch", hide: auto }, { key: "o_engine" }, { key: "o_hb" }];
+    objs = [{ key: "o_belt", ctrl: "belt" }, { key: "o_mirror", ctrl: ["mirrorL", "mirrorI", "mirrorR"] }, { key: "o_neutral", ctrl: "gear" }, { key: "o_clutch", hide: auto, ctrl: "clutch" }, { key: "o_engine", ctrl: "key" }, { key: "o_hb", ctrl: "handbrake" }];
     ctx.say("instructor", "ex_ready", null, 8);
     tick = () => {
       if (car.data.belt) done("o_belt");
-      if ((car.data.mirrors || 0) >= 1) done("o_mirror");
+      if ((car.data.mirrors || 0) === 7) done("o_mirror");
       if (auto() ? car.autoMode === "P" || car.autoMode === "N" : car.gear === 0) done("o_neutral");
       if (!auto() && car.controls.clutch > 0.8) done("o_clutch");
       if (car.engineOn) done("o_engine");
@@ -227,7 +227,7 @@ export function createLesson(ctx, idx = 0) {
   // ---- 2: pulling away
   function L2() {
     const p = poseOn(road, "h20", 20, 1); ctx.resetCar({ ...p, hb: 1, engine: true, gear: 0, belt: true }); clearNear(ctx, p.x, p.z, 60);
-    objs = [{ key: "o_first" }, { key: "o_hb" }, { key: "o_move" }, { key: "o_stop" }];
+    objs = [{ key: "o_first", ctrl: "gear" }, { key: "o_hb", ctrl: "handbrake" }, { key: "o_move", ctrl: ["clutch", "throttle"] }, { key: "o_stop", ctrl: "brake" }];
     ctx.say("instructor", auto() ? "tip_auto" : "tip_clutch", null, 12);
     let x0 = null, st0 = 0;
     tick = (dt, ev) => {
@@ -242,7 +242,7 @@ export function createLesson(ctx, idx = 0) {
   // ---- 3: gears
   function L3() {
     const p = poseOn(road, "e1", 15, 1); ctx.resetCar({ ...p, hb: 0, engine: true, gear: 0, belt: true }); clearNear(ctx, p.x, p.z, 200);
-    objs = auto() ? [{ key: "o_40" }, { key: "o_stop" }] : [{ key: "o_2nd" }, { key: "o_3rd" }, { key: "o_down" }, { key: "o_stop" }];
+    objs = auto() ? [{ key: "o_40", ctrl: "throttle" }, { key: "o_stop", ctrl: "brake" }] : [{ key: "o_2nd", ctrl: ["clutch", "gear"] }, { key: "o_3rd", ctrl: ["clutch", "gear"] }, { key: "o_down", ctrl: ["clutch", "gear"] }, { key: "o_stop", ctrl: "brake" }];
     let top = false;
     tick = () => {
       if (auto()) { if (car.kmh() >= 40) { done("o_40"); top = true; } if (top && Math.abs(car.speed) < 0.05) done("o_stop"); return; }
@@ -255,7 +255,7 @@ export function createLesson(ctx, idx = 0) {
   // ---- 4: turns
   function L4() {
     const p = poseOn(road, "v20", 25, 1); ctx.resetCar({ ...p, hb: 1, engine: true, gear: 0, belt: true }); clearNear(ctx, p.x, p.z, 40);
-    objs = [{ key: "o_turnL" }, { key: "o_turnR" }, { key: "o_noinf" }];
+    objs = [{ key: "o_turnL", ctrl: "blinkL" }, { key: "o_turnR", ctrl: "blinkR" }, { key: "o_noinf", passive: true }];
     const nav = navigator(ctx, { waypoints: ["n21", "n31", "n32"], startNode: road.nodes.n21, viaEdge: road.E.v20, who: "instructor" });
     const tt = turnTracker(ctx, (tr) => { if (tr.node.id === "n21" && tr.side === -1) done("o_turnL"); if (tr.node.id === "n31" && tr.side === 1) done("o_turnR"); if (objs[0].done && objs[1].done && !objs[2].failed) done("o_noinf"); });
     tick = (dt) => { nav.update(); tt(dt); };
@@ -263,7 +263,7 @@ export function createLesson(ctx, idx = 0) {
   // ---- 5: hill start
   function L5() {
     const p = poseOn(road, "h02", 60, -1); ctx.resetCar({ ...p, hb: 1, engine: true, gear: 0, belt: true }); clearNear(ctx, p.x, p.z, 60);
-    objs = [{ key: "o_hillStop" }, { key: "o_hillGo" }];
+    objs = [{ key: "o_hillStop", ctrl: "brake" }, { key: "o_hillGo", ctrl: ["handbrake", "throttle"] }];
     ctx.say("instructor", "tip_hill", null, 12);
     let stoppedAt = null, back = 0;
     tick = () => {
@@ -284,7 +284,7 @@ export function createLesson(ctx, idx = 0) {
     const n = road.nodes.n11, [G, Y, R] = n.cycle, gi = n.groups.findIndex((g) => g.edges.includes(road.E.v10));
     // make our approach turn red right now: the other group starts green
     const T2 = 2 * (G + Y + R); const want = gi === 0 ? G + Y + R : 0; n.offset = ((want - road.clock) % T2 + T2) % T2;
-    objs = [{ key: "o_red" }, { key: "o_pare" }, { key: "o_noinf" }];
+    objs = [{ key: "o_red", ctrl: "brake" }, { key: "o_pare", ctrl: "brake" }, { key: "o_noinf", passive: true }];
     let waited = false;
     tick = () => {
       const loc = ctx.judge.loc; if (!loc || !loc.edge) return;
@@ -298,13 +298,13 @@ export function createLesson(ctx, idx = 0) {
   // ---- 7: roundabout
   function L7() {
     const p = poseOn(road, "h12", 40, 1); ctx.resetCar({ ...p, hb: 1, engine: true, gear: 0, belt: true });
-    objs = [{ key: "o_rbEnter" }, { key: "o_rbExit" }];
+    objs = [{ key: "o_rbEnter", ctrl: "brake" }, { key: "o_rbExit", ctrl: "blinkR" }];
     const nav = navigator(ctx, { waypoints: ["n22", "n32"], startNode: road.nodes.n22, viaEdge: road.E.h12, who: "instructor" });
     let entered = false;
     tick = () => {
       nav.update();
       const loc = ctx.judge.loc;
-      if (loc && loc.roundabout && !entered) { entered = true; if (!ctx.judge.infractions.some((i) => i.key === "r215")) done("o_rbEnter"); }
+      if (loc && loc.roundabout && !entered) { entered = true; if (!ctx.judge.infractions.some((i) => i.key === "r215")) done("o_rbEnter"); else fail("o_rbEnter"); }
       if (entered && loc && loc.edge && !loc.node) { if (loc.edge.id === "h22") { if (!ctx.judge.infractions.some((i) => i.key === "r196")) done("o_rbExit"); else fail("o_rbExit"); } else fail("o_rbExit"); }
       if (objs.some((o) => o.failed)) schedule(1200);
     };
@@ -315,7 +315,7 @@ export function createLesson(ctx, idx = 0) {
     ctx.resetCar({ x: p[0], z: p[1], h: e.h, hb: 1, engine: true, gear: 0, belt: true }); clearNear(ctx, p[0], p[1], 50);
     extra = parkCars(ctx, "h10", [6, 8]); ghost = ghostBox(ctx, e, tg);
     L.judgeOpts.allowReverse = () => true; ctx.judge && (ctx.judge.enabled = true);
-    objs = [{ key: "o_park" }, { key: "o_parkOff" }];
+    objs = [{ key: "o_park", ctrl: ["gear", "mirrorR"] }, { key: "o_parkOff", ctrl: "handbrake" }];
     ctx.say("instructor", "tip_park", null, 14);
     let still = 0;
     tick = (dt) => {
