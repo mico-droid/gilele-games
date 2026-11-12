@@ -1,0 +1,81 @@
+/* Gilele Engine base styles. Games can override any --ez-* variable. */
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap");
+:root {
+  --ez-bg: rgba(15, 23, 42, 0.72);
+  --ez-panel: #ffffff;
+  --ez-ink: #0f172a;
+  --ez-accent: #22c55e;
+  --ez-accent-dark: #15803d;
+  --ez-warn: #f59e0b;
+  --ez-blue: #3b82f6;
+  --ez-radius: 18px;
+  --ez-font: Fredoka, system-ui, sans-serif;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #aee6ff; font-family: var(--ez-font); color: #fff; user-select: none; -webkit-user-select: none; touch-action: none; overscroll-behavior: none; }
+canvas.ez-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+button { font-family: inherit; cursor: pointer; border: none; }
+input { font-family: inherit; }
+.ez-hidden { display: none !important; }
+
+/* HUD */
+.ez-hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+.ez-top { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 10px; right: 10px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ez-top .ez-spacer { flex: 1; }
+.ez-pill { background: var(--ez-bg); padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 15px; backdrop-filter: blur(4px); white-space: nowrap; }
+.ez-pill .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; background: #9ca3af; }
+.ez-pill.on .dot { background: #22c55e; }
+.ez-rbtn { pointer-events: auto; background: var(--ez-bg); color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; flex: none; display: grid; place-items: center; }
+.ez-rbtn.off { opacity: 0.45; }
+
+/* Toast */
+.ez-toast { position: fixed; left: 50%; top: 22%; transform: translate(-50%, -10px); background: var(--ez-bg); padding: 10px 18px; border-radius: 14px; font-weight: 700; font-size: 18px; opacity: 0; transition: 0.25s; pointer-events: none; z-index: 40; text-align: center; max-width: 90vw; }
+.ez-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.ez-toast.big { font-size: 34px; padding: 14px 26px; }
+
+/* Screens / modals */
+.ez-screen { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: linear-gradient(160deg, rgba(56, 189, 248, 0.55), rgba(34, 197, 94, 0.45)); backdrop-filter: blur(3px); overflow-y: auto; }
+.ez-screen.dim { background: rgba(2, 6, 23, 0.55); }
+.ez-card { background: var(--ez-panel); color: var(--ez-ink); border-radius: var(--ez-radius); padding: 18px; width: min(560px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); }
+.ez-card h1 { margin: 0 0 6px; font-size: 32px; text-align: center; }
+.ez-card h2 { margin: 0 0 10px; font-size: 22px; }
+.ez-card h3 { margin: 12px 0 6px; font-size: 15px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; }
+.ez-card p { margin: 6px 0; }
+.ez-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ez-col { display: flex; flex-direction: column; gap: 8px; }
+.ez-btn { background: var(--ez-accent); color: #fff; font-weight: 700; font-size: 18px; padding: 11px 18px; border-radius: 14px; box-shadow: 0 4px 0 var(--ez-accent-dark); transition: transform 0.05s; }
+.ez-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ez-accent-dark); }
+.ez-btn.blue { background: var(--ez-blue); box-shadow: 0 4px 0 #1d4ed8; }
+.ez-btn.gray { background: #64748b; box-shadow: 0 4px 0 #334155; }
+.ez-btn.warn { background: var(--ez-warn); box-shadow: 0 4px 0 #b45309; }
+.ez-btn.small { font-size: 15px; padding: 8px 12px; }
+.ez-btn.wide { width: 100%; }
+.ez-chip { background: #e2e8f0; color: var(--ez-ink); font-weight: 600; font-size: 14px; padding: 7px 11px; border-radius: 999px; }
+.ez-chip.sel { background: var(--ez-blue); color: #fff; }
+.ez-sw { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; }
+.ez-sw.sel { box-shadow: 0 0 0 3px var(--ez-blue); }
+.ez-input { font-size: 18px; padding: 9px 12px; border-radius: 12px; border: 2px solid #cbd5e1; width: 100%; color: var(--ez-ink); }
+.ez-code { font-size: 26px; letter-spacing: 6px; text-transform: uppercase; text-align: center; width: 140px; }
+.ez-link { word-break: break-all; background: #f1f5f9; border-radius: 10px; padding: 8px; font-size: 14px; user-select: text; -webkit-user-select: text; }
+.ez-msg { min-height: 20px; font-size: 14px; color: #475569; }
+
+/* Avatar editor */
+.ez-editor { display: grid; grid-template-columns: 170px 1fr; gap: 14px; }
+.ez-editor canvas { width: 170px; height: 240px; background: radial-gradient(circle at 50% 40%, #e0f2fe, #bae6fd); border-radius: 16px; touch-action: none; }
+.ez-editor .opts { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ez-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+@media (max-width: 520px) { .ez-editor { grid-template-columns: 1fr; } .ez-editor canvas { width: 100%; height: 200px; } }
+
+/* Touch controls */
+.ez-joy { position: fixed; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; background: rgba(255, 255, 255, 0.18); border: 3px solid rgba(255, 255, 255, 0.5); display: none; z-index: 6; pointer-events: none; }
+.ez-knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; border-radius: 50%; background: rgba(255, 255, 255, 0.75); transform: translate(-50%, -50%); }
+.ez-pad { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap-reverse; flex-direction: row-reverse; gap: 10px; width: 190px; justify-content: flex-start; z-index: 6; }
+.ez-tbtn { width: 64px; height: 64px; border-radius: 50%; background: rgba(15, 23, 42, 0.55); color: #fff; font-size: 24px; font-weight: 700; border: 3px solid rgba(255, 255, 255, 0.5); }
+.ez-tbtn.big { width: 86px; height: 86px; font-size: 30px; background: rgba(34, 197, 94, 0.7); }
+.ez-tbtn:active { background: rgba(255, 255, 255, 0.4); }
+
+/* Quick chat */
+.ez-chat { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, auto); gap: 6px; background: var(--ez-bg); padding: 8px; border-radius: 16px; z-index: 30; }
+.ez-chat button { white-space: nowrap; background: #fff; color: var(--ez-ink); border-radius: 10px; padding: 7px 9px; font-weight: 600; font-size: 14px; }
+@media (max-width: 420px) { .ez-rbtn { width: 36px; height: 36px; font-size: 16px; } .ez-pill { font-size: 13px; padding: 5px 10px; } }
+@media (max-width: 520px) { .ez-chat { grid-template-columns: repeat(2, auto); bottom: auto; top: 60px; } }

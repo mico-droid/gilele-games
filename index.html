@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gilele Games</title>
+<meta name="description" content="Jogos 3D grátis no navegador, para jogar sozinho ou com amigos.">
+<meta name="theme-color" content="#22c55e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="engine/ez.css">
+<style>
+  html, body { overflow: auto; touch-action: auto; background: linear-gradient(160deg, #38bdf8, #22c55e) fixed; }
+  main { max-width: 960px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 40px; }
+  header { text-align: center; margin-bottom: 22px; }
+  header h1 { font-size: 44px; margin: 0; text-shadow: 0 4px 0 rgba(0,0,0,.15); }
+  header p { margin: 4px 0 0; font-size: 18px; opacity: .9; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .game { background: #fff; color: #0f172a; border-radius: 20px; padding: 18px; box-shadow: 0 8px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 8px; text-decoration: none; transition: transform .1s; }
+  .game:hover { transform: translateY(-3px); }
+  .game .emoji { font-size: 54px; line-height: 1; }
+  .game h2 { margin: 0; font-size: 24px; }
+  .game p { margin: 0; opacity: .75; flex: 1; }
+  .game .tag { align-self: flex-start; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #dcfce7; color: #15803d; }
+  .game.soon { opacity: .6; pointer-events: none; }
+  .game.soon .tag { background: #e2e8f0; color: #475569; }
+  footer { text-align: center; margin-top: 30px; font-size: 14px; opacity: .85; }
+  footer a { color: #fff; }
+  #install { display: block; margin: 0 auto 20px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>🎮 Gilele Games</h1>
+    <p data-t="portalSub">Jogos 3D no navegador — sozinho ou com até 4 amigos</p>
+  </header>
+  <div id="installSlot"></div>
+  <div class="grid">
+    <a class="game" href="games/demo/">
+      <div class="emoji">🛝</div><h2>Playground</h2>
+      <p data-t="demoDesc">Parkour, moedas, trampolim e multijogador. É o jogo-modelo do motor.</p>
+      <span class="tag" data-t="tagPlay">Jogar</span>
+    </a>
+    <a class="game" href="https://mico-droid.github.io/ez-obby/">
+      <div class="emoji">🧗</div><h2>EZ Obby</h2>
+      <p data-t="obbyDesc">Parkour 3D com fases, poderes e a Batalha da Tabuada.</p>
+      <span class="tag" data-t="tagPlay">Jogar</span>
+    </a>
+    <div class="game soon">
+      <div class="emoji">🚗</div><h2 data-t="carTitle">Auto Escola</h2>
+      <p data-t="carDesc">Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.</p>
+      <span class="tag" data-t="tagSoon">Em breve</span>
+    </div>
+  </div>
+  <footer>
+    <span data-t="foot">Feito com o Gilele Engine</span> · <a href="https://github.com/mico-droid/gilele-games">GitHub</a>
+  </footer>
+</main>
+<script type="module">
+  import { addStrings, applyDom, installButton, registerPWA } from "./engine/ez.js";
+  addStrings({
+    pt: { portalSub: "Jogos 3D no navegador — sozinho ou com até 4 amigos", demoDesc: "Parkour, moedas, trampolim e multijogador. É o jogo-modelo do motor.", obbyDesc: "Parkour 3D com fases, poderes e a Batalha da Tabuada.", carTitle: "Auto Escola", carDesc: "Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.", tagPlay: "Jogar", tagSoon: "Em breve", foot: "Feito com o Gilele Engine" },
+    en: { portalSub: "3D browser games — solo or with up to 4 friends", demoDesc: "Parkour, coins, trampoline and multiplayer. The engine's template game.", obbyDesc: "3D parkour with stages, power-ups and the Times Table Battle.", carTitle: "Driving School", carDesc: "Learn to drive: clutch, gears, turn signals, parking and a mock test.", tagPlay: "Play", tagSoon: "Coming soon", foot: "Made with Gilele Engine" },
+    es: { portalSub: "Juegos 3D en el navegador — solo o con hasta 4 amigos", demoDesc: "Parkour, monedas, trampolín y multijugador. El juego plantilla del motor.", obbyDesc: "Parkour 3D con fases, poderes y la Batalla de las Tablas.", carTitle: "Autoescuela", carDesc: "Aprende a conducir: embrague, marchas, intermitentes, estacionamiento y examen.", tagPlay: "Jugar", tagSoon: "Próximamente", foot: "Hecho con Gilele Engine" },
+  });
+  applyDom();
+  registerPWA("sw.js");
+  const slot = document.getElementById("installSlot");
+  const draw = () => { slot.replaceChildren(); const b = installButton(); if (b) { b.id = "install"; b.style.width = "auto"; slot.appendChild(b); } };
+  draw(); addEventListener("beforeinstallprompt", () => setTimeout(draw, 0));
+</script>
+</body>
+</html>
