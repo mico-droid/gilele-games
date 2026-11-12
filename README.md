@@ -15,6 +15,7 @@ icons/                Ícones do app
 engine/               Gilele Engine (módulos JS, sem build)
 games/demo/           Playground: jogo-modelo que usa tudo do motor
 games/auto-escola/    Auto Escola: simulado de direção (CTB + MBEDV)
+games/tabuada/        Batalha da Tabuada: jogo 2D de contas (HTML único, PWA própria)
 tests/                Ferramentas de teste (piloto automático da Auto Escola)
 ```
 

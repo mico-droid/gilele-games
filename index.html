@@ -53,6 +53,11 @@
       <p data-t="carDesc">Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
+    <a class="game" href="games/tabuada/">
+      <div class="emoji">🧮</div><h2 data-t="tabTitle">Batalha da Tabuada</h2>
+      <p data-t="tabDesc">Contas das 4 operações com trilha de fases, modo treino e dicas. De 3 a 16 anos.</p>
+      <span class="tag" data-t="tagPlay">Jogar</span>
+    </a>
   </div>
   <footer>
     <span data-t="foot">Feito com o Gilele Engine</span> · <a href="https://github.com/mico-droid/gilele-games">GitHub</a>
@@ -61,9 +66,9 @@
 <script type="module">
   import { addStrings, applyDom, installButton, registerPWA } from "./engine/ez.js";
   addStrings({
-    pt: { portalSub: "Jogos 3D no navegador — sozinho ou com até 4 amigos", demoDesc: "Parkour, moedas, trampolim e multijogador. É o jogo-modelo do motor.", obbyDesc: "Parkour 3D com fases, poderes e a Batalha da Tabuada.", carTitle: "Auto Escola", carDesc: "Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.", tagPlay: "Jogar", tagSoon: "Em breve", foot: "Feito com o Gilele Engine" },
-    en: { portalSub: "3D browser games — solo or with up to 4 friends", demoDesc: "Parkour, coins, trampoline and multiplayer. The engine's template game.", obbyDesc: "3D parkour with stages, power-ups and the Times Table Battle.", carTitle: "Driving School", carDesc: "Learn to drive: clutch, gears, turn signals, parking and a mock test.", tagPlay: "Play", tagSoon: "Coming soon", foot: "Made with Gilele Engine" },
-    es: { portalSub: "Juegos 3D en el navegador — solo o con hasta 4 amigos", demoDesc: "Parkour, monedas, trampolín y multijugador. El juego plantilla del motor.", obbyDesc: "Parkour 3D con fases, poderes y la Batalla de las Tablas.", carTitle: "Autoescuela", carDesc: "Aprende a conducir: embrague, marchas, intermitentes, estacionamiento y examen.", tagPlay: "Jugar", tagSoon: "Próximamente", foot: "Hecho con Gilele Engine" },
+    pt: { portalSub: "Jogos 3D no navegador — sozinho ou com até 4 amigos", demoDesc: "Parkour, moedas, trampolim e multijogador. É o jogo-modelo do motor.", obbyDesc: "Parkour 3D com fases, poderes e a Batalha da Tabuada.", carTitle: "Auto Escola", tabTitle: "Batalha da Tabuada", tabDesc: "Contas das 4 operações com trilha de fases, modo treino e dicas. De 3 a 16 anos.", carDesc: "Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.", tagPlay: "Jogar", tagSoon: "Em breve", foot: "Feito com o Gilele Engine" },
+    en: { portalSub: "3D browser games — solo or with up to 4 friends", demoDesc: "Parkour, coins, trampoline and multiplayer. The engine's template game.", obbyDesc: "3D parkour with stages, power-ups and the Times Table Battle.", carTitle: "Driving School", tabTitle: "Times Table Battle", tabDesc: "Practice all 4 operations with a stage trail, practice mode and tips. Ages 3 to 16.", carDesc: "Learn to drive: clutch, gears, turn signals, parking and a mock test.", tagPlay: "Play", tagSoon: "Coming soon", foot: "Made with Gilele Engine" },
+    es: { portalSub: "Juegos 3D en el navegador — solo o con hasta 4 amigos", demoDesc: "Parkour, monedas, trampolín y multijugador. El juego plantilla del motor.", obbyDesc: "Parkour 3D con fases, poderes y la Batalla de las Tablas.", carTitle: "Autoescuela", tabTitle: "Batalla de las Tablas", tabDesc: "Cuentas de las 4 operaciones con ruta de fases, modo práctica y consejos. De 3 a 16 años.", carDesc: "Aprende a conducir: embrague, marchas, intermitentes, estacionamiento y examen.", tagPlay: "Jugar", tagSoon: "Próximamente", foot: "Hecho con Gilele Engine" },
   });
   applyDom();
   registerPWA("sw.js");

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#5b21b6">
+<meta name="description" content="Times table math game for kids and teens / Jogo de tabuada / Juego de tablas">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Batalha da Tabuada</title>
+<style>
+:root{--card:#fff;--ink:#1e293b;--mute:#64748b;--line:#e2e8f0;--c1:#3b82f6;--c2:#f97316;--ok:#22c55e;--pri:#8b5cf6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:#fff}
+#app{max-width:560px;margin:0 auto;padding:14px 14px 28px}
+h1{font-size:clamp(28px,8vw,42px);text-align:center;margin:4px 0 2px;line-height:1.05}
+.sub{text-align:center;color:var(--mute);margin:0 0 12px;font-weight:700}
+.card,.pill,.ic,.mode,.lv{border:2px solid var(--line)}
+.card{background:var(--card);border-radius:26px;padding:16px;box-shadow:0 6px 16px rgba(30,41,59,.10);margin-bottom:12px}
+button{font:inherit;color:inherit;cursor:pointer;border:0}
+button:focus-visible{outline:4px solid var(--pri);outline-offset:2px}
+.mascot{font-size:88px;text-align:center;line-height:1;animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-10px) rotate(-4deg)}}
+.seg{display:flex;gap:6px;background:#f1f5f9;border-radius:99px;padding:4.5px;margin:0 auto 16px;max-width:340px}
+.seg button{flex:1;min-height:43px;border-radius:99px;background:transparent;font-weight:900;font-size:17px}
+.seg button.on{background:var(--pri);color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mode{background:var(--card);border-radius:24px;padding:12px 8px;box-shadow:0 5px 0 rgba(0,0,0,.10);font-weight:800;font-size:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .1s}
+.mode:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.1)}
+.mode .i{font-size:38px}.mode small{color:var(--mute);font-size:13px}
+.mode.titan{background:linear-gradient(135deg,#fef08a,#fdba74);color:#422006;border-color:#fdba74}
+.mode.titan small{color:#713f12}
+.mini{position:relative;display:block;width:100%;height:30px;background:#e2e8f0;border-radius:99px;margin:6px 0 2px;overflow:hidden}
+.mini b{position:absolute;left:0;top:0;bottom:0;background:#bbf7d0;border-radius:99px}
+.mini .ln{position:absolute;left:3px;right:34px;top:0;bottom:0}
+.mini i{position:absolute;top:0;font-style:normal;font-size:22px;line-height:30px}
+.mini u{position:absolute;right:6px;top:0;text-decoration:none;font-size:20px;line-height:30px}
+.top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.pill{background:var(--card);border-radius:99px;padding:7px 12px;font-weight:800;font-size:15px}
+.ic{background:var(--card);border-radius:99px;width:46px;height:46px;font-size:21px}
+#cmb{margin-left:auto}
+.scene h2{margin:0 0 4px;font-size:20px}.scene p{margin:0 0 8px;color:var(--mute);font-weight:700}
+.track{position:relative;height:66px;background:linear-gradient(#bbf7d0,#86efac);border-radius:18px;overflow:hidden}
+.lane{position:absolute;left:4px;right:62px;top:0;bottom:0}
+.hero{position:absolute;top:6px;left:0;font-size:46px;line-height:54px;transition:left .6s,transform .6s}
+.goal{position:absolute;right:8px;top:6px;font-size:42px;line-height:54px}
+.hop{animation:hop .5s}.wig{animation:wig .5s}
+@keyframes hop{40%{margin-top:-22px}}@keyframes wig{25%{margin-left:-8px}75%{margin-left:8px}}
+.timer{position:relative;height:30px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-bottom:12px}
+#tb{height:100%;width:100%;background:var(--ok);border-radius:99px;transition:background .3s}
+#tn{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;font-size:18px;color:#0f172a}
+.timer.urgent #tb{background:#ef4444}.timer.urgent{animation:pulse .5s infinite}
+@keyframes pulse{50%{transform:scale(1.03)}}
+.enter{animation:enter .35s ease-out}.leave{animation:leave .2s ease-in forwards}
+@keyframes enter{from{opacity:0;transform:translateX(40px)}}@keyframes leave{to{opacity:0;transform:translateX(-40px)}}
+.qt{text-align:center;font-size:clamp(38px,12vw,56px);font-weight:900;letter-spacing:1px}
+.vis{min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:4px 0 10px}
+.eq{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}.eq>b{font-size:30px}
+.bl{display:flex;flex-wrap:wrap;justify-content:center;max-width:300px}.bl.big{flex-direction:column;align-items:center}.bl.big>div{display:flex;flex-wrap:wrap;justify-content:center}
+.b{display:inline-block;width:var(--s);height:var(--s);margin:1px;border-radius:3px;background:var(--c1);font-style:normal;font-size:11px;color:#fff;text-align:center;line-height:var(--s);font-weight:800}
+.ten{width:calc(var(--s)*10 + 18px)}.c2{background:var(--c2)}
+.grid{display:grid;justify-content:center}.cap{font-weight:800;color:var(--mute);font-size:15px;text-align:center}
+.groups{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.grp{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;border:3px solid;border-radius:12px;padding:3px;max-width:116px}
+.grp em{width:100%;text-align:center;font-style:normal;font-weight:900;font-size:18px}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.opt{min-height:78px;border-radius:22px;background:linear-gradient(#a78bfa,#8b5cf6);color:#fff;font-size:clamp(26px,8vw,36px);font-weight:900;box-shadow:0 6px 0 #6d28d9;transition:transform .1s}
+.opt:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 #6d28d9}
+.opt:disabled{opacity:.92;cursor:default}
+.opt.right{background:linear-gradient(#4ade80,#22c55e);box-shadow:0 6px 0 #15803d;animation:pop .4s}
+.opt.oops{background:linear-gradient(#fbbf24,#f59e0b);box-shadow:0 6px 0 #b45309}
+@keyframes pop{50%{transform:scale(1.12)}}
+.fb{text-align:center;font-weight:900;font-size:21px;min-height:30px;margin-top:12px}
+.fb small{display:block;font-size:16px;color:var(--mute);margin:2px 0}
+.bar{position:sticky;bottom:12px;z-index:5}.bar:empty{display:none}
+.btn{display:block;width:100%;min-height:60px;border-radius:20px;background:var(--pri);color:#fff;font-weight:900;font-size:20px;box-shadow:0 5px 0 #6d28d9;margin-top:10px}
+.btn.alt{background:var(--card);color:var(--ink);box-shadow:0 5px 0 rgba(0,0,0,.15);border:2px solid var(--line)}
+.btn.sh{background:#22c55e;box-shadow:0 5px 0 #15803d}
+.res{text-align:center}.res h2{font-size:30px;margin:6px 0}
+.stars{font-size:54px;letter-spacing:4px}.stars span{display:inline-block;animation:pop .6s both}
+.stat{font-size:20px;font-weight:800;margin:6px 0}
+.trail{position:relative;margin:4px 0 0;background:linear-gradient(#ecfeff,#f0fdf4);height:calc(100vh - 270px);height:calc(100dvh - 270px);min-height:380px;max-height:640px;padding:0}
+.trail svg{position:absolute;inset:0;width:100%;height:100%}
+.node{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:var(--card);font-weight:900;font-size:20px;box-shadow:0 5px 0 rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;border:2px solid var(--line)}
+.node small{font-size:11px;min-height:12px}
+.node.done{background:#bbf7d0;color:#14532d}.node.cur{background:#fde047;color:#422006;animation:pulse 1.2s infinite}
+.node:disabled{background:#e2e8f0;color:#64748b;box-shadow:none}
+.pet{position:absolute;transform:translate(-50%,-50%);font-size:36px;pointer-events:none;animation:bob 1.6s ease-in-out infinite}
+.goalp{position:absolute;transform:translate(-50%,-50%);text-align:center;font-weight:900;width:200px}
+.goalp b{display:block;font-size:50px;line-height:1}
+.count{font-size:96px;font-weight:900;color:var(--pri);line-height:1.1;animation:pop 1s infinite}
+.seg.age{max-width:400px;margin-bottom:8px}.seg.age button{font-size:14px;padding:0 4px}
+.threat{position:absolute;left:6px;top:6px;font-size:38px;line-height:54px}.rad .lane{left:50px}.alarm .threat{animation:wig .3s infinite}
+button.mascot{position:relative;display:grid;place-items:center;width:124px;height:124px;margin:0 auto;background:none;padding:0;border-radius:50%}
+button.mascot.fast{border:4px solid #f59e0b;background:radial-gradient(#fef3c7,#fff);animation:bob 2s ease-in-out infinite,glow .9s ease-in-out infinite alternate}
+@keyframes glow{from{box-shadow:0 0 0 4px rgba(245,158,11,.25),0 0 14px 4px rgba(245,158,11,.4)}to{box-shadow:0 0 0 8px rgba(245,158,11,.3),0 0 34px 12px rgba(245,158,11,.75)}}
+.chg{position:absolute;right:2px;bottom:2px;width:36px;height:36px;border-radius:50%;background:#fff;border:3px solid var(--pri);font-size:18px;line-height:1;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.av{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:10px}
+.avb{font-size:42px;background:#fff;border:3px solid var(--line);border-radius:20px;min-height:76px}.avb.on{border-color:var(--pri);background:#ede9fe}
+.btn.big{min-height:92px;font-size:28px;background:linear-gradient(#fb923c,#f97316);box-shadow:0 6px 0 #c2410c}
+.flash{position:fixed;inset:0;background:#ef4444;pointer-events:none;z-index:20;opacity:0;animation:redblink .3s 3}
+@keyframes redblink{50%{opacity:.55}}
+.ten5{display:grid;grid-template-columns:repeat(5,auto);margin:3px;padding:2px;border:2px solid rgba(100,116,139,.35);border-radius:8px}.ten5.rest{border-style:dashed}
+.typed{display:flex;gap:10px;align-items:center}
+.typed input{flex:1;min-width:0;font:inherit;font-size:34px;font-weight:900;text-align:center;min-height:72px;border:4px solid var(--pri);border-radius:22px;color:var(--ink);background:#fff}
+.typed input.okk{border-color:#22c55e;background:#dcfce7}.typed input.bad{border-color:#f59e0b;background:#fef3c7}
+.typed .btn{width:92px;margin:0;min-height:72px;font-size:30px}
+.hint{text-align:center;font-weight:800;color:#6d28d9;background:#f5f3ff;border-radius:14px;padding:8px 10px;margin:4px 0 6px;font-size:15px}
+.tt{text-align:center;font-size:20px;margin:20px 0 8px}.modes.tr .mode{padding:10px 6px;font-size:16px}.modes.tr .mode .i{font-size:30px}
+.compact{padding:8px 12px}
+.compact .qt{font-size:28px;line-height:1.2}
+.compact .vis{min-height:0;padding:0;max-height:90px;overflow:auto}
+.compact .typed{gap:8px}
+.compact .typed input{min-height:44px;font-size:22px;border-width:3px;border-radius:14px}
+.compact .typed .btn{width:64px;min-height:44px;font-size:22px;border-radius:14px;box-shadow:0 3px 0 #6d28d9}
+.compact .fb{margin-top:4px;min-height:22px;font-size:17px}
+.tips{margin:0 0 6px;padding-left:20px;font-weight:700;line-height:1.45;font-size:16px}.tips li{margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#1e293b;color:#fff;padding:12px 18px;border-radius:99px;font-weight:800;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9}
+.toast.on{opacity:1}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.seg{margin-bottom:8px}.modes{margin-top:12px}
+.notimer{background:#ecfdf5;color:#047857;border:2px solid #a7f3d0;border-radius:99px;padding:8px 14px;font-weight:800;text-align:center;margin-bottom:12px;font-size:14px}
+.ad{display:block;position:relative;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center;text-decoration:none;color:#fff;font-weight:900;font-size:clamp(13px,4vw,17px);line-height:56px;height:56px;padding:0 46px 0 12px;border-radius:20px;background:linear-gradient(135deg,#fb923c,#f43f5e);box-shadow:0 5px 0 #be123c;margin-top:12px}
+.ad::after{content:'';position:absolute;top:0;left:-60%;width:35%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:shine 3s infinite}
+@keyframes shine{to{left:130%}}
+.adtag{position:absolute;top:5px;right:8px;font-size:9px;line-height:1;background:rgba(0,0,0,.32);padding:3px 6px;border-radius:99px;font-weight:700;letter-spacing:.5px}
+
+.tr4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tbtn{background:#fff;border:2px solid var(--line);border-radius:16px;min-height:58px;font-weight:800;font-size:12px;box-shadow:0 3px 0 rgba(0,0,0,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;padding:4px 2px}
+.tbtn span{font-size:22px}.tbtn:active{transform:translateY(3px);box-shadow:none}
+.adtile{position:relative;overflow:hidden;background:linear-gradient(135deg,#fb923c,#f43f5e);color:#fff;border-color:#fb923c;text-decoration:none}
+.adtile .i{font-size:38px}.adshort{white-space:nowrap;font-size:14px}
+.adtile::after{content:'';position:absolute;top:0;left:-60%;width:35%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:shine 3s infinite}
+.ttable{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-weight:800;font-size:15px;text-align:center}
+.ttable span{background:#f5f3ff;border-radius:10px;padding:5px 2px}
+body{transition:background .6s}body.lost{background:#cfd8e3}
+.topbar{display:flex;gap:14px;align-items:center;margin:-14px -14px 6px;padding:10px 14px;background:#5b21b6;color:#fff;box-shadow:0 0 0 100vmax #5b21b6;clip-path:inset(0 -100vmax)}
+.lvl{flex:1;min-width:0;font-weight:800;font-size:14px;line-height:1.1}
+.lvbar{height:6px;background:rgba(255,255,255,.28);margin-top:4px;overflow:hidden}.lvbar i{display:block;height:100%;background:#fde047;transition:width .6s}
+.langsel{background:transparent;color:#fff;border:0;font:inherit;font-weight:800;font-size:14px;padding:4px 0;cursor:pointer}.langsel option{color:#1e293b}
+.tb{display:flex;flex-direction:column;align-items:center;gap:1px;background:none;color:#fff;font-size:10px;font-weight:800;line-height:1.1;padding:0}.tb span{font-size:20px;line-height:1}
+.tt{margin:30px 0 12px}
+.flip .hero .face{display:inline-block;transform:scaleX(-1)}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:grid;place-items:center;z-index:30;padding:20px}
+.modal .box{background:#fff;border-radius:22px;padding:18px;max-width:420px;box-shadow:0 10px 30px rgba(0,0,0,.3)}.modal h2{margin:0 0 8px;font-size:20px}.modal p{margin:0 0 6px;font-weight:700;line-height:1.45}
+.modal small{display:block;margin-top:10px;color:#64748b;font-weight:700;line-height:1.6}
+.thelp{margin:0 0 8px;font-weight:700;font-size:14px;line-height:1.4;color:#334155;background:#f5f3ff;border-radius:14px;padding:8px 12px;text-align:center}
+.laptag{position:absolute;transform:translateY(-50%);display:flex;align-items:center;gap:2px;font-size:13px;font-weight:800;color:#475569;white-space:nowrap}
+.laptag button{background:none;font-size:16px;color:#475569;padding:4px 6px}.laptag button:disabled{opacity:.25}
+</style>
+</head>
+<body>
+<div id="app"></div><div class="toast" id="toast"></div>
+<script type="application/json" id="lang-pt">{"title":"Batalha da Tabuada","subtitle":"Escolha uma aventura!","pickHint":"Toque para escolher seu personagem","pickTitle":"Escolha seu personagem","pickAria":"Escolher personagem","age0":"3 a 8 anos","age1":"9 a 12 anos","age2":"13 a 16 anos","speedNormal":"🐢 Normal","speedFast":"⚡ Rápido","langAria":"Idioma","mode_add":"Soma","mode_sub":"Subtração","mode_mul":"Multiplicação","mode_div":"Divisão","mode_as":"Soma + Subtração","mode_am":"Soma + Multiplicação","mode_sd":"Subtração + Divisão","mode_md":"Multiplicação + Divisão","mode_titan":"Titã","place_add":"Chegar em casa","place_sub":"Conquistar o rio","place_mul":"Alcançar a ilha","place_div":"Chegar ao pote de mel","place_as":"Achar o osso gigante","place_am":"Achar o tesouro","place_sd":"Pescar o peixe gigante","place_md":"Conquistar a montanha","place_titan":"Ganhar a coroa","modeSub":"Volta {c} · fase {w} · ⭐ {s}","trainHome":"🏋️ Modo treino","trainSmall":"🚫⏱️ Sem cronômetro","noTimer":"🚫⏱️ Sem cronômetro","noTimerNote":"Pense com calma, sem pressa! 😊","adText":"🛍️ Veja materiais e jogos educativos","adTag":"publi","musicHint":"🔊 Toque na tela para ligar a música","back":"Voltar","exit":"Sair","sound":"Som","prevLap":"Volta anterior","nextLap":"Próxima volta","answerAria":"Responder","yourAnswer":"Sua resposta","lap":"Volta {n}","harder":" · mais difícil","phase":"Fase {n}","phaseLap":"Fase {n} · Volta {c}","dangerTitle":"{e} {n} precisa de ajuda!","danger":["{n} está no meio de uma ventania de folhas 🍂. Ajude a chegar em casa!","{n} escorregou na lama 🌧️. Ajude a chegar na toca!","{n} está numa poça de bolhas 🫧. Ajude a chegar na margem!","{n} subiu numa nuvem 🌥️. Ajude a descer!"],"rewardTitle":"{e} {n} {txt}!","rewardTxt":"Cada resposta certa chega mais perto!","reward":["quer pegar o biscoito 🍪","quer pegar o brinquedo 🧸","quer comer a fruta 🍓","quer abrir o presente 🎁","quer pegar o doce 🍭","quer pegar a bola ⚽"],"help":"Acerte as contas para ajudar {n}! 💪","helpRad":"Acerte as contas para escapar! 💨","radical":[{"t":"💣 A bomba vai explodir!","x":"Corra até o abrigo antes do fim da contagem!"},{"t":"🧛 O vampiro vai te pegar!","x":"Corra até o nascer do sol 🌅 antes que ele te alcance!"},{"t":"🧟 Os zumbis estão chegando!","x":"Alcance o helicóptero 🚁 e fuja!"},{"t":"🌋 O vulcão vai entrar em erupção!","x":"Chegue ao barco ⛵ antes da lava!"},{"t":"🦈 O tubarão está atrás de você!","x":"Nade até a ilha 🏝️!"},{"t":"☄️ Chuva de meteoros!","x":"Entre na nave 🚀 antes que seja tarde!"},{"t":"🐉 O dragão acordou!","x":"Chegue ao castelo 🏰 e feche os portões!"},{"t":"🌊 A represa vai romper!","x":"Suba a montanha ⛰️ antes da onda!"}],"names":{"🐰":"O coelhinho","🐶":"O cachorrinho","🐱":"O gatinho","🐼":"O panda","🐵":"O macaquinho","🐸":"O sapinho","🐥":"O pintinho","🐻":"O ursinho","🦝":"O guaxinim","🦁":"O leãozinho","🐧":"O pinguim","🐯":"O tigrinho","🦄":"O unicórnio","👧":"A menina","🧚‍♀️":"A fadinha","👸":"A princesa","🧜‍♀️":"A sereia","🦸‍♀️":"A heroína","👩‍🚀":"A astronauta","👩‍🎤":"A cantora"},"ready":"Prepare-se...","startNow":"▶ Começar agora","fastMsg":"🚀 Muito rápido!","comboMsg":"🔥 Combo!","okMsg":"✨ Acertou!","oops":"🤔 Quase!","timeUp":"⏰ O tempo acabou!","hintGroups":"💡 Vamos observar os grupos.","hintBlocks":"💡 Vamos contar os blocos.","cont":"Continuar","comboBig":"🚀 COMBO!","groupsOf":"{a} grupos de {b}","divCap":"{a} quadradinhos em {b} grupos iguais","eachGroup":"Cada grupo tem {n}","win":"🎉 VOCÊ VENCEU!","lose":"💥 Você perdeu!","almost":"💪 Quase lá! Tente de novo!","timeUpAt":"⏰ O tempo acabou na conta {n}","hits":"{ok} / {n} acertos","errors":"❌ Erros: {n}","maxCombo":"🔥 Combo máximo: {n}","avgTime":"⚡ Tempo médio: {n} s","record":"Seu recorde: {a} acertos · combo {b}","lapDone":"🏁 Chegou ao destino! A próxima volta tem contas mais difíceis.","share":"📤 Compartilhar","next":"▶ Próxima fase","again":"🔁 Repetir","tryAgain":"🔁 Tente de novo!","trail":"🗺️ Trilha","home":"🏠 Início","shareText":"🎉 Venci a {fase} de {mode} na Batalha da Tabuada! {stars} {ok}/{n} acertos, combo {c}. Vem jogar!","copied":"Copiado! Cole numa conversa 😊","shareFail":"Não deu para compartilhar","trainTitle":"🏋️ Treino · {op}","pickTable":"Escolha a tabuada (do 2 ao 9)","tableOf":"Tabuada do {n}","tipsTitle":"📖 Dicas antes de começar","tipsSoon":"O treino começa em instantes...","tipsGo":"▶ Já li, começar!","tipsMore":"➕ Mais 10 segundos","perfect":"🌟 Perfeito!","good":"🎉 Muito bem!","keep":"💪 Continue treinando!","nextTable":"▶ Tabuada do {n}","tableList":"📋 Tabuadas","best10":"⭐ 10/10","mulhint":["Tabuada do 2: é o dobro do número!","Tabuada do 3: conte de 3 em 3 (3, 6, 9, 12...).","Tabuada do 4: é o dobro do dobro!","Tabuada do 5: o resultado termina em 0 ou 5.","Tabuada do 6: é o dobro da tabuada do 3.","Tabuada do 7: conte de 7 em 7 (7, 14, 21, 28...).","Tabuada do 8: é o dobro da tabuada do 4.","Tabuada do 9: some os algarismos do resultado e dá 9!"],"tip_mul_sum":"Multiplicar é somar o mesmo número várias vezes: 3 × 4 = 3 + 3 + 3 + 3.","tip_mul_par":"Multiplicação com número par sempre dá resultado par. Ímpar × ímpar dá ímpar.","tip_mul_5":"Multiplicação por 5 sempre termina em 0 ou 5.","tip_mul_10":"Multiplicação por 10: é só acrescentar um zero no final.","tip_mul_order":"A ordem não muda o resultado: {N} × 3 = 3 × {N}.","tip_add_big":"Somar {N}: some 10 e tire {M}.","tip_add_join":"Somar é juntar quantidades: 5 + 3 = 8.","tip_add_order":"A ordem não muda o resultado: 5 + 3 = 3 + 5.","tip_add_count":"Guarde o maior número na cabeça e conte o outro nos dedos.","tip_add_par":"Par + par = par. Ímpar + ímpar = par. Par + ímpar = ímpar.","tip_sub_rule":"Tirar {N}: tire 10 e devolva {M}.","tip_sub_take":"Subtrair é tirar: 15 − 6 = 9.","tip_sub_inv":"Soma e subtração são inversas: se 6 + 9 = 15, então 15 − 6 = 9. Tire a prova somando!","tip_div_2":"Dividir por 2 é achar a metade.","tip_div_5":"Dividir por 5: o número termina em 0 ou 5.","tip_div_9":"Na tabuada do 9, os algarismos do resultado somam 9.","tip_div_group":"Dividir é repartir em grupos iguais: 12 ÷ 3 = 4 (12 quadradinhos em 3 grupos de 4).","tip_div_mul":"Pense na multiplicação: ? × {N} = o número que você vai dividir.","tip_div_table":"Use a tabuada do {N}: {N} × 1, {N} × 2, {N} × 3...","level":"Nível {n}","levelHint":"Faltam {a} fases para o próximo nível","shareApp":"Compartilhar","shareAppText":"🧮 Conheça a Batalha da Tabuada: jogo de contas com desafios para crianças e adolescentes!","battleHome":"⚔️ Modo batalha","tableTitle":"📋 Tabuada do {n}: de 0 a 11","adShort":"Jogos educativos","opshort_add":"Soma","opshort_sub":"Subtração","opshort_mul":"Multipl.","opshort_div":"Divisão","addApp":"Salvar","close":"Fechar","installTitle":"📲 Salvar na tela inicial","installIOS":"No iPhone/iPad: toque em Compartilhar ⬆️ (barra do Safari) e depois em “Adicionar à Tela de Início”.","installAndroid":"No Android: abra o menu ⋮ do navegador e toque em “Adicionar à tela inicial” (ou “Instalar app”).","installDesktop":"No computador: aperte Ctrl+D (⌘+D no Mac) para adicionar aos favoritos.","trailHelp":"👆 Toque na fase amarela para jogar. Acerte {p} de {q} contas para abrir a próxima fase. Mais acertos, mais ⭐!"}</script>
+<script type="application/json" id="lang-en">{"title":"Times Table Battle","subtitle":"Pick an adventure!","pickHint":"Tap to choose your character","pickTitle":"Choose your character","pickAria":"Choose character","age0":"Ages 3-8","age1":"Ages 9-12","age2":"Ages 13-16","speedNormal":"🐢 Normal","speedFast":"⚡ Fast","langAria":"Language","mode_add":"Addition","mode_sub":"Subtraction","mode_mul":"Multiplication","mode_div":"Division","mode_as":"Addition + Subtraction","mode_am":"Addition + Multiplication","mode_sd":"Subtraction + Division","mode_md":"Multiplication + Division","mode_titan":"Titan","place_add":"Get home","place_sub":"Conquer the river","place_mul":"Reach the island","place_div":"Reach the honey pot","place_as":"Find the giant bone","place_am":"Find the treasure","place_sd":"Catch the giant fish","place_md":"Conquer the mountain","place_titan":"Win the crown","modeSub":"Lap {c} · stage {w} · ⭐ {s}","trainHome":"🏋️ Practice mode","trainSmall":"🚫⏱️ No timer","noTimer":"🚫⏱️ No timer","noTimerNote":"Take your time, no rush! 😊","adText":"🛍️ Browse educational games & materials","adTag":"ad","musicHint":"🔊 Tap the screen to turn the music on","back":"Back","exit":"Exit","sound":"Sound","prevLap":"Previous lap","nextLap":"Next lap","answerAria":"Submit","yourAnswer":"Your answer","lap":"Lap {n}","harder":" · harder","phase":"Stage {n}","phaseLap":"Stage {n} · Lap {c}","dangerTitle":"{e} {n} needs help!","danger":["{n} is caught in a whirlwind of leaves 🍂. Help them get home!","{n} slipped in the mud 🌧️. Help them reach the burrow!","{n} is stuck in a puddle of bubbles 🫧. Help them reach the shore!","{n} climbed onto a cloud 🌥️. Help them get down!"],"rewardTitle":"{e} {n} {txt}!","rewardTxt":"Each correct answer gets you closer!","reward":["wants to grab the cookie 🍪","wants to grab the toy 🧸","wants to eat the fruit 🍓","wants to open the gift 🎁","wants to grab the candy 🍭","wants to grab the ball ⚽"],"help":"Get the answers right to help {n}! 💪","helpRad":"Get the answers right to escape! 💨","radical":[{"t":"💣 The bomb is about to explode!","x":"Run to the shelter before the countdown ends!"},{"t":"🧛 The vampire is coming for you!","x":"Run to the sunrise 🌅 before he catches you!"},{"t":"🧟 The zombies are coming!","x":"Reach the helicopter 🚁 and escape!"},{"t":"🌋 The volcano is about to erupt!","x":"Get to the boat ⛵ before the lava!"},{"t":"🦈 The shark is behind you!","x":"Swim to the island 🏝️!"},{"t":"☄️ Meteor shower!","x":"Get into the spaceship 🚀 before it's too late!"},{"t":"🐉 The dragon woke up!","x":"Reach the castle 🏰 and close the gates!"},{"t":"🌊 The dam is about to burst!","x":"Climb the mountain ⛰️ before the wave!"}],"names":{"🐰":"The bunny","🐶":"The puppy","🐱":"The kitten","🐼":"The panda","🐵":"The monkey","🐸":"The froggy","🐥":"The chick","🐻":"The little bear","🦝":"The raccoon","🦁":"The lion cub","🐧":"The penguin","🐯":"The little tiger","🦄":"The unicorn","👧":"The girl","🧚‍♀️":"The fairy","👸":"The princess","🧜‍♀️":"The mermaid","🦸‍♀️":"The heroine","👩‍🚀":"The astronaut","👩‍🎤":"The singer"},"ready":"Get ready...","startNow":"▶ Start now","fastMsg":"🚀 Super fast!","comboMsg":"🔥 Combo!","okMsg":"✨ Correct!","oops":"🤔 Almost!","timeUp":"⏰ Time's up!","hintGroups":"💡 Let's look at the groups.","hintBlocks":"💡 Let's count the blocks.","cont":"Continue","comboBig":"🚀 COMBO!","groupsOf":"{a} groups of {b}","divCap":"{a} blocks in {b} equal groups","eachGroup":"Each group has {n}","win":"🎉 YOU WON!","lose":"💥 You lost!","almost":"💪 Almost there! Try again!","timeUpAt":"⏰ Time ran out on problem {n}","hits":"{ok} / {n} correct","errors":"❌ Mistakes: {n}","maxCombo":"🔥 Best combo: {n}","avgTime":"⚡ Average time: {n} s","record":"Your record: {a} correct · combo {b}","lapDone":"🏁 You reached the goal! The next lap has harder problems.","share":"📤 Share","next":"▶ Next stage","again":"🔁 Play again","tryAgain":"🔁 Try again!","trail":"🗺️ Trail","home":"🏠 Home","shareText":"🎉 I beat {fase} of {mode} in Times Table Battle! {stars} {ok}/{n} correct, combo {c}. Come play!","copied":"Copied! Paste it in a chat 😊","shareFail":"Couldn't share","trainTitle":"🏋️ Practice · {op}","pickTable":"Pick a table (2 to 9)","tableOf":"Table of {n}","tipsTitle":"📖 Tips before you start","tipsSoon":"Practice starts in a moment...","tipsGo":"▶ I've read it, start!","tipsMore":"➕ 10 more seconds","perfect":"🌟 Perfect!","good":"🎉 Well done!","keep":"💪 Keep practicing!","nextTable":"▶ Table of {n}","tableList":"📋 Tables","best10":"⭐ 10/10","mulhint":["Table of 2: it's the double of the number!","Table of 3: count by 3s (3, 6, 9, 12...).","Table of 4: it's the double of the double!","Table of 5: the result always ends in 0 or 5.","Table of 6: it's double the table of 3.","Table of 7: count by 7s (7, 14, 21, 28...).","Table of 8: it's double the table of 4.","Table of 9: the digits of the result add up to 9!"],"tip_mul_sum":"Multiplying is adding the same number several times: 3 × 4 = 3 + 3 + 3 + 3.","tip_mul_par":"Multiplying by an even number always gives an even result. Odd × odd gives odd.","tip_mul_5":"Multiplying by 5 always ends in 0 or 5.","tip_mul_10":"Multiplying by 10: just add a zero at the end.","tip_mul_order":"The order doesn't change the result: {N} × 3 = 3 × {N}.","tip_add_big":"Adding {N}: add 10 and take away {M}.","tip_add_join":"Adding is putting amounts together: 5 + 3 = 8.","tip_add_order":"The order doesn't change the result: 5 + 3 = 3 + 5.","tip_add_count":"Keep the bigger number in your head and count the other on your fingers.","tip_add_par":"Even + even = even. Odd + odd = even. Even + odd = odd.","tip_sub_rule":"Taking away {N}: take away 10 and give back {M}.","tip_sub_take":"Subtracting is taking away: 15 − 6 = 9.","tip_sub_inv":"Addition and subtraction are opposites: if 6 + 9 = 15, then 15 − 6 = 9. Check your answer by adding!","tip_div_2":"Dividing by 2 means finding half.","tip_div_5":"Dividing by 5: the number ends in 0 or 5.","tip_div_9":"In the table of 9, the digits of the result add up to 9.","tip_div_group":"Dividing is sharing into equal groups: 12 ÷ 3 = 4 (12 blocks in 3 groups of 4).","tip_div_mul":"Think of multiplication: ? × {N} = the number you are dividing.","tip_div_table":"Use the table of {N}: {N} × 1, {N} × 2, {N} × 3...","level":"Level {n}","levelHint":"Clear {a} more stages to level up","shareApp":"Share","shareAppText":"🧮 Check out Times Table Battle: a math game with challenges for kids and teens!","battleHome":"⚔️ Battle mode","tableTitle":"📋 Table of {n}: 0 to 11","adShort":"Educational games","opshort_add":"Add","opshort_sub":"Subtract","opshort_mul":"Multiply","opshort_div":"Divide","addApp":"Save","close":"Close","installTitle":"📲 Add to Home Screen","installIOS":"On iPhone/iPad: tap Share ⬆️ in Safari, then “Add to Home Screen”.","installAndroid":"On Android: open the browser menu ⋮ and tap “Add to Home screen” (or “Install app”).","installDesktop":"On a computer: press Ctrl+D (⌘+D on Mac) to bookmark this page.","trailHelp":"👆 Tap the yellow stage to play. Get {p} of {q} right to unlock the next stage. More correct answers, more ⭐!"}</script>
+<script type="application/json" id="lang-es">{"title":"Batalla de las Tablas","subtitle":"¡Elige una aventura!","pickHint":"Toca para elegir tu personaje","pickTitle":"Elige tu personaje","pickAria":"Elegir personaje","age0":"3 a 8 años","age1":"9 a 12 años","age2":"13 a 16 años","speedNormal":"🐢 Normal","speedFast":"⚡ Rápido","langAria":"Idioma","mode_add":"Suma","mode_sub":"Resta","mode_mul":"Multiplicación","mode_div":"División","mode_as":"Suma + Resta","mode_am":"Suma + Multiplicación","mode_sd":"Resta + División","mode_md":"Multiplicación + División","mode_titan":"Titán","place_add":"Llegar a casa","place_sub":"Conquistar el río","place_mul":"Llegar a la isla","place_div":"Llegar al tarro de miel","place_as":"Encontrar el hueso gigante","place_am":"Encontrar el tesoro","place_sd":"Pescar el pez gigante","place_md":"Conquistar la montaña","place_titan":"Ganar la corona","modeSub":"Vuelta {c} · fase {w} · ⭐ {s}","trainHome":"🏋️ Modo práctica","trainSmall":"🚫⏱️ Sin cronómetro","noTimer":"🚫⏱️ Sin cronómetro","noTimerNote":"¡Piensa con calma, sin prisa! 😊","adText":"🛍️ Mira materiales y juegos educativos","adTag":"publi","musicHint":"🔊 Toca la pantalla para activar la música","back":"Volver","exit":"Salir","sound":"Sonido","prevLap":"Vuelta anterior","nextLap":"Siguiente vuelta","answerAria":"Responder","yourAnswer":"Tu respuesta","lap":"Vuelta {n}","harder":" · más difícil","phase":"Fase {n}","phaseLap":"Fase {n} · Vuelta {c}","dangerTitle":"{e} ¡{n} necesita ayuda!","danger":["{n} está en medio de un torbellino de hojas 🍂. ¡Ayúdale a llegar a casa!","{n} resbaló en el barro 🌧️. ¡Ayúdale a llegar a la madriguera!","{n} está en un charco de burbujas 🫧. ¡Ayúdale a llegar a la orilla!","{n} se subió a una nube 🌥️. ¡Ayúdale a bajar!"],"rewardTitle":"{e} ¡{n} {txt}!","rewardTxt":"¡Cada respuesta correcta te acerca más!","reward":["quiere agarrar la galleta 🍪","quiere agarrar el juguete 🧸","quiere comer la fruta 🍓","quiere abrir el regalo 🎁","quiere agarrar el dulce 🍭","quiere agarrar la pelota ⚽"],"help":"¡Acierta las cuentas para ayudar! 💪","helpRad":"¡Acierta las cuentas para escapar! 💨","radical":[{"t":"💣 ¡La bomba va a explotar!","x":"¡Corre al refugio antes de que acabe la cuenta atrás!"},{"t":"🧛 ¡El vampiro te va a atrapar!","x":"¡Corre hacia el amanecer 🌅 antes de que te alcance!"},{"t":"🧟 ¡Vienen los zombis!","x":"¡Llega al helicóptero 🚁 y huye!"},{"t":"🌋 ¡El volcán va a entrar en erupción!","x":"¡Llega al barco ⛵ antes que la lava!"},{"t":"🦈 ¡El tiburón está detrás de ti!","x":"¡Nada hasta la isla 🏝️!"},{"t":"☄️ ¡Lluvia de meteoros!","x":"¡Entra en la nave 🚀 antes de que sea tarde!"},{"t":"🐉 ¡El dragón despertó!","x":"¡Llega al castillo 🏰 y cierra las puertas!"},{"t":"🌊 ¡La presa va a romperse!","x":"¡Sube la montaña ⛰️ antes de la ola!"}],"names":{"🐰":"El conejito","🐶":"El perrito","🐱":"El gatito","🐼":"El panda","🐵":"El monito","🐸":"La ranita","🐥":"El pollito","🐻":"El osito","🦝":"El mapache","🦁":"El leoncito","🐧":"El pingüino","🐯":"El tigrecito","🦄":"El unicornio","👧":"La niña","🧚‍♀️":"El hada","👸":"La princesa","🧜‍♀️":"La sirena","🦸‍♀️":"La heroína","👩‍🚀":"La astronauta","👩‍🎤":"La cantante"},"ready":"Prepárate...","startNow":"▶ Empezar ya","fastMsg":"🚀 ¡Muy rápido!","comboMsg":"🔥 ¡Combo!","okMsg":"✨ ¡Correcto!","oops":"🤔 ¡Casi!","timeUp":"⏰ ¡Se acabó el tiempo!","hintGroups":"💡 Observemos los grupos.","hintBlocks":"💡 Contemos los bloques.","cont":"Continuar","comboBig":"🚀 ¡COMBO!","groupsOf":"{a} grupos de {b}","divCap":"{a} cuadritos en {b} grupos iguales","eachGroup":"Cada grupo tiene {n}","win":"🎉 ¡GANASTE!","lose":"💥 ¡Perdiste!","almost":"💪 ¡Casi! ¡Inténtalo de nuevo!","timeUpAt":"⏰ Se acabó el tiempo en la cuenta {n}","hits":"{ok} / {n} aciertos","errors":"❌ Errores: {n}","maxCombo":"🔥 Combo máximo: {n}","avgTime":"⚡ Tiempo medio: {n} s","record":"Tu récord: {a} aciertos · combo {b}","lapDone":"🏁 ¡Llegaste a la meta! La próxima vuelta tiene cuentas más difíciles.","share":"📤 Compartir","next":"▶ Siguiente fase","again":"🔁 Repetir","tryAgain":"🔁 ¡Inténtalo de nuevo!","trail":"🗺️ Ruta","home":"🏠 Inicio","shareText":"🎉 ¡Superé {fase} de {mode} en la Batalla de las Tablas! {stars} {ok}/{n} aciertos, combo {c}. ¡Ven a jugar!","copied":"¡Copiado! Pégalo en un chat 😊","shareFail":"No se pudo compartir","trainTitle":"🏋️ Práctica · {op}","pickTable":"Elige la tabla (del 2 al 9)","tableOf":"Tabla del {n}","tipsTitle":"📖 Consejos antes de empezar","tipsSoon":"La práctica empieza en un momento...","tipsGo":"▶ ¡Ya leí, empezar!","tipsMore":"➕ 10 segundos más","perfect":"🌟 ¡Perfecto!","good":"🎉 ¡Muy bien!","keep":"💪 ¡Sigue practicando!","nextTable":"▶ Tabla del {n}","tableList":"📋 Tablas","best10":"⭐ 10/10","mulhint":["Tabla del 2: ¡es el doble del número!","Tabla del 3: cuenta de 3 en 3 (3, 6, 9, 12...).","Tabla del 4: ¡es el doble del doble!","Tabla del 5: el resultado siempre termina en 0 o 5.","Tabla del 6: es el doble de la tabla del 3.","Tabla del 7: cuenta de 7 en 7 (7, 14, 21, 28...).","Tabla del 8: es el doble de la tabla del 4.","Tabla del 9: ¡los dígitos del resultado suman 9!"],"tip_mul_sum":"Multiplicar es sumar el mismo número varias veces: 3 × 4 = 3 + 3 + 3 + 3.","tip_mul_par":"Multiplicar por un número par siempre da un resultado par. Impar × impar da impar.","tip_mul_5":"Multiplicar por 5 siempre termina en 0 o 5.","tip_mul_10":"Multiplicar por 10: solo añade un cero al final.","tip_mul_order":"El orden no cambia el resultado: {N} × 3 = 3 × {N}.","tip_add_big":"Sumar {N}: suma 10 y quita {M}.","tip_add_join":"Sumar es juntar cantidades: 5 + 3 = 8.","tip_add_order":"El orden no cambia el resultado: 5 + 3 = 3 + 5.","tip_add_count":"Guarda el número mayor en la cabeza y cuenta el otro con los dedos.","tip_add_par":"Par + par = par. Impar + impar = par. Par + impar = impar.","tip_sub_rule":"Quitar {N}: quita 10 y devuelve {M}.","tip_sub_take":"Restar es quitar: 15 − 6 = 9.","tip_sub_inv":"La suma y la resta son opuestas: si 6 + 9 = 15, entonces 15 − 6 = 9. ¡Comprueba sumando!","tip_div_2":"Dividir entre 2 es hallar la mitad.","tip_div_5":"Dividir entre 5: el número termina en 0 o 5.","tip_div_9":"En la tabla del 9, los dígitos del resultado suman 9.","tip_div_group":"Dividir es repartir en grupos iguales: 12 ÷ 3 = 4 (12 cuadritos en 3 grupos de 4).","tip_div_mul":"Piensa en la multiplicación: ? × {N} = el número que vas a dividir.","tip_div_table":"Usa la tabla del {N}: {N} × 1, {N} × 2, {N} × 3...","level":"Nivel {n}","levelHint":"Completa {a} fases más para subir de nivel","shareApp":"Compartir","shareAppText":"🧮 Descubre la Batalla de las Tablas: un juego de cuentas con desafíos para niños y adolescentes.","battleHome":"⚔️ Modo batalla","tableTitle":"📋 Tabla del {n}: del 0 al 11","adShort":"Juegos educativos","opshort_add":"Suma","opshort_sub":"Resta","opshort_mul":"Multipl.","opshort_div":"División","addApp":"Guardar","close":"Cerrar","installTitle":"📲 Añadir a la pantalla de inicio","installIOS":"En iPhone/iPad: toca Compartir ⬆️ en Safari y luego «Añadir a pantalla de inicio».","installAndroid":"En Android: abre el menú ⋮ del navegador y toca «Añadir a la pantalla de inicio» (o «Instalar app»).","installDesktop":"En el ordenador: pulsa Ctrl+D (⌘+D en Mac) para añadir a favoritos.","trailHelp":"👆 Toca la fase amarilla para jugar. Acierta {p} de {q} cuentas para abrir la siguiente fase. ¡Más aciertos, más ⭐!"}</script>
+<script>
+/* ============ 0. IDIOMAS: textos em JSON (<script type="application/json" id="lang-xx"> no topo do HTML) ============ */
+const LANGS=['pt','en','es'],LANG={};
+function embedded(l){try{return JSON.parse(document.getElementById('lang-'+l).textContent)}catch(e){return{}}}
+let CUR=null;
+function detectLang(){ // 1) idioma salvo  2) idioma do navegador  3) inglês
+  const s=SAVE.cfg&&SAVE.cfg.lang;if(LANGS.includes(s))return s;
+  const n=((navigator.languages&&navigator.languages[0])||navigator.language||'').toLowerCase();
+  return n.indexOf('pt')===0?'pt':n.indexOf('es')===0?'es':'en';
+}
+const lang=()=>CUR||(CUR=detectLang());
+const raw=k=>{for(const l of [lang(),'en','pt']){const L=LANG[l];if(L&&k in L)return L[k]}return k};
+const fmt=(s,v)=>typeof s==='string'&&v?s.replace(/\{(\w+)\}/g,(m,x)=>x in v?v[x]:m):s;
+const t=(k,v)=>fmt(raw(k),v);                                   // t('chave',{var:valor})
+const tl=(k,v)=>{const a=raw(k);return Array.isArray(a)?a.map(x=>fmt(x,v)):[]}; // listas
+const nameOf=e=>(raw('names')||{})[e]||'';
+function setLangDom(){document.documentElement.lang={pt:'pt-BR',en:'en',es:'es'}[lang()];document.title=t('title')}
+
+/* ============ 1. CONFIGURAÇÃO ============ */
+const QPL=10, PASS=6, PREP=5;                 // contas por fase / acertos para liberar a próxima / segundos antes da batalha
+const TRAIN_PREP=20;                          // segundos para ler as dicas do treino ("Mais 10 segundos" soma mais)
+const TYPE_FROM=6, TYPE_BONUS=3;              // a partir desta pergunta (1–10) a resposta é digitada; +3 s para digitar
+const FLIP_HERO=true;                         // vira o herói para olhar na direção do destino (ameaça fica atrás, à esquerda)
+const LEVEL_EVERY=5;                          // fases concluídas para subir 1 nível (barra do topo)
+const TIMEOUT_LOSES=true;                     // tempo esgotado = derrota imediata
+const R=(a,b)=>Array.from({length:Math.max(0,b-a+1)},(_,i)=>a+i);
+const TIMES=[15,14,13,12,11,10,9,8,7,6];      // segundos por pergunta (fase 1..10)
+const FAST_FACTOR=.6, FAST_MIN=4, MIN_TIME=5; // modo rápido: tempo × 0.6; nas voltas extras o tempo cai 1 s por volta
+const MUSIC_FAST=1.5;                         // andamento da música no modo Rápido
+const AD_TRAIL='https://s.shopee.com.br/30oWnHsUsx'; // anúncio da tela da trilha (troque aqui se quiser outro link)
+const AD_HOME='https://s.shopee.com.br/30oWnHsUsx', AD_WIN='https://s.shopee.com.br/3g4DaY2Lo0'; // links de publicidade
+const MODES=[
+  {id:'add',icon:'➕',ops:['add']},{id:'sub',icon:'➖',ops:['sub']},{id:'mul',icon:'✖️',ops:['mul']},{id:'div',icon:'➗',ops:['div']},
+  {id:'as',icon:'🔄',ops:['add','sub']},{id:'am',icon:'🎯',ops:['add','mul']},{id:'sd',icon:'🎲',ops:['sub','div']},{id:'md',icon:'🔀',ops:['mul','div']},
+  {id:'titan',icon:'👑',ops:['add','sub','mul','div'],times:[14,13,12,11,10,9,8,7,6,6]}
+];
+const META={ // animal e destino de cada trilha (os nomes dos destinos estão em place_* nos JSON)
+  add:{animal:'🐰',goal:'🏡'},sub:{animal:'🐸',goal:'🏞️'},mul:{animal:'🐵',goal:'🏝️'},div:{animal:'🐻',goal:'🍯'},
+  as:{animal:'🐶',goal:'🦴'},am:{animal:'🦊',goal:'💎'},sd:{animal:'🐧',goal:'🐟'},md:{animal:'🐼',goal:'⛰️'},titan:{animal:'🦁',goal:'👑'}
+};
+
+/* ============ 2. DIFICULDADE DAS FASES (edite aqui) ============ */
+const OPS={
+  add:[[1,5],[2,9],[5,12],[8,20],[10,30],[15,45],[20,60],[25,75],[30,90],[40,99]].map(([lo,hi])=>({lo,hi})),
+  sub:[[3,8],[5,12],[8,18],[10,25],[15,40],[20,55],[30,70],[40,85],[50,99],[60,150]].map(([lo,hi])=>({lo,hi})),
+  mul:[{t:[2,5,10],f:[2,5]},{t:R(2,5),f:[2,6]},{t:R(2,5),f:[2,8]},{t:R(2,6),f:[2,9]},{t:R(2,7),f:[2,10]},
+       {t:R(3,8),f:[2,10]},{t:R(2,9),f:[3,10]},{t:R(2,10),f:[3,10]},{t:R(6,10),f:[4,10]},{t:R(2,10),f:[6,12]}],
+  div:[{d:[2,5,10],q:[2,5]},{d:R(2,5),q:[2,6]},{d:R(2,5),q:[2,8]},{d:R(2,6),q:[2,9]},{d:R(2,7),q:[3,10]},
+       {d:R(3,8),q:[3,10]},{d:R(2,9),q:[4,10]},{d:R(2,10),q:[4,10]},{d:R(6,10),q:[5,12]},{d:R(3,10),q:[6,12]}]
+};
+function cfgAge(op,b){ // faixa 13–16 anos: operandos acima de 6 já na fase 1
+  if(age()<2)return b;
+  if(op==='add'){const lo=Math.max(7,b.lo);return{lo,hi:Math.max(b.hi,lo+8)}}
+  if(op==='sub'){const lo=Math.max(10,b.lo);return{lo,hi:Math.max(b.hi,lo+8),m:7}}
+  const big=b[op==='mul'?'t':'d'].filter(x=>x>6),L7=big.length>=3?big:R(7,10);
+  if(op==='mul')return{t:L7,f:[Math.max(7,b.f[0]),Math.max(b.f[1],9)]};
+  return{d:L7,q:[b.q[0],Math.max(b.q[1],7)]};
+}
+function cfgFor(op,L){ // jogo infinito: depois da fase 10 começa uma nova volta, mais difícil
+  const b=cfgAge(op,OPS[op][L%10]),c=Math.floor(L/10);if(!c)return b;
+  const k=1+c*.8;
+  if(op==='add'||op==='sub')return{lo:Math.round(b.lo*k),hi:Math.round(b.hi*k),m:b.m};
+  if(op==='mul')return{t:[...b.t,...R(11,10+2*c)],f:[b.f[0]+c,b.f[1]+2*c]};
+  return{d:[...b.d,...R(11,10+2*c)],q:[b.q[0]+c,b.q[1]+2*c]};
+}
+
+/* ============ 3. QUESTÕES ============ */
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const GEN={
+  add:c=>{const a=rnd(c.lo,c.hi),b=rnd(c.lo,c.hi);return{a,b,ans:a+b,sym:'+'}},
+  sub:c=>{const a=rnd(c.lo,c.hi),b=rnd(c.m||1,a-1);return{a,b,ans:a-b,sym:'−'}},
+  mul:c=>{let a=pick(c.t),b=rnd(c.f[0],c.f[1]);if(Math.random()<.5)[a,b]=[b,a];return{a,b,ans:a*b,sym:'×'}},
+  div:c=>{const b=pick(c.d),q=rnd(c.q[0],c.q[1]);return{a:b*q,b,ans:q,sym:'÷'}}
+};
+function makeQuestions(mode,L){
+  const out=[],seen=new Set();
+  for(let i=0;i<QPL;i++){
+    let q,n=0,key;
+    do{const op=pick(mode.ops);q={op,...GEN[op](cfgFor(op,L))};key=q.op+q.a+'_'+q.b;n++}while(seen.has(key)&&n<40);
+    seen.add(key);q.opts=makeOptions(q);out.push(q);
+  }
+  return out;
+}
+function makeOptions(q){ // 2 erradas plausíveis, sem repetição
+  const {a,b,ans}=q;
+  const c={
+    add:[ans+1,ans-1,ans+10,ans-10,ans+2,ans-2,Math.abs(a-b)],
+    sub:[ans+1,ans-1,ans+10,ans-10,a+b,ans+2,ans-2],
+    mul:[ans+a,ans-a,ans+b,ans-b,ans+1,ans-1,a+b],
+    div:[ans+1,ans-1,ans+2,ans-2,b,a-b]
+  }[q.op].filter(v=>Number.isInteger(v)&&v>0&&v!==ans);
+  const wrong=shuffle([...new Set(c)]).slice(0,2);
+  for(let k=3;wrong.length<2;k++){const v=ans+k;if(!wrong.includes(v))wrong.push(v)}
+  return shuffle([ans,...wrong]);
+}
+
+/* ============ 4. REPRESENTAÇÃO VISUAL ============ */
+const GC=['#3b82f6','#f97316','#22c55e','#ec4899','#a855f7','#eab308','#14b8a6','#ef4444','#84cc16','#06b6d4','#f43f5e','#8b5cf6'];
+const sz=(n,max=24)=>Math.max(6,Math.min(max,Math.floor(Math.sqrt(8000/Math.max(n,1)))-2));
+const sqc=(n,s,col)=>`<i class="b" style="--s:${s}px;background:${col}"></i>`.repeat(n);
+const sq=(n,cls,s)=>`<i class="b ${cls}" style="--s:${s}px"></i>`.repeat(n);
+function bl(n,cls,s){ // grupos de 10 (5×2) com borda + resto tracejado
+  const k=Math.floor(n/10),u=n%10;let h='';
+  for(let i=0;i<k;i++)h+=`<div class="ten5">${sq(10,cls,s)}</div>`;
+  if(u)h+=`<div class="ten5 rest">${sq(u,cls,s)}</div>`;
+  return `<div class="bl">${h}</div>`;
+}
+function vis(q,reveal){
+  const {a,b,ans}=q;
+  if(q.op==='add'||q.op==='sub'){const s=(a>60||b>60)?10:sz(Math.max(a,b)*2,22);
+    return `<div class="eq">${bl(a,'c1',s)}<b>${q.sym}</b>${bl(b,'c2',s)}</div>`}
+  if(q.op==='mul'){const s=Math.max(6,Math.min(26,Math.floor(250/b)-2,Math.floor(190/a)-2));let g='';
+    for(let r=0;r<a;r++)g+=sqc(b,s,GC[r%12]);
+    return `<div class="grid" style="grid-template-columns:repeat(${b},auto)">${g}</div><div class="cap">${t('groupsOf',{a,b})}</div>`}
+  const s=sz(a,16);
+  const grp=Array.from({length:b},(_,i)=>`<div class="grp" style="border-color:${GC[i%12]}">${sqc(ans,s,GC[i%12])}${reveal?`<em>${ans}</em>`:''}</div>`).join('');
+  return `<div class="cap">${t('divCap',{a,b})}</div><div class="groups">${grp}</div>${reveal?`<div class="cap">${t('eachGroup',{n:ans})}</div>`:''}`;
+}
+
+/* ============ 5. PERSONAGENS E NARRATIVA ============ */
+const DEFAULT=['🐰','🐶','🐱','🐼','🐵','🐸','🐥','🐻'];
+const DANGER_GOALS=['🏡','🕳️','🏝️','🌳'],REWARD_GOALS=['🍪','🧸','🍓','🎁','🍭','⚽'];
+const MALE0=['🐰','🐶','🐱','🐼','🐵','🐸','🐥','🐻','🦝','🦁','🐧','🐯','🦄']; // 13 + 7 personagens femininas = 20
+const PICKS1=['🥷','🦸‍♀️','🦸','🧛‍♀️','🧛','🧟‍♀️','🧟','🧙‍♀️','🐉','🦹‍♀️','🤖','👩‍🚀','👾','🧝‍♀️','🦖','🧙','🦹','🧑‍🚀','🦈','🐺'];
+function mix(a,b){const o=[];let i=0,j=0;while(i<a.length||j<b.length){if(i<a.length)o.push(a[i++]);if(j<b.length)o.push(b[j++])}return o}
+// 3–8 anos: bichinhos intercalados com personagens femininas (as femininas vêm de names nos JSON)
+const picks=()=>age()?PICKS1:mix(MALE0,Object.keys(raw('names')||{}).filter(k=>!MALE0.includes(k)));
+const avatar=()=>{const a=(cfg().av||{})[age()];return picks().includes(a)?a:null};
+const RADICAL=[{e:'🏃',t:'💣',goal:'🛡️'},{e:'🏃',t:'🧛',goal:'🌅'},{e:'🏃',t:'🧟',goal:'🚁'},{e:'🏃',t:'🌋',goal:'⛵'},{e:'🏊',t:'🦈',goal:'🏝️'},{e:'🧑‍🚀',t:'☄️',goal:'🚀'},{e:'🧙',t:'🐉',goal:'🏰'},{e:'🏃',t:'🌊',goal:'⛰️'}];
+function makeScene(){
+  if(age()>0){const i=rnd(0,RADICAL.length-1),r=RADICAL[i],d=(raw('radical')||[])[i]||{};
+    return{e:avatar()||r.e,n:'',goal:r.goal,threat:r.t,title:d.t,txt:d.x,help:t('helpRad')}}
+  const e=avatar()||pick(DEFAULT),n=nameOf(e),help=t('help',{n:n.toLowerCase()});
+  if(Math.random()<.5){const i=rnd(0,DANGER_GOALS.length-1);
+    return{e,n,goal:DANGER_GOALS[i],title:t('dangerTitle',{e,n}),txt:tl('danger',{n})[i],help}}
+  const i=rnd(0,REWARD_GOALS.length-1);
+  return{e,n,goal:REWARD_GOALS[i],title:t('rewardTitle',{e,n,txt:tl('reward')[i]}),txt:t('rewardTxt'),help};
+}
+
+/* ============ 6. STORAGE + PROGRESSÃO ============ */
+const KEY='batalha-tabuada-v1';
+const store={ // localStorage; se bloqueado, usa sessionStorage e window.name como reserva
+  load(){let r=null;
+    try{r=localStorage.getItem(KEY)}catch(e){}
+    if(!r)try{r=sessionStorage.getItem(KEY)}catch(e){}
+    if(!r&&window.name.indexOf(KEY+'=')===0)r=window.name.slice(KEY.length+1);
+    try{const d=JSON.parse(r);return d&&typeof d==='object'?d:{}}catch(e){return{}}},
+  save(d){const j=JSON.stringify(d);
+    try{localStorage.setItem(KEY,j)}catch(e){}
+    try{sessionStorage.setItem(KEY,j)}catch(e){}
+    try{window.name=KEY+'='+j}catch(e){}}
+};
+let SAVE=store.load();
+const cfg=()=>SAVE.cfg||(SAVE.cfg={});
+const age=()=>cfg().age>=2?2:cfg().age===1?1:0, pk=id=>age()?id+'@'+age():id; // 0=3–8, 1=9–12, 2=13–16
+const isFast=()=>!!cfg().fast, soundOn=()=>!cfg().mute, sndIcon=()=>soundOn()?'🔊':'🔇';
+function prog(id){
+  const k=pk(id);let p=SAVE[k];if(!p||typeof p!=='object')p=SAVE[k]={};
+  ['stars','best','combo'].forEach(x=>{if(!Array.isArray(p[x]))p[x]=[]});
+  if(!(p.unlocked>=1))p.unlocked=1;
+  if(p.stars[9]>0&&p.unlocked<11)p.unlocked=11;
+  return p;
+}
+const sumStars=id=>prog(id).stars.reduce((a,b)=>a+(b||0),0);
+const starsFor=ok=>ok>=9?3:ok>=8?2:ok>=PASS?1:0;
+function limitFor(m,L){
+  const b=Math.max(MIN_TIME,(m.times||TIMES)[L%10]-Math.floor(L/10));
+  return isFast()?Math.max(FAST_MIN,Math.round(b*FAST_FACTOR)):b;
+}
+addEventListener('pagehide',()=>store.save(SAVE));
+
+/* ============ 7. SONS E MÚSICA (sintetizados) ============ */
+let AC=null,MG=null,NB=null,hintOn=false;
+function getAC(){
+  try{
+    if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();MG.gain.value=1;
+      AC.onstatechange=()=>{if(AC&&AC.state==='running'){Music.sync();if(hintOn){hintOn=false;$('toast').classList.remove('on')}}};
+      MG.connect(AC.destination);
+      NB=AC.createBuffer(1,Math.floor(AC.sampleRate*.1),AC.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
+    if(AC.state==='suspended')AC.resume();
+  }catch(e){AC=null}
+  return AC;
+}
+function tone(f,s,d,type,v,out){
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.type=type;o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v,s+.015);g.gain.exponentialRampToValueAtTime(.0001,s+d);
+  o.connect(g);g.connect(out||AC.destination);o.start(s);o.stop(s+d+.03);
+}
+function beep(f,d,type,v,at){if(!soundOn()||!getAC())return;try{tone(f,AC.currentTime+(at||0),d,type||'sine',v||.15)}catch(e){}}
+const SFX={
+  click:()=>beep(520,.05,'triangle',.12),
+  tick:()=>beep(800,.05,'square',.05),
+  tick2:()=>beep(1200,.07,'square',.08),
+  happy:()=>{beep(660,.08,'sine',.18);beep(990,.12,'sine',.18,.08)},
+  sad:()=>{beep(330,.12,'sine',.16);beep(220,.2,'sine',.16,.12)},
+  win:()=>[0,1].forEach(l=>[523,659,784,1047].forEach((f,i)=>beep(f*(l?1.122:1),i===3?.3:.12,'triangle',.2,l*.55+i*.12))),
+  lose:()=>[523,466,415,349,262].forEach((f,i)=>beep(f,i===4?.45:.16,'triangle',.18,i*.15))
+};
+const F=n=>440*Math.pow(2,(n-69)/12);
+const mt=(n,s,d,type,v)=>tone(F(n),s,d,type,v,MG);
+function hat(s,v){const src=AC.createBufferSource(),g=AC.createGain(),h=AC.createBiquadFilter();h.type='highpass';h.frequency.value=7000;src.buffer=NB;g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.0001,s+.05);src.connect(h);h.connect(g);g.connect(MG);src.start(s)}
+function kick(s){const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(140,s);o.frequency.exponentialRampToValueAtTime(45,s+.12);g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.0001,s+.15);o.connect(g);g.connect(MG);o.start(s);o.stop(s+.18)}
+const TRACKS={
+  win:{bpm:168,play(k,s,d){
+    const bar=Math.floor(k/8)%4,p=k%8,root=[48,53,55,48][bar],ch=[[72,76,79,84],[72,77,81,84],[71,74,79,83],[72,76,79,84]][bar];
+    if(p===0||p===4)kick(s);
+    mt(root+(p%2?12:0),s,d*.9,'triangle',.1);
+    mt(ch[[0,1,2,3,2,1,2,3][p]],s,d*1.4,'triangle',.06);
+    if(p===0||p===4)mt(ch[3]+12,s,d*3,'sine',.04);
+    if(p%2)hat(s,.06);
+  }},
+  calm:{bpm:76,play(k,s,d){
+    const bar=Math.floor(k/8)%4,p=k%8,ch=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]][bar];
+    if(p===0||p===4)mt(ch[0]-12,s,d*3.5,'sine',.09);
+    mt(ch[[0,1,2,1,0,1,2,1][p]]+12,s,d*2,'triangle',.05);
+    if((p===0||p===3||p===6)&&Math.random()<.7)mt(pick([72,74,76,79,81]),s,d*2.5,'sine',.045);
+  }},
+  fast:{bpm:150,play(k,s,d){
+    const bar=Math.floor(k/8)%4,p=k%8,root=[48,55,45,53][bar],riff=[76,0,79,0,81,79,0,76,74,0,76,79,0,76,74,0];
+    if(p===0||p===4)kick(s);
+    mt(root+(p%2?12:0),s,d*.9,'triangle',.1);
+    if(riff[k%16])mt(riff[k%16],s,d*.9,'square',.03);
+    if(p%2)hat(s,.05);
+  }}
+};
+const Music={want:'fast',cur:null,iv:null,step:0,next:0,
+  set(x){this.want=x;this.sync()},
+  sync(){
+    if(!soundOn()||!AC){this.stop();return}
+    if(this.cur===this.want&&this.iv)return;
+    this.stop();this.cur=this.want;this.step=0;this.next=AC.currentTime+.1;
+    this.iv=setInterval(()=>this.pump(),100);
+  },
+  stop(){clearInterval(this.iv);this.iv=null;this.cur=null},
+  pump(){
+    const T=TRACKS[this.cur];if(!T)return;const d=60/T.bpm/2/(isFast()?MUSIC_FAST:1);
+    while(this.next<AC.currentTime+.4){try{T.play(this.step,this.next,d)}catch(e){}this.step++;this.next+=d}
+  }
+};
+
+/* ============ 8. ESTADO, COMBO, CRONÔMETRO, ANIMAÇÕES ============ */
+let G=null;
+const $=id=>document.getElementById(id);
+const comboLabel=n=>n>=4?t('comboBig'):n===3?'🔥🔥':n===2?'🔥':n===1?'✨':'⚪';
+const updCombo=()=>{const e=$('cmb');if(e)e.textContent=`${comboLabel(G.combo)} ${G.combo}`};
+function stopAll(){document.body.classList.remove('lost');if(G){clearInterval(G.iv);clearTimeout(G.nt);G.qid++;G.locked=true}}
+function tick(id){
+  if(!G||id!==G.qid||G.locked)return;
+  const left=G.limit-(performance.now()-G.t0)/1000;
+  if(left<=0){answer(null);return}
+  const sec=Math.ceil(left);
+  if(left<=5&&sec!==G.ls){G.ls=sec;(left<=3?SFX.tick2:SFX.tick)()}
+  $('tb').style.width=(left/G.limit*100)+'%';$('tn').textContent=sec+'s';
+  document.querySelector('.timer').classList.toggle('urgent',left<=3);
+  const tr=document.querySelector('.track');if(tr)tr.classList.toggle('alarm',left<=3);
+}
+function startTimer(){clearInterval(G.iv);const id=G.qid;G.t0=performance.now();G.ls=0;tick(id);G.iv=setInterval(()=>tick(id),100)}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){store.save(SAVE);Music.stop()}else Music.sync();
+  if(!G)return;
+  if(document.hidden)G.hid=performance.now();else if(G.hid){G.t0+=performance.now()-G.hid;G.hid=0}
+});
+function anim(cls){const h=$('hero');if(!h)return;h.classList.remove('hop','wig');void h.offsetWidth;h.classList.add(cls)}
+function setPos(p){const h=$('hero');h.style.left=p+'%';h.style.transform=`translateX(-${p}%)`}
+function toast(x,ms){const e=$('toast');e.textContent=x;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),ms||2200)}
+function redFlash(){const e=document.createElement('div');e.className='flash';document.body.appendChild(e);setTimeout(()=>e.remove(),1000)}
+
+/* ============ 9. INTERFACE ============ */
+const app=document.getElementById('app');
+const faseTxt=L=>L>=10?t('phaseLap',{n:L%10+1,c:Math.floor(L/10)+1}):t('phase',{n:L%10+1});
+const adLink=(url)=>`<a class="ad" href="${url}" target="_blank" rel="sponsored nofollow noopener noreferrer"><span class="adt">${t('adText')}</span><span class="adtag">${t('adTag')}</span></a>`;
+const OPICON={add:'➕',sub:'➖',mul:'✖️',div:'➗'};
+const noTimerBanner=()=>`<div class="notimer">${t('noTimer')} · ${t('noTimerNote')}</div>`;
+
+function childLevel(){ // nível da criança = fases concluídas (todas as modalidades) ÷ LEVEL_EVERY
+  let n=0;MODES.forEach(m=>{n+=Math.max(0,prog(m.id).unlocked-1)});
+  return{n,lv:1+Math.floor(n/LEVEL_EVERY),into:n%LEVEL_EVERY};
+}
+let DEFERRED=null; // evento de instalação do navegador (Chrome/Android/desktop)
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();DEFERRED=e});
+addEventListener('appinstalled',()=>{DEFERRED=null});
+const isStandalone=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+function showModal(title,body){
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="box"><h2>${title}</h2><p>${body}</p><button class="btn" type="button">${t('close')}</button></div>`;
+  m.addEventListener('click',e=>{if(e.target===m||e.target.closest('button'))m.remove()});
+  document.body.appendChild(m);
+}
+async function installDiag(){ // mostra o que falta para o navegador oferecer a instalação
+  const out=[],ok=(b,x)=>out.push((b?'✅ ':'❌ ')+x);
+  ok(location.protocol==='https:'||location.hostname==='localhost','HTTPS');
+  try{const l=document.querySelector('link[rel=manifest]'),r=await fetch(l.href),m=await r.json();ok(r.ok,'manifest.json');
+    for(const i of m.icons){const ir=await fetch(new URL(i.src,l.href));ok(ir.ok,i.src)}}catch(e){ok(false,'manifest.json / icons')}
+  try{const g=await navigator.serviceWorker.getRegistration();ok(!!(g&&(g.active||g.installing||g.waiting)),'service worker (sw.js)')}catch(e){ok(false,'service worker (sw.js)')}
+  return out.join('<br>');
+}
+async function installApp(){ // instala (se o navegador permite) ou ensina a salvar na tela inicial / favoritos
+  if(DEFERRED){DEFERRED.prompt();try{await DEFERRED.userChoice}catch(e){}DEFERRED=null;return}
+  const ua=navigator.userAgent||'',ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  showModal(t('installTitle'),t(ios?'installIOS':/Android/i.test(ua)?'installAndroid':'installDesktop')+'<small>'+await installDiag()+'</small>');
+}
+function topBar(){
+  const c=childLevel();
+  return `<div class="topbar"><div class="lvl" title="${t('levelHint',{a:LEVEL_EVERY-c.into})}"><span>⭐ ${t('level',{n:c.lv})}</span><div class="lvbar"><i style="width:${c.into/LEVEL_EVERY*100}%"></i></div></div>
+  <select class="langsel" data-change="lang" aria-label="${t('langAria')}">${LANGS.map(l=>`<option value="${l}" ${lang()===l?'selected':''}>${{pt:'PT-BR',en:'EN',es:'ES'}[l]}</option>`).join('')}</select>
+  <button class="tb" data-a="shareapp"><span>📤</span>${t('shareApp')}</button>
+  ${isStandalone()?'':`<button class="tb" data-a="install"><span>📲</span>${t('addApp')}</button>`}</div>`;
+}
+function modeCard(m){
+  const p=prog(m.id),M=META[m.id],cl=p.unlocked-1,w=cl%10,c=Math.floor(cl/10),pc=w*10;
+  return `<button class="mode ${m.id==='titan'?'titan':''}" data-a="mode" data-id="${m.id}"><span class="i">${m.icon}</span>${t('mode_'+m.id)}
+    <span class="mini"><b style="width:calc((100% - 34px)*${pc/100} + 30px)"></b><span class="ln"><i style="left:${pc}%;transform:translateX(-${pc}%)">${avatar()||M.animal}</i></span><u>${M.goal}</u></span>
+    <small>${t('modeSub',{c:c+1,w:w+1,s:sumStars(m.id)})}</small></button>`;
+}
+function home(){
+  stopAll();G=null;Music.set('fast');
+  app.innerHTML=`${topBar()}<h1>🧮 ${t('title')}</h1>
+  <button class="mascot ${isFast()?'fast':''}" data-a="avatars" aria-label="${t('pickAria')}">${avatar()||pick(picks())}<span class="chg">🔄</span></button><div class="cap">${t('pickHint')}</div><p class="sub">${t('subtitle')}</p>
+  <div class="seg age">${[0,1,2].map(i=>`<button class="${age()===i?'on':''}" data-a="age" data-v="${i}">${t('age'+i)}</button>`).join('')}</div>
+  <div class="seg"><button class="${isFast()?'':'on'}" data-a="speed" data-v="0">${t('speedNormal')}</button><button class="${isFast()?'on':''}" data-a="speed" data-v="1">${t('speedFast')}</button></div>
+  <h2 class="tt">${t('trainHome')}</h2>
+  <div class="tr4">${['add','sub','mul','div'].map(op=>`<button class="tbtn" data-a="train" data-op="${op}"><span>${OPICON[op]}</span>${t('opshort_'+op)}</button>`).join('')}</div>
+  <h2 class="tt">${t('battleHome')}</h2>
+  <div class="modes">${MODES.map(modeCard).join('')}<a class="mode adtile" href="${AD_HOME}" target="_blank" rel="sponsored nofollow noopener noreferrer"><span class="i">🛍️</span><span class="adshort">${t('adShort')}</span><span class="adtag">${t('adTag')}</span></a></div>`;
+}
+function avatarsScreen(){
+  stopAll();G=null;
+  app.innerHTML=`<div class="top"><button class="ic" data-a="home" aria-label="${t('back')}">⬅</button><div class="pill">${t('pickTitle')}</div></div>
+  <div class="card"><div class="av">${picks().map(e=>`<button class="avb ${avatar()===e?'on':''}" data-a="setav" data-e="${e}">${e}</button>`).join('')}</div></div>`;
+}
+
+/* ---- MODO TREINO: tabuada 2–9, sem cronômetro, dicas antes de começar ---- */
+function trainQs(op,N){
+  return R(1,10).map(k=>{
+    const q=op==='add'?{op,a:N,b:k,ans:N+k,sym:'+'}:op==='sub'?{op,a:10+k,b:N,ans:10+k-N,sym:'−'}
+      :op==='mul'?{op,a:N,b:k,ans:N*k,sym:'×'}:{op,a:N*k,b:N,ans:k,sym:'÷'};
+    q.opts=makeOptions(q);return q;
+  });
+}
+function trainTips(op,N){
+  const T=[],v={N,M:10-N};
+  if(op==='mul')T.push(tl('mulhint')[N-2],t('tip_mul_sum'),t('tip_mul_par'),t('tip_mul_5'),t('tip_mul_10'),t('tip_mul_order',v));
+  else if(op==='add'){if(N>=8)T.push(t('tip_add_big',v));T.push(t('tip_add_join'),t('tip_add_order'),t('tip_add_count'),t('tip_add_par'))}
+  else if(op==='sub')T.push(t('tip_sub_rule',v),t('tip_sub_take'),t('tip_sub_inv'));
+  else{if(N===2)T.push(t('tip_div_2'));if(N===5)T.push(t('tip_div_5'));if(N===9)T.push(t('tip_div_9'));T.push(t('tip_div_group'),t('tip_div_mul',v),t('tip_div_table',v))}
+  return T;
+}
+function trainTable(op,N){ // tabuada de 0 a 10 mostrada abaixo do botão de começar
+  const row=k=>op==='add'?`${N} + ${k} = ${N+k}`:op==='sub'?`${10+k} − ${N} = ${10+k-N}`:op==='mul'?`${N} × ${k} = ${N*k}`:`${N*k} ÷ ${N} = ${k}`;
+  return `<div class="card" style="margin-top:12px"><h2 style="margin:0 0 8px;font-size:18px">${t('tableTitle',{n:N})}</h2><div class="ttable">${R(0,11).map(k=>`<span>${row(k)}</span>`).join('')}</div></div>`;
+}
+function trainMenu(op){
+  stopAll();G=null;Music.set('calm');
+  const best=(SAVE.train||{})[op]||{};
+  app.innerHTML=`<div class="top"><button class="ic" data-a="home" aria-label="${t('back')}">⬅</button><div class="pill">${t('trainTitle',{op:OPICON[op]+' '+t('mode_'+op)})}</div></div>
+  ${noTimerBanner()}
+  <div class="card"><p class="sub" style="margin-top:0">${t('pickTable')}</p><div class="av">${R(2,9).map(n=>`<button class="avb" data-a="trainstart" data-op="${op}" data-n="${n}" style="font-size:30px">${n}<small style="display:block;font-size:13px;color:var(--mute)">${best[n]===10?t('best10'):best[n]?best[n]+'/10':'&nbsp;'}</small></button>`).join('')}</div></div>`;
+}
+function startTrain(op,N,skip){
+  stopAll();Music.set('calm');
+  G={train:true,intro:true,op,N,mode:{id:'train'},qs:trainQs(op,N),i:-1,ok:0,bad:0,combo:0,max:0,times:[],qid:0,locked:true,limit:0,base:0,n:TRAIN_PREP};
+  const id=++G.qid;
+  if(skip)return beginTrain(id);
+  app.innerHTML=`<div class="top"><button class="ic" data-a="back" aria-label="${t('exit')}">⬅</button><div class="pill">🏋️ ${OPICON[op]} ${t('tableOf',{n:N})}</div></div>${noTimerBanner()}
+  <div class="card"><h2 style="margin:0 0 8px">${t('tipsTitle')}</h2><ul class="tips">${trainTips(op,N).map(x=>`<li>${x}</li>`).join('')}</ul>
+  <div class="count" id="cd" style="font-size:56px">${G.n}</div><div class="cap">${t('tipsSoon')}</div></div>
+  <button class="btn" data-a="traingo">${t('tipsGo')}</button><button class="btn alt" data-a="more">${t('tipsMore')}</button>${trainTable(op,N)}`;
+  const iv=setInterval(()=>{
+    if(!G||id!==G.qid||!G.intro){clearInterval(iv);return}
+    G.n--;if(G.n<=0){clearInterval(iv);beginTrain(id);return}
+    $('cd').textContent=G.n;
+  },1000);
+}
+function beginTrain(id){
+  if(!G||id!==G.qid||!G.intro)return;
+  G.intro=false;
+  app.innerHTML=`<div class="top"><button class="ic" data-a="back" aria-label="${t('exit')}">⬅</button><div class="pill">🏋️ ${OPICON[G.op]} ${t('tableOf',{n:G.N})}</div><div class="pill" id="cnt"></div></div>${noTimerBanner()}<div class="card" id="qbox"></div><div class="bar" id="bar"></div>`;
+  showQ();
+}
+function finishTrain(d){
+  clearInterval(d.iv);clearTimeout(d.nt);d.qid++;d.locked=true;
+  const tr=SAVE.train||(SAVE.train={}),o=tr[d.op]||(tr[d.op]={});o[d.N]=Math.max(o[d.N]||0,d.ok);store.save(SAVE);
+  if(d.ok>=8)SFX.win();
+  app.innerHTML=`<div class="card res"><h2>${d.ok===10?t('perfect'):d.ok>=8?t('good'):t('keep')}</h2><div class="stat">${t('tableOf',{n:d.N})} ${OPICON[d.op]}</div><div class="stat">${t('hits',{ok:d.ok,n:QPL})}</div></div>
+  ${d.N<9?`<button class="btn" data-a="trainnext">${t('nextTable',{n:d.N+1})}</button>`:''}
+  <button class="btn alt" data-a="trainagain">${t('again')}</button><button class="btn alt" data-a="trainmenu">${t('tableList')}</button><button class="btn alt" data-a="home">${t('home')}</button>`;
+}
+
+/* ---- TRILHA ---- */
+function levels(id,c){
+  stopAll();G=null;Music.set('calm');
+  const m=MODES.find(x=>x.id===id),p=prog(id),M=META[id],cur=Math.floor((p.unlocked-1)/10);
+  if(c===undefined||c>cur||c<0)c=cur;
+  const base=c*10,xs=[22,52,80,52],pts=R(0,9).map(i=>({x:xs[i%4],y:90-i*7})),goal={x:50,y:9},av=avatar()||M.animal;
+  const done=p.unlocked>base+10,ci=done?9:Math.min(p.unlocked-1-base,9);
+  const pet=done?{x:goal.x+22,y:goal.y,dy:6}:{x:pts[ci].x+(pts[ci].x>60?-17:17),y:pts[ci].y,dy:-28};
+  const line=[...pts,goal].map(q=>`${q.x},${q.y}`).join(' ');
+  app.innerHTML=`<div class="top"><button class="ic" data-a="home" aria-label="${t('back')}">⬅</button><div class="pill">${m.icon} ${t('mode_'+id)}</div><div class="pill" style="margin-left:auto">${isFast()?t('speedFast'):t('speedNormal')}</div></div>
+  <p class="thelp">${t('trailHelp',{p:PASS,q:QPL})}</p>
+  <div class="card trail"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${line}" fill="none" stroke="#a16207" stroke-opacity=".55" stroke-width="7" stroke-dasharray="2 12" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+  <div class="goalp" style="left:${goal.x}%;top:${goal.y}%"><b>${M.goal}</b>${t('place_'+id)}</div>
+  <div class="laptag" style="right:calc(50% + 42px);top:calc(${goal.y}% - 8px)" title="${t('lap',{n:c+1})}${c>0?t('harder'):''}">${cur>0?`<button data-a="cyc" data-m="${id}" data-c="${c-1}" ${c<=0?'disabled':''} aria-label="${t('prevLap')}">◀</button>`:''}<span>${t('lap',{n:c+1})}</span>${cur>0?`<button data-a="cyc" data-m="${id}" data-c="${c+1}" ${c>=cur?'disabled':''} aria-label="${t('nextLap')}">▶</button>`:''}</div>
+  ${pts.map((q,i)=>{const L=base+i,lock=L>=p.unlocked,st=p.stars[L]||0;
+    return `<button class="node ${lock?'':st?'done':'cur'}" style="left:${q.x}%;top:${q.y}%" data-a="lvl" data-m="${id}" data-l="${L}" ${lock?'disabled':''}>${lock?'🔒':i+1}<small>${st?'⭐'.repeat(st):''}</small></button>`}).join('')}
+  <div class="pet" style="left:${pet.x}%;top:calc(${pet.y}% + ${pet.dy}px)">${av}</div></div>
+  ${adLink(AD_TRAIL)}`;
+}
+
+/* ---- BATALHA ---- */
+function startLevel(mid,L){ // abertura (texto + contagem) e depois begin()
+  stopAll();Music.set('calm');
+  const m=MODES.find(x=>x.id===mid);
+  G={mode:m,lvl:L,qs:makeQuestions(m,L),i:-1,ok:0,bad:0,combo:0,max:0,times:[],qid:0,locked:true,base:limitFor(m,L),limit:limitFor(m,L),scene:makeScene(),intro:true};
+  const id=++G.qid;let n=PREP;
+  app.innerHTML=`<div class="top"><button class="ic" data-a="back" aria-label="${t('exit')}">⬅</button><div class="pill">${faseTxt(L)}</div><button class="ic snd" data-a="mute" style="margin-left:auto" aria-label="${t('sound')}">${sndIcon()}</button></div>
+  <div class="card res"><div class="mascot">${G.scene.threat||G.scene.e}</div><h2>${G.scene.title}</h2><p class="sub">${G.scene.txt}</p>
+  <div class="stat">${G.scene.help}</div><div class="count" id="cd">${n}</div><div class="cap">${t('ready')}</div></div>
+  <button class="btn" data-a="go">${t('startNow')}</button>`;
+  const iv=setInterval(()=>{
+    if(!G||id!==G.qid||!G.intro){clearInterval(iv);return}
+    n--;if(n<=0){clearInterval(iv);begin(id);return}
+    $('cd').textContent=n;SFX.tick2();
+  },1000);
+}
+function begin(id){
+  if(!G||id!==G.qid||!G.intro)return;
+  G.intro=false;const L=G.lvl;Music.set('fast');beep(1047,.25,'sine',.2);
+  app.innerHTML=`<div class="top"><button class="ic" data-a="back" aria-label="${t('exit')}">⬅</button><div class="pill">${faseTxt(L)}</div><div class="pill" id="cnt"></div><div class="pill" id="cmb"></div></div>
+  <div class="card scene"><h2>${G.scene.title}</h2><p>${G.scene.txt}</p><div class="track ${G.scene.threat?'rad':''}${FLIP_HERO?' flip':''}"><span class="threat">${G.scene.threat||''}</span><div class="lane"><span class="hero" id="hero"><span class="face">${G.scene.e}</span></span></div><span class="goal">${G.scene.goal}</span></div></div>
+  <div class="timer"><div id="tb"></div><span id="tn"></span></div><div class="card" id="qbox"></div><div class="bar" id="bar"></div>`;
+  showQ();
+}
+function showQ(){
+  clearTimeout(G.nt);G.i++;
+  if(G.i>=QPL)return finish();
+  G.qid++;G.locked=false;const q=G.qs[G.i];
+  const typed=!G.train&&G.i+1>=TYPE_FROM;
+  if(!G.train)G.limit=G.base+(typed?TYPE_BONUS:0);
+  $('cnt').textContent=`${G.i+1} / ${QPL}`;updCombo();$('bar').innerHTML='';
+  const tm=document.querySelector('.timer');if(tm)tm.classList.remove('urgent');
+  const qb=$('qbox');
+  const input=typed?`<div class="typed"><input id="ans" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" enterkeyhint="done" placeholder="?" aria-label="${t('yourAnswer')}"><button class="btn" data-a="send" data-id="${G.qid}" aria-label="${t('answerAria')}">✔</button></div>`
+    :`<div class="opts">${q.opts.map((o,k)=>`<button class="opt" data-a="ans" data-k="${k}" data-id="${G.qid}">${o}</button>`).join('')}</div>`;
+  const qt=`<div class="qt">${q.a} ${q.sym} ${q.b} = ?</div>`,vs=`<div class="vis" id="vis">${vis(q,false)}</div>`,fbh='<div class="fb" id="fb"></div>';
+  qb.innerHTML=typed?qt+input+fbh+vs:qt+vs+input+fbh; // digitando: caixa acima do desenho (o teclado não cobre)
+  qb.classList.toggle('compact',typed);
+    qb.classList.remove('leave','enter');void qb.offsetWidth;qb.classList.add('enter');
+  if(typed){const i=$('ans');i.oninput=()=>{i.value=i.value.replace(/\D/g,'')};i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();ACTIONS.send({id:G.qid})}};setTimeout(()=>{try{i.focus({preventScroll:true});i.scrollIntoView({block:'nearest'})}catch(e){}},80)}
+  if(!G.train)startTimer();
+}
+function nextQ(id){
+  if(!G||id!==G.qid)return;
+  clearTimeout(G.nt);$('qbox').classList.add('leave');
+  G.nt=setTimeout(()=>{if(G&&id===G.qid)showQ()},200);
+}
+function answer(k,val){
+  if(!G||G.locked)return;
+  G.locked=true;clearInterval(G.iv);
+  const q=G.qs[G.i],id=G.qid,timeout=k===null,typed=k===-1,right=!timeout&&(typed?val===q.ans:q.opts[k]===q.ans);
+  const spent=G.train?0:Math.min(G.limit,(performance.now()-G.t0)/1000);
+  G.times.push(timeout?G.limit:spent);
+  document.querySelectorAll('.opt').forEach((b,j)=>{b.disabled=true;if(q.opts[j]===q.ans)b.classList.add('right');else if(j===k)b.classList.add('oops')});
+  const inp=$('ans');if(inp){inp.disabled=true;inp.classList.add(right?'okk':'bad');inp.blur()}
+  document.querySelectorAll('.typed button').forEach(b=>b.disabled=true);
+  if(timeout&&TIMEOUT_LOSES){ // tempo esgotado: pisca vermelho + som + "Você perdeu"
+    G.bad++;G.combo=0;updCombo();anim('wig');redFlash();SFX.lose();
+    $('fb').textContent=t('timeUp');
+    G.nt=setTimeout(()=>{if(G&&id===G.qid){G.lost=true;finish()}},1300);
+    return;
+  }
+  if(right){
+    G.ok++;G.combo++;G.max=Math.max(G.max,G.combo);if($('hero'))setPos(G.ok*10);anim('hop');SFX.happy();
+    $('fb').textContent=spent<G.limit*.4?t('fastMsg'):G.combo>=2?t('comboMsg'):t('okMsg');
+    G.nt=setTimeout(()=>nextQ(id),800);
+  }else{
+    G.bad++;G.combo=0;anim('wig');SFX.sad();
+    const hint=(q.op==='mul'||q.op==='div')?t('hintGroups'):t('hintBlocks');
+    $('vis').innerHTML=vis(q,true);
+    $('fb').innerHTML=`${timeout?t('timeUp'):t('oops')}<small>${hint}<br>${q.a} ${q.sym} ${q.b} = ${q.ans}</small>`;
+    $('bar').innerHTML=`<button class="btn" data-a="cont" data-id="${id}">${t('cont')}</button>`;
+    try{$('fb').scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}
+  }
+  updCombo();
+}
+function finish(){
+  const d=G;if(d.train)return finishTrain(d);
+  clearInterval(d.iv);clearTimeout(d.nt);d.qid++;d.locked=true;
+  const stars=d.lost?0:starsFor(d.ok),avg=d.times.reduce((a,b)=>a+b,0)/d.times.length,p=prog(d.mode.id),L=d.lvl,won=!d.lost&&d.ok>=PASS;
+  d.stars=stars;d.won=won;
+  p.stars[L]=Math.max(p.stars[L]||0,stars);p.best[L]=Math.max(p.best[L]||0,d.ok);p.combo[L]=Math.max(p.combo[L]||0,d.max);
+  if(won)p.unlocked=Math.max(p.unlocked,L+2);
+  store.save(SAVE);Music.set(won?'win':'fast');document.body.classList.toggle('lost',!won); // fundo mais escuro ao perder
+  if(won)SFX.win();else if(!d.lost)SFX.lose();
+  const avgTxt=lang()==='en'?avg.toFixed(1):avg.toFixed(1).replace('.',',');
+  app.innerHTML=`<div class="card res"><h2>${won?t('win'):d.lost?t('lose'):t('almost')}</h2>${d.lost?`<div class="stat">${t('timeUpAt',{n:d.i+1})}</div>`:''}
+  <div class="stars">${[0,1,2].map(i=>`<span style="animation-delay:${i*.2}s">${i<stars?'⭐':'☆'}</span>`).join('')}</div>
+  <div class="stat">${t('hits',{ok:d.ok,n:QPL})}</div><div class="stat">${t('errors',{n:d.bad})}</div>
+  <div class="stat">${t('maxCombo',{n:d.max})}</div><div class="stat">${t('avgTime',{n:avgTxt})}</div>
+  <div class="stat" style="color:var(--mute);font-size:16px">${t('record',{a:p.best[L],b:p.combo[L]})}</div>
+  ${won&&L%10===9?`<div class="stat">${t('lapDone')}</div>`:''}</div>
+  ${won?`<button class="btn sh" data-a="share">${t('share')}</button><button class="btn" data-a="nextlvl">${t('next')}</button>${adLink(AD_WIN)}`:''}
+  ${won?`<button class="btn alt" data-a="again">${t('again')}</button>`:`<button class="btn big" data-a="again">${t('tryAgain')}</button>`}
+  <button class="btn alt" data-a="trail">${t('trail')}</button>
+  <button class="btn alt" data-a="home">${t('home')}</button>${won?'':adLink(AD_WIN)}`;
+}
+async function doShare(txt){ // compartilhar: menu do sistema; senão copia para a área de transferência
+  const url=location.href.split('#')[0];
+  try{if(navigator.share){await navigator.share({title:t('title'),text:txt,url});return}}catch(e){if(e&&e.name==='AbortError')return}
+  try{await navigator.clipboard.writeText(txt+' '+url);toast(t('copied'));return}catch(e){}
+  try{const ta=document.createElement('textarea');ta.value=txt+' '+url;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast(t('copied'))}catch(e){toast(t('shareFail'))}
+}
+const share=()=>{const d=G;if(d)doShare(t('shareText',{fase:faseTxt(d.lvl).toLowerCase(),mode:t('mode_'+d.mode.id),stars:'⭐'.repeat(d.stars),ok:d.ok,n:QPL,c:d.max}))};
+const shareApp=()=>doShare(t('shareAppText'));
+
+/* ============ 10. EVENTOS ============ */
+const ACTIONS={
+  home,
+  avatars:avatarsScreen,
+  setav:d=>{cfg().av=cfg().av||{};cfg().av[age()]=d.e;store.save(SAVE);home()},
+  age:d=>{cfg().age=+d.v;store.save(SAVE);home()},
+  speed:d=>{cfg().fast=d.v==='1';store.save(SAVE);home()},
+  lang:d=>{if(!LANGS.includes(d.v))return;cfg().lang=d.v;CUR=d.v;store.save(SAVE);setLangDom();home()}, // idioma escolhido fica salvo
+  mute:()=>{cfg().mute=!cfg().mute;store.save(SAVE);document.querySelectorAll('.snd').forEach(b=>b.textContent=sndIcon())},
+  mode:d=>levels(d.id),
+  cyc:d=>levels(d.m,+d.c),
+  lvl:d=>startLevel(d.m,+d.l),
+  go:()=>{if(G)begin(G.qid)},
+  back:()=>{if(G&&G.train)return trainMenu(G.op);const id=G&&G.mode.id;id?levels(id):home()},
+  train:d=>trainMenu(d.op),
+  trainstart:d=>startTrain(d.op,+d.n),
+  trainnext:()=>startTrain(G.op,G.N+1),
+  trainagain:()=>startTrain(G.op,G.N,true),
+  trainmenu:()=>trainMenu(G.op),
+  traingo:()=>{if(G)beginTrain(G.qid)},
+  more:()=>{if(G&&G.intro)G.n+=10},
+  send:d=>{if(!G||+d.id!==G.qid||G.locked)return;const i=$('ans');if(!i||i.value==='')return;answer(-1,parseInt(i.value,10))},
+  trail:()=>levels(G.mode.id),
+  ans:d=>{if(G&&+d.id===G.qid)answer(+d.k)},
+  cont:d=>nextQ(+d.id),
+  again:()=>startLevel(G.mode.id,G.lvl),
+  nextlvl:()=>startLevel(G.mode.id,G.lvl+1),
+  share,
+  shareapp:shareApp,
+  install:installApp
+};
+app.addEventListener('click',e=>{
+  const el=e.target.closest('[data-a]');
+  if(!el||el.disabled)return;
+  getAC();if(el.dataset.a!=='ans')SFX.click();
+  const f=ACTIONS[el.dataset.a];if(f)f(el.dataset);
+  Music.sync();
+});
+app.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(el&&ACTIONS[el.dataset.change])ACTIONS[el.dataset.change]({v:el.value})});
+// o navegador só libera o som após o 1º toque: qualquer toque/tecla destrava e inicia a música
+function unlock(){getAC();Music.sync()}
+['pointerdown','pointerup','touchstart','touchend','mousedown','click','keydown'].forEach(e=>addEventListener(e,unlock,{capture:true,passive:true}));
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>{const i=$('ans');if(i&&document.activeElement===i)i.scrollIntoView({block:'nearest'})});
+
+/* ============ 11. INÍCIO ============ */
+function registerSW(){if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('../../sw.js').catch(()=>{})}
+function start(){
+  setLangDom();getAC();home();
+  setTimeout(()=>{if(AC&&AC.state!=='running'&&soundOn()){hintOn=true;toast(t('musicHint'),60000)}},500);
+}
+LANGS.forEach(l=>{LANG[l]=embedded(l)});
+start();
+if(document.readyState==='complete')registerSW();else addEventListener('load',registerSW); // registra o service worker independente do resto
+</script>
+</body>
+</html>
