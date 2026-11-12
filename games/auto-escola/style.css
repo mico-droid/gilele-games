@@ -78,7 +78,7 @@ kbd { font-family: inherit; font-weight: 700; font-size: 12px; background: #f8fa
 .ae-gears button kbd { font-size: 10px; padding: 0 3px; }
 .ae-gears small { font-size: 11px; text-align: center; opacity: .8; }
 .ae-wheel { position: fixed; left: max(10px, env(safe-area-inset-left)); bottom: max(10px, env(safe-area-inset-bottom)); }
-body:not(.ae-touchui) .ae-pedal { height: 96px; width: 52px; } body:not(.ae-touchui) .ae-pedal.thr { height: 110px; }
+body:not(.ae-touchui) .ae-pedal { height: 96px; width: 66px; } body:not(.ae-touchui) .ae-pedal.thr { height: 110px; }
 body:not(.ae-touchui) .ae-gears.manual { grid-template-columns: repeat(3, 40px); }
 @media (max-height: 430px) { .ae-hs { min-width: 34px; height: 34px; font-size: 15px; } .ae-focus { font-size: 14px; top: 52px; } .ae-focus + .ae-speech { top: 92px; } .ae-extbar { bottom: 60px; } }
 body.ae-touchui .ae-dash { left: auto; right: 10px; bottom: auto; top: 174px; transform: none; padding: 3px 10px; }
@@ -86,3 +86,11 @@ body.ae-touchui .ae-dash .ae-spd { font-size: 22px; } body.ae-touchui .ae-dash .
 body.ae-touchui .ae-speech { max-width: 44vw; font-size: 13px; padding: 6px 10px; }
 body.ae-touchui .ae-pedal kbd { display: none; }
 .ae-hs.hs-handbrake.on { background: rgba(220,38,38,.85); }
+.ae-hs.ae-label { pointer-events: none; background: rgba(15,23,42,.45); }
+.ae-focus.ae-callout { position: fixed; z-index: 8; }
+.ae-focus.ae-callout::after { content: ""; position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%); border: 8px solid transparent; border-top-color: #facc15; border-bottom: 0; }
+.ae-pedal span { font-size: 11px; letter-spacing: -.2px; }
+.ae-pedal kbd { font-size: 13px; }
+.ae-focus { z-index: 9; position: fixed; }
+body.ae-touchui .ae-pedal { width: 64px; } body.ae-touchui .ae-pedal span { font-size: 10.5px; }
+body.ae-touchui .ae-hs { min-width: 46px; height: 46px; font-size: 20px; }

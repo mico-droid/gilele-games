@@ -213,11 +213,9 @@ export function createLesson(ctx, idx = 0) {
     const e = road.E.h10, sl = e.slots[2], p = road.toWorld(e, (sl.s0 + sl.s1) / 2, sl.u - 0.15);
     ctx.resetCar({ x: p[0], z: p[1], h: e.h, hb: 1, engine: false, gear: auto() ? 0 : 1 });
     extra = parkCars(ctx, "h10", [1, 4]);
-    objs = [{ key: "o_belt", ctrl: "belt" }, { key: "o_mirror", ctrl: ["mirrorL", "mirrorI", "mirrorR"] }, { key: "o_neutral", ctrl: "gear" }, { key: "o_clutch", hide: auto, ctrl: "clutch" }, { key: "o_engine", ctrl: "key" }, { key: "o_hb", ctrl: "handbrake" }];
+    objs = [{ key: "o_neutral", ctrl: "gear" }, { key: "o_clutch", hide: auto, ctrl: "clutch" }, { key: "o_engine", ctrl: "key" }, { key: "o_hb", ctrl: "handbrake" }];
     ctx.say("instructor", "ex_ready", null, 8);
     tick = () => {
-      if (car.data.belt) done("o_belt");
-      if ((car.data.mirrors || 0) === 7) done("o_mirror");
       if (auto() ? car.autoMode === "P" || car.autoMode === "N" : car.gear === 0) done("o_neutral");
       if (!auto() && car.controls.clutch > 0.8) done("o_clutch");
       if (car.engineOn) done("o_engine");
@@ -255,7 +253,7 @@ export function createLesson(ctx, idx = 0) {
   // ---- 4: turns
   function L4() {
     const p = poseOn(road, "v20", 25, 1); ctx.resetCar({ ...p, hb: 1, engine: true, gear: 0, belt: true }); clearNear(ctx, p.x, p.z, 40);
-    objs = [{ key: "o_turnL", ctrl: "blinkL" }, { key: "o_turnR", ctrl: "blinkR" }, { key: "o_noinf", passive: true }];
+    objs = [{ key: "o_turnL", ctrl: ["blinkL", "steer"] }, { key: "o_turnR", ctrl: ["blinkR", "steer"] }, { key: "o_noinf", passive: true }];
     const nav = navigator(ctx, { waypoints: ["n21", "n31", "n32"], startNode: road.nodes.n21, viaEdge: road.E.v20, who: "instructor" });
     const tt = turnTracker(ctx, (tr) => { if (tr.node.id === "n21" && tr.side === -1) done("o_turnL"); if (tr.node.id === "n31" && tr.side === 1) done("o_turnR"); if (objs[0].done && objs[1].done && !objs[2].failed) done("o_noinf"); });
     tick = (dt) => { nav.update(); tt(dt); };
@@ -315,7 +313,7 @@ export function createLesson(ctx, idx = 0) {
     ctx.resetCar({ x: p[0], z: p[1], h: e.h, hb: 1, engine: true, gear: 0, belt: true }); clearNear(ctx, p[0], p[1], 50);
     extra = parkCars(ctx, "h10", [6, 8]); ghost = ghostBox(ctx, e, tg);
     L.judgeOpts.allowReverse = () => true; ctx.judge && (ctx.judge.enabled = true);
-    objs = [{ key: "o_park", ctrl: ["gear", "mirrorR"] }, { key: "o_parkOff", ctrl: "handbrake" }];
+    objs = [{ key: "o_park", ctrl: ["gear", "steer"] }, { key: "o_parkOff", ctrl: "handbrake" }];
     ctx.say("instructor", "tip_park", null, 14);
     let still = 0;
     tick = (dt) => {
@@ -515,7 +513,7 @@ export function createScenario(ctx, idx = 0) {
   }
   // ---- 6: rain
   function rainS() {
-    ctx.rain.set(true); S.judgeOpts.weather = "rain"; ctx.judge && (ctx.judge.enabled = true);
+    ctx.rain.set(true); S.judgeOpts.weather = "rain"; S.extraCtrls = ["lights", "wipers"]; ctx.judge && (ctx.judge.enabled = true);
     const p = poseOn(road, "h01", 15, 1, 4.95); ctx.resetCar({ ...p, hb: 0, engine: true, belt: true }); startMoving(ctx, 25, 2); clearNear(ctx, p.x, p.z, 60);
     ctx.say("instructor", "sc_rain", null, 9);
     const l1 = laneOf(road, "h01", 1, 1);
