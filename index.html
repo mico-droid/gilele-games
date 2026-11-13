@@ -11,7 +11,9 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="engine/ez.css">
 <style>
-  html, body { height: auto; min-height: 100%; overflow: auto; overflow-x: hidden; touch-action: auto; user-select: auto; -webkit-user-select: auto; background: linear-gradient(160deg, #38bdf8, #22c55e) fixed; }
+  /* portal is a normal scrolling page: undo the game-only rules of ez.css (fixed height, overflow hidden, no touch scrolling) */
+  html { height: auto; overflow: visible; overflow-y: auto; touch-action: pan-x pan-y; overscroll-behavior: auto; }
+  body { height: auto; min-height: 100%; overflow: visible; touch-action: pan-x pan-y; overscroll-behavior: auto; user-select: auto; -webkit-user-select: auto; background: linear-gradient(160deg, #38bdf8, #22c55e); }
   main { max-width: 960px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 40px; }
   header { text-align: center; margin-bottom: 22px; }
   header h1 { font-size: 44px; margin: 0; text-shadow: 0 4px 0 rgba(0,0,0,.15); }
