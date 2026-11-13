@@ -56,10 +56,23 @@ export function buildCity(world, phys) {
   wall(H.x, z0, H.w, T); wall(x0, H.z, T, H.d); wall(x1, H.z, T, H.d);         // fundos e laterais
   wall(x0 + (H.w / 2 - 1.3) / 2, z1, H.w / 2 - 1.3, T); wall(x1 - (H.w / 2 - 1.3) / 2, z1, H.w / 2 - 1.3, T); // frente com porta
   part(2.6, 0.6, T, "#fef3c7", H.x, WH - 0.3, z1, S);                           // verga da porta
+  // andares de cima do prédio (somem quando você está dentro do apartamento)
   const roof = new THREE.Group(); S.add(roof);
-  part(H.w + 1, 0.35, H.d + 1, "#b45309", H.x, WH + 0.18, H.z, roof);
-  part(H.w * 0.7, 0.8, H.d * 0.7, "#c2410c", H.x, WH + 0.75, H.z, roof);
-  part(2.2, 1.2, 2.2, "#60a5fa", H.x + 3, WH + 0.9, H.z - 3, roof);           // caixa d'água azul
+  const FL = 3;
+  for (let f = 1; f <= FL; f++) {
+    const y = WH + (f - 1) * 3;
+    part(H.w + 4, 0.3, H.d + 1, "#cbd5e1", H.x - 1.5, y + 0.15, H.z, roof);
+    part(H.w + 4, 2.7, H.d + 1, "#e2e8f0", H.x - 1.5, y + 1.65, H.z, roof);
+    for (let i = 0; i < 4; i++) [H.z + H.d / 2 + 0.55, H.z - H.d / 2 - 0.55].forEach((wz) => { const m = part(1.6, 1.2, 0.1, "#fde68a", H.x - 6 + i * 4, y + 1.7, wz, roof, false); m.material = winOn; lit.push({ m, on: winOn, off: winOff }); });
+    part(H.w + 5, 0.2, 1.2, "#94a3b8", H.x - 1.5, y + 0.2, H.z + H.d / 2 + 1, roof); // varandas
+  }
+  part(H.w + 4.4, 0.4, H.d + 1.4, "#64748b", H.x - 1.5, WH + FL * 3 + 0.2, H.z, roof);
+  part(3, 1.6, 3, "#60a5fa", H.x + 2, WH + FL * 3 + 1.2, H.z - 2, roof);           // caixa d'água do prédio
+  // hall do prédio (lado oeste): elevador e escada
+  phys.addBox({ x: x0 - 1.5, y: 1.5, z: H.z, w: 3, h: 3, d: H.d, color: "#e2e8f0", scene: S });
+  part(1.4, 2.4, 0.1, "#94a3b8", x0 - 1.5, 1.2, z1 + 0.06, S);                     // porta do elevador
+  part(0.15, 2.4, 0.12, "#475569", x0 - 1.5, 1.2, z1 + 0.08, S);
+  const elevLamp = part(0.3, 0.3, 0.1, "#22c55e", x0 - 1.5, 2.6, z1 + 0.1, S, false); elevLamp.material = getMat("#22c55e", 1.2); lit.push({ m: elevLamp, on: elevLamp.material, off: winOff });
   // móveis
   const furn = (w, h, d, c, x, z) => phys.addBox({ x, y: h / 2, z, w, h, d, color: c, scene: S });
   furn(1.4, 2.2, 1.2, "#f8fafc", x0 + 1, z0 + 1);                               // geladeira
@@ -79,17 +92,18 @@ export function buildCity(world, phys) {
   [[-1.1, -1.4], [1.1, -1.4], [-1.1, 1.4], [1.1, 1.4]].forEach(([a, b]) => part(0.3, 0.7, 0.7, "#111827", a, 0.35, b, car));
   phys.addBox({ x: 9.5, y: 0.9, z: 12, w: 2.2, h: 1.8, d: 4.2, mesh: false });
   part(12, 0.08, 3, "#a8a29e", 9.5, 0.04, 20, S, false); // calçada da garagem
+  part(3, 0.05, 5.4, "#facc15", 9.5, 0.03, 12, S, false); part(2.6, 0.06, 5, "#57534e", 9.5, 0.035, 12, S, false); // vaga
   // quintal (atrás da casa) com fogareiro
   part(1, 0.6, 1, "#57534e", H.x, 0.3, z0 - 2.5, S); part(0.7, 0.08, 0.7, "#111827", H.x, 0.64, z0 - 2.5, S);
   for (let i = -6; i <= 6; i += 1.5) part(0.15, 1, 0.15, "#a16207", H.x + i, 0.5, z0 - 5.5, S);
 
   // vizinhos no mesmo quarteirão
-  building(-13, 10, 8, 10, 3.2, "#bbf7d0");      // Seu Zé
+  building(-15, 10, 6, 10, 9, "#bbf7d0");        // prédio do Seu Zé
   building(14, -2, 7, 8, 3.2, "#fbcfe8");        // Dona Cida (a garagem do seu carro fica entre as casas)
   building(-8, -12, 10, 8, 3.2, "#e9d5ff");      // Seu Valdir
   part(4, 2.6, 0.2, "#6b7280", -8, 1.3, -16.1, S); // portão da garagem do Valdir
   building(10, -14, 8, 8, 3.2, "#fed7aa");
-  const homeLabel = addLabel(world, "🏠 " + t("l_home"), H.x, WH + 4, H.z, { color: "#fde047" });
+  const homeLabel = addLabel(world, "🏢 " + t("l_building"), H.x, WH + 11.5, H.z, { color: "#fde047" });
 
   // ---------------------------------------------------------------- comércio e serviços
   building(0, 46, 26, 16, 6, "#f1f5f9", { roof: "#16a34a" });                     // mercado
@@ -141,7 +155,7 @@ export function buildCity(world, phys) {
     ch.root.position.set(x, 0, z); ch.root.rotation.y = rot; return ch;
   };
   const npcs = {
-    ze: npc("Seu Zé", -13, 16.4, 0, { h: "short", hc: "#e5e7eb", g: "m", a: "hat" }),
+    ze: npc("Seu Zé", -15, 16.4, 0, { h: "short", hc: "#e5e7eb", g: "m", a: "hat" }),
     cida: npc("Dona Cida", 14, 3, 0, { g: "f", h: "bob", hc: "#a0673f" }),
     valdir: npc("Seu Valdir", -5, -17.4, Math.PI, { g: "m", h: "short", hc: "#1f1a17", a: "cap" }),
   };

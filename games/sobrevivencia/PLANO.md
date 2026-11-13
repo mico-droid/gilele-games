@@ -1,6 +1,6 @@
 # 🔦 Sobrevivência: plano (rascunho v1)
 
-> **Status (13/11/2026):** **Capítulo 1 do Apagão Real jogável (v0.1)** — Goiânia, Dia 0 → 72 h. O resto segue em planejamento.
+> **Status (13/11/2026):** **v0.2** — Capítulo 1 do Apagão Real (apartamento em Goiânia, Dia 0 → 72 h) + **Modo Aprendizado com Era 0 e Era 1 (19 aulas)**. O resto segue em planejamento.
 
 ### Decisões do autor (13/11)
 - **Público:** faixas de idade, como na Tabuada. Infantil = sem cenas pesadas; 13+ = mais realista, ainda sem gore.
@@ -9,6 +9,8 @@
 - **Aprovados:** Era 6 (Energia) e a função **curandeiro** na vila.
 - **Recusado:** profissões iniciais com bônus.
 - **Ordem:** começar pelo **Apagão Real** (cidade, Dia 0 → 72 h); o Aprendizado vem depois.
+- **Ajustes pedidos no teste (13/11):** objetivo escrito com "onde achar" cada item; rádio sempre explica onde está e para que serve; mochila explica cada item ao tocar; barras sem cobrir o "Sozinho"; sem barra de ânimo e com saúde só quando cair; água da torneira depois do apagão = **não tratada** (alerta + ferver ou água sanitária); o jogador mora num **apartamento urbano** e o objetivo principal é o protocolo de **ficar em casa em segurança** (elevador para, bomba do prédio para).
+- **Depois do Apagão Real, o autor escolheu o Modo Aprendizado** (antes do Capítulo 2).
 - **Nome:** Apagão: Sobreviva. **Publicação:** direto no main, com card no portal.
 
 Jogo 3D do Gilele Engine (`games/sobrevivencia/`), estilo Roblox (bonecos de blocos), PWA, celular e teclado, PT/EN/ES, multijogador de até 4 por sala (WebRTC, sem login).
@@ -161,12 +163,18 @@ games/sobrevivencia/
 - 13 dicas "Por quê?" (mini-aulas) e livro de dicas. Nota final em 10 itens, com a explicação de cada um.
 - Multijogador: o dono da sala controla o relógio; cada um tem a sua mochila.
 
+### ✅ Modo Aprendizado — Era 0 e Era 1 (v0.2, feito)
+- Acampamento-escola no Cerrado com a professora Iara, cidade-treino ao norte (Era 0) e mata, rio, remanso, vereda de buritis, morrinho, trilha de bicho e clareira das bandeiras ao sul (Era 1).
+- Cada aula: 3 cartões → quiz de 2 perguntas (erro mostra a explicação) → desafio prático → desbloqueio. Árvore em 🌳. Arquivo `lessons.js` (conteúdo PT/EN/ES) e `learn.js` (mundo e regras). Entrada: `?modo=aprender` (`boot.js` escolhe o modo).
+- Era 0 (10): sinais, kit 72 h, dinheiro vivo, combustível, estoque de água, ponto de encontro, aglomerações, auto-segurança, monóxido de carbono, cuidar de quem depende.
+- Era 1 (9): mochila, fogo, água segura (filtrar + ferver), abrigo (lugar alto), orientação pelo sol, primeiros socorros, coleta segura do Cerrado, pesca (minijogo), arapuca (pega vivo; aviso da Lei 9.605/98).
+
 ### Próximas
 | Fase | O que fica jogável |
 |---|---|
 | **Cap. 2** | Semana 1–2: crise de água e comida, ferver/filtrar, saneamento, bots aparecem |
 | **Cap. 3** | Mês 1–2: saques, doenças, decidir sair da cidade |
-| **A** | Modo Aprendizado: Era 0 e Era 1 com o professor |
+| **Era 2** | Modo Aprendizado: pedra lascada, cordas, cestos, primeiras sementes |
 | **A2** | Mapa do Rio (reaproveita a base) |
 
 ### Plano original (referência)

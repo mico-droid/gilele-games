@@ -21,7 +21,7 @@ const IT = {
   bread: { e: "🍞", kg: 0.3, food: 20, spoil: 48 }, meat: { e: "🥩", kg: 0.5, cook: 1, spoil: 24 }, milk: { e: "🥛", kg: 1, food: 12, drink: 10, spoil: 24 },
   fruit: { e: "🍌", kg: 0.15, food: 12, drink: 4 }, cooked: { e: "🍲", kg: 0.4, food: 45, mood: 8 }, spoiled: { e: "🤢", kg: 0.3, bad: 1 },
   flash: { e: "🔦", kg: 0.3 }, batt: { e: "🔋", kg: 0.1 }, candle: { e: "🕯️", kg: 0.1 }, matches: { e: "🔥", kg: 0.05 }, radio: { e: "📻", kg: 0.6 },
-  pbank: { e: "🔌", kg: 0.25 }, docs: { e: "📄", kg: 0.1 }, kit: { e: "🩹", kg: 0.5, heal: 30 }, ors: { e: "🧂", kg: 0.05 }, gascan: { e: "⛽", kg: 4.5 },
+  pbank: { e: "🔌", kg: 0.25 }, raw: { e: "🫗", kg: 1 }, bleach: { e: "🧴", kg: 0.5 }, docs: { e: "📄", kg: 0.1 }, kit: { e: "🩹", kg: 0.5, heal: 30 }, ors: { e: "🧂", kg: 0.05 }, gascan: { e: "⛽", kg: 4.5 },
 };
 const itName = (k) => IT[k].e + " " + t("it_" + k);
 const MAXKG = 18;
@@ -36,9 +36,9 @@ function newState(cfg) {
     v: 1, ...cfg, T: 0, B: hard ? 1.4 : 2, cause: CAUSES[Math.floor(Math.random() * 3)],
     s: { food: 75, water: 70, energy: 72, health: 100, mood: 70 },
     bag: { water: 0.5, docs: 0 }, cash: 20, bankBal: 800, withdrawn: 0,
-    fridge: { meat: 2, milk: 1, fruit: 3, bread: 1 }, cupboard: { can: 1, rice: 1, matches: 1, bottle: 4 },
+    fridge: { meat: 2, milk: 1, fruit: 3, bread: 1 }, cupboard: { can: 1, rice: 1, matches: 1, bottle: 4, bleach: 1 },
     shelf: { flash: 1, radio: 1, candle: 2, docs: 1, pbank: 1 },
-    homeWater: 0, tankWater: hard ? 20 : 35, phone: 35, pbankPct: 30, flashH: 0, radioH: 0, flashOn: false, phoneLight: false, candleUntil: -1, carFuel: 15,
+    homeWater: 0, homeRaw: 0, tankWater: hard ? 20 : 35, phone: 35, pbankPct: 30, flashH: 0, radioH: 0, flashOn: false, phoneLight: false, candleUntil: -1, carFuel: 15,
     stock: { ...Object.fromEntries(Object.entries(MARKET).map(([k, v]) => [k, v[2]])), ...Object.fromEntries(Object.entries(PHARMA).map(([k, v]) => [k, v[2]])) },
     f: { meet: 0, warned: 0, coInside: 0, helpedZe: 0, ateSpoiled: 0, radio: 0, cashB: null, foodB: null, lightB: null, fuelB: null, waterMax: 0.5, crowdMin: 0, gen: 0 },
     fired: {}, tips: [], news: [], pos: { x: HOME.x, z: HOME.z + 2 }, ended: 0,
@@ -129,7 +129,7 @@ const EVENTS = [
   [() => B() + 15, () => { if (st.f.gen && !st.f.warned) { news("valdirSick"); city.gen.visible = false; st.f.gen = 0; } }],
   [() => B() + 18, () => news("r2", null, { radio: true })],
   [() => B() + 24, () => spoilFood(24)],
-  [() => B() + 28, () => { news("nTap"); tip("tip_water"); }],
+  [() => B() + 0.3, () => news("nTapBuilding")],
   [() => B() + 30, () => news("r3", null, { radio: true })],
   [() => B() + 36, () => news("nSewer")],
   [() => B() + 46, () => news("r4", null, { radio: true })],
@@ -166,14 +166,14 @@ function advance(hours, sleeping = false) {
   const darkNoLight = after() && isDark() && !lightOn() && !sleeping;
   s.mood = clamp(s.mood + (darkNoLight ? -3 * hours : 0.4 * hours));
   let dh = 0;
-  if (s.water <= 0) dh -= 8; if (s.food <= 0) dh -= 3; if (s.energy <= 0) dh -= 3; if (s.mood <= 0) dh -= 1;
+  if (s.water <= 0) dh -= 8; if (s.food <= 0) dh -= 3; if (s.energy <= 0) dh -= 3;
   if (s.water > 35 && s.food > 35 && s.energy > 20) dh += 1.5;
   s.health = clamp(s.health + dh * hours);
   // aparelhos
   st.phone = clamp(st.phone - hours * ((signal() === 0 && after()) ? 2 : 1.2) - (st.phoneLight ? 12 * hours : 0));
   if (st.phone <= 0) st.phoneLight = false;
   if (st.flashOn) { st.flashH -= hours; if (st.flashH <= 0) { if (has(st.bag, "batt")) { add(st.bag, "batt", -1); st.flashH = 10; } else { st.flashH = 0; st.flashOn = false; toast(t("flashNoBatt")); } } }
-  st.f.waterMax = Math.max(st.f.waterMax, st.homeWater + (st.bag.water || 0));
+  st.f.waterMax = Math.max(st.f.waterMax, st.homeWater + st.homeRaw + (st.bag.water || 0) + (st.bag.raw || 0));
   st.T += hours;
 }
 const lightOn = () => (st.flashOn && st.flashH > 0) || (st.phoneLight && st.phone > 0) || (st.T < st.candleUntil && city.insideHome(me.x, me.z));
@@ -210,7 +210,7 @@ function openMenu(build) {
       ...(d.info || []).filter(Boolean).map((p) => (p instanceof Node ? p : h("p", p))),
       h("div.ez-col", { style: { marginTop: "10px" } },
         ...(d.opts || []).filter(Boolean).map((o) => h("button.ez-btn.wide" + (o.cls || ""), { disabled: o.dis ? true : null, style: o.dis ? { opacity: 0.45 } : null, onclick: () => { if (o.dis) return; Audio.play("click"); const r = o.fn(); if (r === "close") close(); else if (scr.el.isConnected) draw(); } }, o.label)),
-        h("button.ez-btn.gray.wide", { onclick: close }, d.closeLabel || t("a_leave"))),
+        h("button.ez-btn.gray.wide", { onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || t("a_leave"))),
     );
   }
   draw();
@@ -230,22 +230,31 @@ const minutes = (m) => { if (!room.connected || room.isHost) advance(m / 60); to
 function openBag() {
   openMenu(() => {
     const ks = Object.keys(st.bag).filter((k) => IT[k] && st.bag[k] > 0);
-    const info = [t("cash", { v: st.cash }) + " · " + t("bank", { v: st.bankBal }), t("kg", { w: bagKg().toFixed(1), m: MAXKG })];
-    const opts = [];
-    if (!ks.length) info.push(t("empty"));
-    for (const k of ks) {
-      const it = IT[k], n = st.bag[k];
-      const lbl = `${itName(k)} ×${k === "water" ? n.toFixed(1) : n}`;
-      if (k === "water") opts.push({ label: lbl + " → " + t("a_drink"), fn: () => drink() });
-      else if (it.food || it.bad) opts.push({ label: lbl + " → " + t("a_eat"), fn: () => eat(st.bag, k) });
-      else if (k === "kit") opts.push({ label: lbl + " → " + t("a_use"), fn: () => { add(st.bag, k, -1); st.s.health = clamp(st.s.health + 30); Audio.play("ok"); } });
-      else if (k === "ors") opts.push({ label: lbl + " → " + t("a_use"), dis: !has(st.bag, "water", 0.5), fn: () => { add(st.bag, k, -1); add(st.bag, "water", -0.5); st.s.water = clamp(st.s.water + 30); st.s.health = clamp(st.s.health + 8); Audio.play("ok"); } });
-      else if (k === "pbank") opts.push({ label: lbl + ` (${Math.round(st.pbankPct)}%) → ` + t("usePbank"), dis: st.pbankPct < 5 || st.phone >= 99, fn: () => usePbank() });
-      else if (k === "flash") opts.push({ label: lbl + " → " + (st.flashOn ? "OFF" : "ON"), fn: () => toggleFlash() });
-      else if (k === "radio") opts.push({ label: lbl + " → " + t("radio"), fn: () => { openRadio(); return "close"; } });
-      else opts.push({ label: lbl + " → " + t("a_drop"), cls: ".gray", fn: () => add(st.bag, k, -1) });
-    }
+    const info = [t("bagSub"), h("p.ez-msg", t("money", { c: st.cash, b: st.bankBal }) + " · 🎒 " + t("kg", { w: bagKg().toFixed(1), m: MAXKG })), ks.length ? null : t("bagEmptyHint")];
+    const opts = ks.map((k) => ({ label: `${itName(k)} · ${k === "water" || k === "raw" ? st.bag[k].toFixed(1) + " L" : "×" + st.bag[k]}`, cls: k === "spoiled" || k === "raw" ? ".warn" : ".blue", fn: () => { setTimeout(() => openItem(k), 0); return "close"; } }));
     return { title: t("bag"), info, opts };
+  });
+}
+function openItem(k) {
+  openMenu(() => {
+    if (!has(st.bag, k, k === "water" || k === "raw" ? 0.01 : 1)) return { title: itName(k), info: [t("empty")], closeLabel: t("bag"), onClose: openBag };
+    const it = IT[k], n = st.bag[k], home = city.insideHome(me.x, me.z);
+    const desc = t("d_" + (k === "raw" ? "raw" : k));
+    const opts = [];
+    if (k === "water") { opts.push({ label: t("a_drink"), dis: n < 0.5, fn: () => drink() }); if (home) opts.push({ label: t("storeHome") + " (1,5 L)", dis: n < 1.5, fn: () => { add(st.bag, "water", -1.5); st.homeWater += 1.5; } }); }
+    else if (k === "raw") {
+      opts.push({ label: "⚠️ " + t("drinkAnyway"), cls: ".warn", dis: n < 0.5, fn: () => { add(st.bag, "raw", -0.5); drinkRaw(); } });
+      if (has(st.bag, "bleach")) opts.push({ label: "🧴 " + t("treatBleach"), fn: () => treatAll("bleach") });
+      if (home) opts.push({ label: t("storeHome") + " (1,5 L)", dis: n < 1.5, fn: () => { add(st.bag, "raw", -1.5); st.homeRaw += 1.5; } });
+    }
+    else if (it.food || it.bad) opts.push({ label: t("a_eat"), cls: it.bad ? ".warn" : "", fn: () => eat(st.bag, k) });
+    else if (k === "kit") opts.push({ label: t("a_use"), fn: () => { add(st.bag, k, -1); st.s.health = clamp(st.s.health + 30); Audio.play("ok"); } });
+    else if (k === "ors") opts.push({ label: t("a_use"), dis: !has(st.bag, "water", 0.5), fn: () => { add(st.bag, k, -1); add(st.bag, "water", -0.5); st.s.water = clamp(st.s.water + 30); st.s.health = clamp(st.s.health + 8); Audio.play("ok"); } });
+    else if (k === "pbank") opts.push({ label: t("usePbank") + ` (${Math.round(st.pbankPct)}%)`, dis: st.pbankPct < 5 || st.phone >= 99, fn: () => usePbank() });
+    else if (k === "flash") opts.push({ label: "🔦 " + (st.flashOn ? "OFF" : "ON"), fn: () => toggleFlash() });
+    else if (k === "radio") opts.push({ label: t("radio"), fn: () => { setTimeout(openRadio, 0); return "close"; } });
+    opts.push({ label: t("a_drop"), cls: ".gray", fn: () => add(st.bag, k, k === "water" || k === "raw" ? -Math.min(1.5, n) : -1) });
+    return { title: `${itName(k)} · ${k === "water" || k === "raw" ? n.toFixed(1) + " L" : "×" + n}`, info: [desc], opts, closeLabel: "🎒 " + t("bag"), onClose: openBag };
   });
 }
 function drink() { if (!has(st.bag, "water", 0.5)) return; add(st.bag, "water", -0.5); st.s.water = clamp(st.s.water + 22); Audio.play("pop"); }
@@ -286,11 +295,16 @@ function openPhone() {
   });
 }
 function openRadio() {
-  if (!has(st.bag, "radio")) return;
-  const ok = radioWorks();
-  const last = st.news.find((n) => n.m.startsWith("📻"));
-  openMenu(() => ({ title: t("radio"), info: [ok ? (last ? last.m : t("radioStatic")) : t("radioNone")] }));
-  if (ok) Audio.play("radio");
+  let info;
+  if (!has(st.bag, "radio")) info = [t("radioWhere"), t("radioWhy")];
+  else if (!radioWorks()) info = [t("radioNoBatt"), t("radioWhy")];
+  else {
+    Audio.play("radio");
+    const heard = st.news.filter((n) => n.m.startsWith("📻"));
+    info = after() ? (heard.length ? [h("b", t("radioLog")), ...heard.slice(0, 6).map((n) => h("p", { style: { fontSize: "14px" } }, n.m))] : [t("radioStatic")]) : [t("radioPre")];
+    info.push(h("p.ez-msg", t("radioWhy")));
+  }
+  openMenu(() => ({ title: t("radio"), info }));
 }
 
 // ---------------------------------------------------------------- lugares
@@ -304,20 +318,40 @@ spot(x0 + 1, z0 + 2.2, 1.9, "i_fridge", () => openMenu(() => {
 }));
 spot(x0 + 3.4, z0 + 1.9, 1.7, "i_cupboard", () => openMenu(() => { const opts = takeOpts(st.cupboard); return { title: "🗄️ " + t("i_cupboard"), info: [opts.length ? null : t("empty")], opts }; }));
 spot(hx + 0.2, z0 + 1.9, 1.5, "i_sink", () => openMenu(() => {
-  const street = st.T < B() + 28, wet = street || st.tankWater > 0;
-  const use = (L) => { if (!street) st.tankWater = Math.max(0, st.tankWater - L); };
-  const info = [wet ? (street ? null : t("tapTank", { v: Math.round(st.tankWater) })) : t("tapDry")];
+  const pre = !after(), wet = pre || st.tankWater > 0;
+  const use = (L) => { if (!pre) st.tankWater = Math.max(0, st.tankWater - L); };
+  if (!pre) tip("tip_tapRisk");
+  const info = [wet ? (pre ? null : t("rawWarn")) : t("tapDry"), !pre && wet ? t("tapTank", { v: Math.round(st.tankWater) }) : null];
+  const nb = st.bag.bottle || 0;
   return { title: "🚰 " + t("i_sink"), info, opts: wet ? [
-    { label: t("drinkTap"), fn: () => { st.s.water = clamp(st.s.water + 22); use(0.5); Audio.play("pop"); } },
-    has(st.bag, "bottle") ? { label: t("fillBottles") + ` (×${st.bag.bottle})`, fn: () => { const n = st.bag.bottle; if (!canCarry("water", n * 1.5 - n * 0.05)) return; add(st.bag, "bottle", -n); add(st.bag, "water", 1.5 * n); use(1.5 * n); Audio.play("coin"); } } : null,
-    { label: t("fillBuckets"), dis: st.homeWater >= 40, fn: () => { const L = Math.min(20, 40 - st.homeWater, street ? 99 : st.tankWater); st.homeWater += L; use(L); minutes(10); tip("tip_water"); Audio.play("coin"); } },
+    pre ? { label: t("drinkTap"), fn: () => { st.s.water = clamp(st.s.water + 22); Audio.play("pop"); } }
+        : { label: "⚠️ " + t("drinkAnyway"), cls: ".warn", fn: () => { use(0.5); drinkRaw(); } },
+    nb ? { label: (pre ? t("fillBottles") : t("fillRaw")) + ` (×${nb})`, fn: () => { const k = pre ? "water" : "raw"; if (!canCarry(k, nb * 1.5 - nb * 0.05)) return; add(st.bag, "bottle", -nb); add(st.bag, k, 1.5 * nb); use(1.5 * nb); Audio.play("coin"); } } : null,
+    { label: t("fillBuckets"), dis: st.homeWater + st.homeRaw >= 40, fn: () => { const L = Math.min(20, 40 - st.homeWater - st.homeRaw, pre ? 99 : st.tankWater); if (pre) st.homeWater += L; else st.homeRaw += L; use(L); minutes(10); tip("tip_water"); Audio.play("coin"); } },
   ] : [] };
 }));
-spot(x0 + 1.7, z1 - 1.6, 1.8, "i_store", () => openMenu(() => ({ title: "🪣 " + t("i_store"), info: [t("homeWater", { v: st.homeWater.toFixed(1) })], opts: [
-  { label: t("drinkHome"), dis: st.homeWater < 0.5, fn: () => { st.homeWater -= 0.5; st.s.water = clamp(st.s.water + 22); Audio.play("pop"); } },
-  { label: t("takeWater"), dis: st.homeWater < 1.5, fn: () => { if (!canCarry("water", 1.5)) return; st.homeWater -= 1.5; add(st.bag, "water", 1.5); } },
-  { label: t("storeWater"), dis: !has(st.bag, "water", 1.5), fn: () => { add(st.bag, "water", -1.5); st.homeWater += 1.5; } },
-] })));
+function drinkRaw() {
+  if (Math.random() < 0.5) { st.s.health = clamp(st.s.health - 15); st.s.water = clamp(st.s.water + 5); toast(t("sick"), 3500); Audio.play("wrong"); }
+  else { st.s.water = clamp(st.s.water + 22); Audio.play("pop"); }
+  tip("tip_tapRisk");
+}
+function treatAll(kind) {
+  const bagRaw = st.bag.raw || 0, homeRaw = st.homeRaw;
+  if (!bagRaw && !homeRaw) return;
+  if (bagRaw) { add(st.bag, "raw", -bagRaw); add(st.bag, "water", bagRaw); }
+  st.homeWater += homeRaw; st.homeRaw = 0;
+  minutes(kind === "boil" ? 20 : 30); toast(t("treated"), 2500); Audio.play("ok");
+}
+spot(x0 + 1.7, z1 - 1.6, 1.8, "i_store", () => openMenu(() => {
+  const tot = st.homeWater + st.homeRaw;
+  return { title: "🪣 " + t("i_store"), info: [t("homeWater", { v: tot.toFixed(1) }) + (st.homeRaw > 0 ? " " + t("homeRaw", { v: st.homeRaw.toFixed(1) }) : ""), st.homeRaw > 0 ? t("rawWarn") : null], opts: [
+    st.homeWater >= 0.5 ? { label: t("drinkHome"), fn: () => { st.homeWater -= 0.5; st.s.water = clamp(st.s.water + 22); Audio.play("pop"); } }
+      : { label: "⚠️ " + t("drinkAnyway"), cls: ".warn", dis: st.homeRaw < 0.5, fn: () => { st.homeRaw -= 0.5; drinkRaw(); } },
+    st.homeRaw > 0 && has(st.bag, "bleach") ? { label: "🧴 " + t("treatBleach"), fn: () => treatAll("bleach") } : null,
+    { label: t("takeWater"), dis: st.homeWater < 1.5, fn: () => { if (!canCarry("water", 1.5)) return; st.homeWater -= 1.5; add(st.bag, "water", 1.5); } },
+    { label: t("storeWater"), dis: !has(st.bag, "water", 1.5), fn: () => { add(st.bag, "water", -1.5); st.homeWater += 1.5; } },
+  ] };
+}));
 spot(hx + 2.2, z0 + 1.9, 1.5, "i_stove", () => openMenu(() => {
   const food = has(st.bag, "rice") ? "rice" : has(st.bag, "meat") ? "meat" : null;
   const water = has(st.bag, "water", 0.5) || st.homeWater >= 0.5;
@@ -325,6 +359,7 @@ spot(hx + 2.2, z0 + 1.9, 1.5, "i_stove", () => openMenu(() => {
     { label: t("cookStove"), dis: !food || !water || (after() && !has(st.bag, "matches")), fn: () => {
       add(st.bag, food, -1); if (has(st.bag, "water", 0.5)) add(st.bag, "water", -0.5); else st.homeWater -= 0.5; add(st.bag, "cooked", 1); minutes(30); toast(t("cooked")); Audio.play("ok");
     } },
+    { label: "🔥 " + t("boilWater"), dis: !((st.bag.raw || 0) + st.homeRaw > 0) || (after() && !has(st.bag, "matches")), fn: () => treatAll("boil") },
     { label: "⚠️ " + t("coalInside"), cls: ".warn", fn: () => { st.f.coInside = 1; st.s.health = clamp(st.s.health - 30); st.s.mood = clamp(st.s.mood - 10); Audio.play("wrong"); toast(tx("coHurt"), 3500); tip("tip_co"); return "close"; } },
   ] };
 }, { onTry: () => { if (after() && !has(st.bag, "matches")) tip("tip_matches"); } }));
@@ -350,7 +385,7 @@ spot(hx, z0 - 2.5, 2, "i_yard", () => openMenu(() => {
     { label: t("coalYard"), dis: !food || !water || !has(st.bag, "matches"), fn: () => { add(st.bag, food, -1); if (has(st.bag, "water", 0.5)) add(st.bag, "water", -0.5); else st.homeWater -= 0.5; add(st.bag, "cooked", 1); minutes(45); toast(t("cooked")); Audio.play("ok"); } },
   ] };
 }));
-spot(9.5, 12, 3.2, "i_car", () => openMenu(() => ({ title: "🚗 " + t("i_car"), info: [t("carFuel", { v: Math.round(st.carFuel) })], opts: [
+spot(9.5, 12, 3.2, "i_parking", () => openMenu(() => ({ title: "🚗 " + t("i_car"), info: [t("carFuel", { v: Math.round(st.carFuel) })], opts: [
   { label: t("carCharge"), dis: st.carFuel < 3 || st.phone >= 99, fn: () => { st.carFuel -= 2; st.phone = Math.min(100, st.phone + 40); minutes(30); Audio.play("ok"); } },
   has(st.bag, "gascan") ? { label: t("pourCan"), fn: () => { add(st.bag, "gascan", -1); st.carFuel = Math.min(100, st.carFuel + 12); Audio.play("ok"); } } : null,
 ] })));
@@ -393,7 +428,7 @@ spot(-46, -40, 5, "i_gas", () => {
     { label: t("gasTank"), dis: st.carFuel >= 99, fn: () => { if (pay(250, st.bankBal >= 250)) { st.carFuel = 100; Audio.play("coin"); tip("tip_fuel"); } } },
   ] }));
 });
-spot(-13, 16.4, 2.6, "i_ze", () => openMenu(() => {
+spot(-15, 16.4, 2.6, "i_ze", () => openMenu(() => {
   const need = after() && st.T > B() + 12 && !st.f.helpedZe;
   return { title: "👴 " + t("i_ze"), info: [need ? tx("zeAsk") : st.f.helpedZe ? tx("zeThanks") : tx("zeFine")], opts: need ? [
     { label: t("zeGive"), dis: !has(st.bag, "water", 1.5), fn: () => { add(st.bag, "water", -1.5); st.f.helpedZe = 1; st.s.mood = clamp(st.s.mood + 15); Audio.play("ok"); } },
@@ -414,6 +449,7 @@ spot(-5, -17.4, 2.8, "i_valdir", () => openMenu(() => {
   ] : [] };
 }), { mark: () => st.f.gen && !st.f.warned });
 
+spot(x0 - 1.5, z1 + 1, 2, "i_elev", () => openMenu(() => ({ title: "🛗 " + t("i_elev"), info: [after() ? t("elevOff") : t("elevOn")] })));
 // marcadores ❗ sobre quem precisa de você
 const markTex = (() => { const cv = document.createElement("canvas"); cv.width = cv.height = 64; const c = cv.getContext("2d"); c.font = "52px sans-serif"; c.textAlign = "center"; c.fillText("❗", 32, 52); const tt = new THREE.CanvasTexture(cv); return tt; })();
 SPOTS.filter((s) => s.mark).forEach((s) => { s.sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: markTex, depthTest: false })); s.sprite.scale.set(1.4, 1.4, 1); s.sprite.position.set(s.x, 4.6, s.z); s.sprite.visible = false; world.scene.add(s.sprite); });
@@ -474,16 +510,17 @@ function endChapter() {
 // ---------------------------------------------------------------- HUD
 const bars = {};
 const barEl = (k, e) => { const fill = h("i"); bars[k] = fill; return h("div.sv-bar", { title: t("s_" + k) }, h("span", e), h("b", fill)); };
+const barsEl = h("div.sv-bars", barEl("food", "🍽️"), barEl("water", "💧"), barEl("energy", "⚡"), barEl("health", "❤️"));
 const clockPill = h("div.ez-pill"), powerPill = h("div.ez-pill"), cashPill = h("div.ez-pill");
 const prompt = h("div.sv-prompt.ez-hidden"), crowdPill = h("div.sv-alert.ez-hidden");
 const goalsEl = h("div.sv-goals", { onclick: () => goalsEl.classList.toggle("open") });
 const feedEl = h("div.sv-feed");
 const btn = (e, fn, title) => h("button.ez-rbtn", { title, onclick: fn }, e);
-const hud = h("div.ez-hud.ez-hidden",
-  h("div.ez-top", clockPill, powerPill, cashPill, roomPill(room), h("div.ez-spacer"),
+const topEl = h("div.ez-top", clockPill, powerPill, cashPill, roomPill(room), h("div.ez-spacer"),
     btn("🎒", () => openBag(), "I"), btn("📱", () => openPhone(), "Q"), btn("📻", () => openRadio()), btn("🔦", () => toggleFlash(), "F"),
-    btn("📖", () => openTips()), btn("💬", () => openQuickChat(sayChat)), btn("👥", () => { pause(false); openRoomPanel(room, { onClose: resume }); }), btn("⏸", () => pause())),
-  h("div.sv-bars", barEl("food", "🍽️"), barEl("water", "💧"), barEl("energy", "⚡"), barEl("health", "❤️"), barEl("mood", "🙂")),
+    btn("📖", () => openTips()), btn("💬", () => openQuickChat(sayChat)), btn("👥", () => { pause(false); openRoomPanel(room, { onClose: resume }); }), btn("⏸", () => pause()));
+const hud = h("div.ez-hud.ez-hidden", topEl,
+  barsEl,
   goalsEl, feedEl, prompt, crowdPill);
 document.body.appendChild(hud);
 function feed(msg) {
@@ -492,16 +529,32 @@ function feed(msg) {
   setTimeout(() => el.classList.add("old"), 9000);
 }
 function goals() {
-  const f = st.f, water = st.homeWater + (st.bag.water || 0);
+  const f = st.f, water = st.homeWater + st.homeRaw + (st.bag.water || 0) + (st.bag.raw || 0);
   const np = ["can", "biscuit", "rice"].reduce((a, k) => a + (st.bag[k] || 0) + (st.cupboard[k] || 0), 0);
-  const list = [
-    ["g_cash", st.cash >= 100], ["g_fuel", st.carFuel >= 80 || has(st.bag, "gascan")], ["g_water", water >= 10], ["g_food", np >= 4],
-    ["g_light", has(st.bag, "flash") && (st.flashH > 0 || has(st.bag, "batt"))], ["g_radio", has(st.bag, "radio") && (st.radioH > 0 || has(st.bag, "batt"))],
-    ["g_phone", f.meet], ["g_charge", st.phone >= 80],
-  ];
+  let head, list;
+  if (!after()) {
+    head = t("objMain");
+    list = [
+      ["g_cash", st.cash >= 100, "h_cash"], ["g_water", water >= 10, "h_water"], ["g_food", np >= 4, "h_food"],
+      ["g_light", has(st.bag, "flash") && (st.flashH > 0 || has(st.bag, "batt")), "h_light"], ["g_radio", has(st.bag, "radio") && (st.radioH > 0 || has(st.bag, "batt")), "h_radio"],
+      ["g_phone", f.meet, "h_phone"], ["g_charge", st.phone >= 80, "h_charge"], ["g_fuel", st.carFuel >= 80 || has(st.bag, "gascan"), "h_fuel"],
+    ];
+  } else {
+    head = t("objAfter", { h: Math.max(0, Math.ceil(B() + 72 - st.T)) });
+    list = [
+      f.gen && !f.warned ? ["t_valdir", false] : null,
+      st.T > B() + 12 && !f.helpedZe ? ["t_ze", false] : null,
+      st.T > B() + 14 && !(f.cida1 && f.cida2) ? ["t_cida", false] : null,
+      (st.bag.raw || 0) + st.homeRaw > 0 ? ["t_treat", false] : null,
+      st.s.food < 50 || st.s.water < 50 ? ["t_eat", false] : null,
+      isDark() || st.s.energy < 40 ? ["t_sleep", false] : null,
+    ].filter(Boolean);
+  }
   const done = list.filter((g) => g[1]).length;
-  goalsEl.replaceChildren(h("b", "🎯 " + t("goals") + ` ${done}/${list.length}`), ...list.map(([k, ok]) => h("div" + (ok ? ".ok" : ""), (ok ? "✅ " : "⬜ ") + t(k))));
-  goalsEl.classList.toggle("ez-hidden", after() && st.T > B() + 6);
+  const items = [...list.filter((g) => !g[1]), ...list.filter((g) => g[1])];
+  goalsEl.replaceChildren(h("b", head + (!after() ? ` (${done}/${list.length})` : "")),
+    ...items.map(([k, ok, hint], i) => h("div" + (ok ? ".ok" : i < 3 ? ".next" : ""), (ok ? "✅ " : "⬜ ") + t(k), hint && !ok ? h("small", " — " + t(hint)) : null)),
+    items.length > 3 ? h("small.more", "▾ " + t("more")) : null);
 }
 let hudT = 0;
 function updHud() {
@@ -510,6 +563,9 @@ function updHud() {
   powerPill.textContent = after() ? t("powerOff", { h: Math.floor(st.T - B()) }) : t("powerOn");
   powerPill.style.background = after() ? "rgba(127,29,29,.8)" : "";
   cashPill.textContent = "💵 R$ " + st.cash + " · 📱 " + Math.round(st.phone) + "%";
+  const top = topEl.getBoundingClientRect().bottom + 6;
+  barsEl.style.top = top + "px"; goalsEl.style.top = top + barsEl.offsetHeight + 8 + "px";
+  bars.health.parentNode.parentNode.style.display = st.s.health < 95 ? "" : "none";
   for (const k in bars) { const v = st.s[k]; bars[k].style.width = v + "%"; bars[k].style.background = v < 20 ? "#ef4444" : v < 45 ? "#f59e0b" : "#22c55e"; }
   goals();
 }
@@ -543,6 +599,7 @@ function showTitle() {
     h("div.ez-col", { style: { marginTop: "10px" } },
       saved && !saved.ended ? h("button.ez-btn.wide", { onclick: () => { close(); load(saved); start(); } }, "▶ " + t("continue") + " · " + t("day", { d: Math.floor((17 + saved.T) / 24) })) : null,
       h("button.ez-btn.wide" + (saved ? ".blue" : ""), { onclick: () => { close(); showSetup(); } }, "🆕 " + t("newGame")),
+      h("button.ez-btn.blue.wide", { onclick: () => { location.href = "?modo=aprender"; } }, t("m_learn")),
       h("div.ez-row", { style: { justifyContent: "center" } },
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
@@ -558,12 +615,12 @@ function showSetup() {
   let scr = null;
   function draw() {
     body.replaceChildren(
-      h("h3", t("mode")), h("div.ez-row", chip("mode", "real", t("m_real")), chip("mode", "learn", t("m_learn"), true)),
+      h("h3", t("mode")), h("div.ez-row", chip("mode", "real", t("m_real")), chip("mode", "learn", t("m_learn"))),
       h("h3", t("map")), h("div.ez-row", chip("map", "gyn", t("map_gyn")), chip("map", "rio", t("map_rio"), true)),
       h("h3", t("age")), h("div.ez-row", chip("age", "kid", t("age_kid")), chip("age", "teen", t("age_teen"))),
       h("h3", t("diff")), h("div.ez-row", chip("diff", "easy", t("d_easy")), chip("diff", "hard", t("d_hard"))),
       h("p.ez-msg", t(cfg.diff === "hard" ? "d_hardInfo" : "d_easyInfo")),
-      h("button.ez-btn.wide", { style: { marginTop: "10px" }, onclick: () => { store.setJSON("cfg", cfg); scr.close(); load(newState(cfg)); showIntro(); } }, "▶ " + t("start")),
+      h("button.ez-btn.wide", { style: { marginTop: "10px" }, onclick: () => { store.setJSON("cfg", cfg); if (cfg.mode === "learn") { location.href = "?modo=aprender"; return; } scr.close(); load(newState(cfg)); showIntro(); } }, "▶ " + t("start")),
       h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("back")),
     );
   }
@@ -647,7 +704,8 @@ world.onUpdate((dt) => {
   if (st) {
     for (const [k, list] of Object.entries(crowds)) { const on = crowdOn(k); list.forEach((b) => { b.ch.root.visible = on; if (on) b.update(dt); }); }
     for (const s of SPOTS) if (s.sprite) { s.sprite.visible = !!s.mark(); s.sprite.position.y = 4.6 + Math.sin(performance.now() / 300) * 0.2; }
-    const inside = city.insideHome(me.x, me.z); city.roof.visible = !inside; city.homeLabel.visible = Math.hypot(me.x - HOME.x, me.z - HOME.z) > 16;
+    const cp = world.camera.position, camIn = cp.y < 14 && cp.x > HOME.x - HOME.w / 2 - 5 && cp.x < HOME.x + HOME.w / 2 + 1.5 && cp.z > HOME.z - HOME.d / 2 - 1.5 && cp.z < HOME.z + HOME.d / 2 + 2.5;
+    const inside = city.insideHome(me.x, me.z); city.roof.visible = !inside && !camIn; city.homeLabel.visible = Math.hypot(me.x - HOME.x, me.z - HOME.z) > 16;
     Object.values(city.npcs).forEach((c) => c.animate(dt, 0, true));
     updateLight(dt);
     hudT -= dt; if (hudT <= 0) { hudT = 0.5; updHud(); }
