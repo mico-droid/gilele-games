@@ -79,3 +79,10 @@ input { font-family: inherit; }
 .ez-chat button { white-space: nowrap; background: #fff; color: var(--ez-ink); border-radius: 10px; padding: 7px 9px; font-weight: 600; font-size: 14px; }
 @media (max-width: 420px) { .ez-rbtn { width: 36px; height: 36px; font-size: 16px; } .ez-pill { font-size: 13px; padding: 5px 10px; } }
 @media (max-width: 520px) { .ez-chat { grid-template-columns: repeat(2, auto); bottom: auto; top: 60px; } }
+
+/* ✕ de fechar no canto superior direito das telas */
+.ez-card.has-x { position: relative; }
+.ez-card.has-x > h2:first-child { padding-right: 40px; }
+.ez-x { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: #e2e8f0; color: #0f172a; font-size: 16px; font-weight: 700; cursor: pointer; line-height: 1; z-index: 2; }
+.ez-x:hover { background: #cbd5e1; }
+.ez-chat .ez-chat-x { background: #e2e8f0; color: #0f172a; font-weight: 700; }

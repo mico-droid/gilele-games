@@ -15,3 +15,4 @@
 - Testes da Auto Escola: `GAME.tick(dt)` + `tests/autopilot.js` (um motorista correto deve fazer a prova sem infrações). Em física, o passo interno é ≤ 2,5 ms (o modelo da embreagem fica instável com passos maiores).
 - Portal (`index.html`): jogos "Prontos" ficam primeiro; os outros vão na seção "Em desenvolvimento/testes" (classe `dev`). SEMPRE perguntar ao dono se um jogo novo/alterado está Pronto ou não. Hoje: prontos = EZ Obby, Batalha da Tabuada, Apagão: Sobreviva (dono liberou em 13/11/2026), Playground Testes; em testes = Auto Escola.
 - Motor v0.3.0: `throw.js` (`createThrowables`): pegar/carregar/arremessar objetos, alvos, sync multijogador por eventos (tg/tt/tr/td/th/ts). Exemplo em `games/demo`.
+- Motor v0.3.1: `screen(content, { x })` põe um ✕ no canto superior direito (true = fecha; função = ação de cancelar). Toda tela/caixa nova deve ter ✕ (pedido do dono). Editor, configurações, amigos, instalar e frases prontas já têm.

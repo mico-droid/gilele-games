@@ -33,11 +33,13 @@ export function toast(msg, ms = 1800, big = false) {
 }
 
 /** Full-screen overlay with a card. Returns { el, card, close() }. */
-export function screen(content, { dim = false, onClose } = {}) {
+/** x: true → ✕ no canto superior direito que fecha a tela; x: função → ✕ chama a função (ex.: cancelar). */
+export function screen(content, { dim = false, onClose, x } = {}) {
   const card = h("div.ez-card", content);
   const el = h("div.ez-screen" + (dim ? ".dim" : ""), card);
   document.body.appendChild(el);
   const api = { el, card, close() { el.remove(); onClose && onClose(); } };
+  if (x) { card.classList.add("has-x"); card.appendChild(h("button.ez-x", { "aria-label": "✕", onclick: () => (typeof x === "function" ? x() : api.close()) }, "✕")); }
   return api;
 }
 export function chips(values, cur, label, onPick) {
@@ -96,7 +98,7 @@ export function openAvatarEditor(look, onSave, { onCancel } = {}) {
       h("div.ez-row",
         h("button.ez-btn.gray.small", { onclick: () => { pv.stop(); scr.close(); onCancel && onCancel(); } }, t("cancel")),
         h("button.ez-btn.small", { onclick: () => { lk.n = name.value; lk = sanitizeLook(lk); saveLook(lk); pv.stop(); scr.close(); Audio.play("ok"); onSave && onSave(lk); } }, "✔ " + t("save")))),
-  ], { dim: true });
+  ], { dim: true, x: () => { pv.stop(); scr.close(); onCancel && onCancel(); } });
   pv.start(); redraw();
   return scr;
 }
@@ -120,7 +122,7 @@ export function openSettings({ world, onClose } = {}) {
   const draw0 = draw;
   draw = () => { title.textContent = "⚙️ " + t("settings"); closeBtn.textContent = t("close"); draw0(); };
   draw();
-  const scr = screen([title, body, closeBtn], { dim: true, onClose });
+  const scr = screen([title, body, closeBtn], { dim: true, onClose, x: true });
   return scr;
 }
 /** "Install app" button (PWA) — hidden when already installed or unsupported. */
@@ -149,7 +151,7 @@ export function gameLinks(gameName, { portal = "../../" } = {}) {
     catch { prompt(t("mpShare"), shareUrl); }
   };
   const howTo = () => {
-    const scr = screen([h("h2", "📲 " + t("howInstall")), h("p", t("installHow")), h("button.ez-btn.wide", { onclick: () => scr.close() }, t("close"))], { dim: true });
+    const scr = screen([h("h2", "📲 " + t("howInstall")), h("p", t("installHow")), h("button.ez-btn.wide", { onclick: () => scr.close() }, t("close"))], { dim: true, x: true });
   };
   // "já instalado": aberto como app, ou marcado antes (o app instalado e o navegador dividem o mesmo armazenamento)
   const KEY = "ez:installed:" + location.pathname;
@@ -201,7 +203,7 @@ export function openRoomPanel(room, { onClose } = {}) {
   };
   const unsub = room.onStatus(L);
   draw();
-  const scr = screen([h("h2", "👥 " + t("mp")), body, h("button.ez-btn.gray.wide", { style: { marginTop: "14px" }, onclick: () => scr.close() }, t("close"))], { dim: true, onClose: () => { unsub(); onClose && onClose(); } });
+  const scr = screen([h("h2", "👥 " + t("mp")), body, h("button.ez-btn.gray.wide", { style: { marginTop: "14px" }, onclick: () => scr.close() }, t("close"))], { dim: true, x: true, onClose: () => { unsub(); onClose && onClose(); } });
   return scr;
 }
 /** Status pill for the HUD that follows the room state. */
@@ -216,6 +218,7 @@ export function roomPill(room) {
 export const CHAT_KEYS = ["c0", "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "c9"];
 export function openQuickChat(onPick) {
   const el = h("div.ez-chat", CHAT_KEYS.map((k, i) => h("button", { onclick: () => { el.remove(); onPick(i); } }, t(k))));
+  el.appendChild(h("button.ez-chat-x", { "aria-label": "✕", onclick: () => el.remove() }, "✕"));
   document.body.appendChild(el);
   const off = (e) => { if (!el.contains(e.target)) { el.remove(); removeEventListener("pointerdown", off, true); } };
   setTimeout(() => addEventListener("pointerdown", off, true), 0);
