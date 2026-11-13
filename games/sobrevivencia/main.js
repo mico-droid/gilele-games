@@ -518,7 +518,7 @@ const feedEl = h("div.sv-feed");
 const btn = (e, fn, title) => h("button.ez-rbtn", { title, onclick: fn }, e);
 const topEl = h("div.ez-top", clockPill, powerPill, cashPill, roomPill(room), h("div.ez-spacer"),
     btn("🎒", () => openBag(), "I"), btn("📱", () => openPhone(), "Q"), btn("📻", () => openRadio()), btn("🔦", () => toggleFlash(), "F"),
-    btn("📖", () => openTips()), btn("💬", () => openQuickChat(sayChat)), btn("👥", () => { pause(false); openRoomPanel(room, { onClose: resume }); }), btn("⏸", () => pause()));
+    btn("📖", () => openTips()), btn("💬", () => openQuickChat(sayChat)), btn("👥", () => { pause(false); openRoomPanel(room, { onClose: resume }); }), btn("⏸", () => pause()), btn("❓", () => openHow()));
 const hud = h("div.ez-hud.ez-hidden", topEl,
   barsEl,
   goalsEl, feedEl, prompt, crowdPill);
@@ -569,6 +569,7 @@ function updHud() {
   for (const k in bars) { const v = st.s[k]; bars[k].style.width = v + "%"; bars[k].style.background = v < 20 ? "#ef4444" : v < 45 ? "#f59e0b" : "#22c55e"; }
   goals();
 }
+function openHow() { openMenu(() => ({ title: t("howTitle"), info: ["how1", "how2", "how3", "how4", "how5"].map((k) => h("p", t(k))), closeLabel: t("gotIt") })); }
 function openTips() {
   openMenu(() => ({ title: t("tipsBook"), info: st.tips.length ? st.tips.map((k) => h("p", { style: { fontSize: "14px", background: "#f1f5f9", borderRadius: "10px", padding: "6px 10px" } }, tx(k))) : [t("noTips")] }));
 }
@@ -585,7 +586,7 @@ Audio.addSfx("blackout", ({ tone, noise, now }) => { const n = now(); tone("sawt
 Audio.addSfx("radio", ({ noise, tone, now }) => { const n = now(); noise(n, 0.5, 0.12, undefined, 2500); tone("sine", 1000, n + 0.5, 0.08, 0.1); });
 
 // ---------------------------------------------------------------- telas
-let cfg = store.getJSON("cfg", { mode: "real", map: "gyn", age: "kid", diff: "easy" });
+let cfg = Object.assign({ map: "gyn", age: "kid", diff: "easy" }, store.getJSON("cfg", {}), { mode: "real" });
 function showTitle() {
   playing = false; hud.classList.add("ez-hidden"); input.setVisible(false);
   const cv = h("canvas", { style: { width: "150px", height: "200px", display: "block", margin: "0 auto" } });
@@ -594,12 +595,14 @@ function showTitle() {
   let scr = null;
   const close = () => { pv.stop(); scr.close(); };
   scr = screen([
-    h("h1", "🔦 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.7 } }, t("sub") + " · v" + VERSION),
+    h("h1", "🔦 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.7 } }, t("tagline") + " · v" + VERSION),
     cv,
     h("div.ez-col", { style: { marginTop: "10px" } },
-      saved && !saved.ended ? h("button.ez-btn.wide", { onclick: () => { close(); load(saved); start(); } }, "▶ " + t("continue") + " · " + t("day", { d: Math.floor((17 + saved.T) / 24) })) : null,
-      h("button.ez-btn.wide" + (saved ? ".blue" : ""), { onclick: () => { close(); showSetup(); } }, "🆕 " + t("newGame")),
+      saved && !saved.ended ? h("button.ez-btn.wide", { onclick: () => { close(); load(saved); start(); } }, t("contReal", { d: t("day", { d: Math.floor((17 + saved.T) / 24) }) })) : null,
+      h("button.ez-btn.wide" + (saved && !saved.ended ? ".gray" : ""), { onclick: () => { close(); showSetup(); } }, t("m_real") + (saved && !saved.ended ? " · " + t("newGame") : "")),
+      h("p.ez-msg", { style: { margin: "-4px 0 4px", textAlign: "center" } }, t("realDesc")),
       h("button.ez-btn.blue.wide", { onclick: () => { location.href = "?modo=aprender"; } }, t("m_learn")),
+      h("p.ez-msg", { style: { margin: "-4px 0 4px", textAlign: "center" } }, t("learnDesc")),
       h("div.ez-row", { style: { justifyContent: "center" } },
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
@@ -615,17 +618,16 @@ function showSetup() {
   let scr = null;
   function draw() {
     body.replaceChildren(
-      h("h3", t("mode")), h("div.ez-row", chip("mode", "real", t("m_real")), chip("mode", "learn", t("m_learn"))),
       h("h3", t("map")), h("div.ez-row", chip("map", "gyn", t("map_gyn")), chip("map", "rio", t("map_rio"), true)),
       h("h3", t("age")), h("div.ez-row", chip("age", "kid", t("age_kid")), chip("age", "teen", t("age_teen"))),
       h("h3", t("diff")), h("div.ez-row", chip("diff", "easy", t("d_easy")), chip("diff", "hard", t("d_hard"))),
       h("p.ez-msg", t(cfg.diff === "hard" ? "d_hardInfo" : "d_easyInfo")),
-      h("button.ez-btn.wide", { style: { marginTop: "10px" }, onclick: () => { store.setJSON("cfg", cfg); if (cfg.mode === "learn") { location.href = "?modo=aprender"; return; } scr.close(); load(newState(cfg)); showIntro(); } }, "▶ " + t("start")),
+      h("button.ez-btn.wide", { style: { marginTop: "10px" }, onclick: () => { store.setJSON("cfg", cfg); scr.close(); load(newState(cfg)); showIntro(); } }, "▶ " + t("start")),
       h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("back")),
     );
   }
   draw();
-  scr = screen([h("h2", "🆕 " + t("newGame")), body]);
+  scr = screen([h("h2", t("m_real") + " · " + t("newGame")), body]);
 }
 function showIntro() {
   const scr = screen([h("h2", "🌆 " + t("sub")), h("p", t("intro")), h("button.ez-btn.wide", { onclick: () => { scr.close(); start(); } }, "▶ " + t("play"))]);
@@ -640,6 +642,7 @@ function load(s) {
 function start() {
   playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false);
   Audio.init(); track("ez_play", { game: GAME_ID, multiplayer: room.connected ? 1 : 0, diff: st.diff, age: st.age });
+  if (!store.get("howSeen")) { store.set("howSeen", "1"); openHow(); }
 }
 function pause(showMenu = true) {
   playing = false; world.setPaused(true); input.setVisible(false); save();

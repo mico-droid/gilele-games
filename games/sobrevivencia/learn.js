@@ -17,7 +17,8 @@ const T = (pt, en, es) => ({ pt, en, es });
 const U = {
   title: T("📚 Aprendizado", "📚 Learning", "📚 Aprendizaje"),
   sub: T("Acampamento-escola · Era 0 e Era 1", "Camp school · Era 0 and Era 1", "Campamento-escuela · Era 0 y Era 1"),
-  intro: T("Bem-vindo ao acampamento-escola! Fale com a professora Iara (❗) para começar. Cada aula tem cartões curtos, 2 perguntas e um desafio prático. Cada aula concluída desbloqueia as próximas.", "Welcome to the camp school! Talk to teacher Iara (❗) to begin. Each lesson has short cards, 2 questions and a hands-on challenge. Each finished lesson unlocks the next ones.", "¡Bienvenido al campamento-escuela! Habla con la profesora Iara (❗) para empezar. Cada clase tiene tarjetas cortas, 2 preguntas y un desafío práctico. Cada clase terminada desbloquea las siguientes."),
+  intro: T("Bem-vindo ao acampamento-escola! Fale com a professora Iara (❗) para começar. Cada aula tem cartões curtos, 2 perguntas e um desafio prático. Cada aula concluída desbloqueia as próximas. Para pegar galhos, capim, folhas e areia, é só encostar neles. Para falar ou usar algo, chegue perto e aperte E (ou ✋).", "Welcome to the camp school! Talk to teacher Iara (❗) to begin. Each lesson has short cards, 2 questions and a hands-on challenge. Each finished lesson unlocks the next ones. To pick up sticks, grass, leaves and sand, just walk into them. To talk or use something, walk up and press E (or ✋).", "¡Bienvenido al campamento-escuela! Habla con la profesora Iara (❗) para empezar. Cada clase tiene tarjetas cortas, 2 preguntas y un desafío práctico. Cada clase terminada desbloquea las siguientes. Para recoger ramas, pasto, hojas y arena, solo tócalos. Para hablar o usar algo, acércate y pulsa E (o ✋)."),
+  startL: T("Começar as aulas", "Start the lessons", "Empezar las clases"), contL: T("Continuar as aulas", "Continue the lessons", "Continuar las clases"),
   real: T("🌑 Ir para o Apagão Real", "🌑 Go to Real Blackout", "🌑 Ir al Apagón Real"),
   tree: T("🌳 Árvore de tecnologia", "🌳 Tech tree", "🌳 Árbol tecnológico"),
   locked: T("🔒 Complete antes: {r}", "🔒 Finish first: {r}", "🔒 Completa antes: {r}"),
@@ -37,6 +38,8 @@ const U = {
   b_filter: T("🫗 Filtro (água suja + areia + carvão)", "🫗 Filter (dirty water + sand + charcoal)", "🫗 Filtro (agua sucia + arena + carbón)"),
   b_rod: T("🎣 Vara (1 galho + linha e anzol)", "🎣 Rod (1 stick + line and hook)", "🎣 Caña (1 rama + hilo y anzuelo)"),
   b_trap: T("🪤 Arapuca (4 galhos + 1 cipó)", "🪤 Cage trap (4 sticks + 1 vine)", "🪤 Arapuca (4 ramas + 1 bejuco)"),
+  wetNo: T("💦 Material úmido não pega: só faz fumaça. Procure galho e capim SECOS (no sol, em lugar alto) ou seque os úmidos perto de uma fogueira acesa.", "💦 Damp material won't catch: it only smokes. Find DRY sticks and grass (in the sun, on high ground) or dry the damp ones next to a burning fire.", "💦 Lo húmedo no prende: solo humea. Busca ramas y pasto SECOS (al sol, en lugar alto) o seca los húmedos junto a una fogata encendida."),
+  f_dry: T("Secar o material úmido perto do fogo", "Dry the damp material by the fire", "Secar lo húmedo junto al fuego"), f_dried: T("☀️ Secou! Agora é material seco.", "☀️ Dried! Now it's dry material.", "☀️ ¡Se secó! Ahora es material seco."),
   fireBad: T("Aqui é mata fechada e seca: perigo de incêndio! Vá para um lugar aberto e limpo.", "This is dense, dry brush: wildfire risk! Go to an open, clear spot.", "¡Aquí es monte cerrado y seco: riesgo de incendio! Ve a un lugar abierto y limpio."),
   fireLit: T("🔥 Fogo aceso! Isca → gravetos → lenha.", "🔥 Fire lit! Tinder → twigs → logs.", "🔥 ¡Fuego encendido! Yesca → ramitas → leña."),
   shelterBad: T("Lugar baixo e úmido: com chuva, alaga. Procure o morrinho (lugar alto).", "Low, damp ground: it floods when it rains. Find the little hill (high ground).", "Lugar bajo y húmedo: con lluvia se inunda. Busca la lomita (lugar alto)."),
@@ -196,9 +199,15 @@ const nodeMesh = { galho: () => { const g = new THREE.Group(); part(1.4, 0.15, 0
   folhas: () => { const g = new THREE.Group(); part(1.6, 0.06, 0.6, "#65a30d", 0, 0.05, 0, g); part(1.2, 0.06, 0.5, "#4d7c0f", 0.2, 0.1, 0.4, g).rotation.y = 0.7; return g; },
   cipo: () => { const g = new THREE.Group(); for (let i = 0; i < 3; i++) part(0.1, 0.1, 1.8, "#3f6212", i * 0.2, 0.08, 0, g).rotation.y = i * 0.4; return g; },
   areia: () => { const g = new THREE.Group(); part(1.2, 0.25, 1, "#e7d8a8", 0, 0.12, 0, g); return g; } };
-function addNode(it, x, z) { const m = nodeMesh[it](); m.position.set(x, 0, z); S.add(m); NODES.push({ it, x, z, m, back: 0 }); }
+function addNode(it, x, z) {
+  const wet = it === "galhoUmido" || it === "capimUmido", base = wet ? it.replace("Umido", "") : it;
+  const m = nodeMesh[base](); m.position.set(x, 0, z); S.add(m);
+  if (wet) m.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.55); } });
+  NODES.push({ it, x, z, m, back: 0 });
+}
 for (let i = 0; i < 16; i++) addNode("galho", -30 + ((i * 37) % 64), 6 + ((i * 23) % 36));
-for (let i = 0; i < 6; i++) addNode("galho", -60 + i * 3, 10 + (i % 3) * 6);
+for (let i = 0; i < 6; i++) addNode("galhoUmido", -60 + i * 3, 10 + (i % 3) * 6); // sombra da mata: úmidos
+for (let i = 0; i < 6; i++) addNode(i % 2 ? "capimUmido" : "galhoUmido", -26 + i * 7, RIVER_Z - 9); // beira do rio: úmidos
 for (let i = 0; i < 10; i++) addNode("capim", -24 + ((i * 29) % 56), 12 + ((i * 17) % 26));
 for (let x = -30; x <= 10; x += 8) addNode("folhas", x + 1.6, RIVER_Z - 6.5);
 addNode("folhas", -2, 44); addNode("folhas", 6, 44);
@@ -328,11 +337,11 @@ function stepText(s) {
   return L(s.txt);
 }
 function stepDone(s) {
-  if (s.k === "pick") return (P.cnt[s.it] || 0) >= s.n;
+  if (s.k === "pick") { const key = "ok_" + s.it; if (P.cnt[key]) return true; if ((P.cnt[s.it] || 0) >= s.n || has(s.it, s.n)) { P.cnt[key] = 1; return true; } return false; }
   if (s.k === "safe") return (P.cnt.safe || 0) >= s.n;
   return !!P.w[s.f];
 }
-function stepProg(s) { if (s.k === "pick") return ` (${Math.min(P.cnt[s.it] || 0, s.n)}/${s.n})`; if (s.k === "safe") return ` (${Math.min(P.cnt.safe || 0, s.n)}/${s.n})`; return ""; }
+function stepProg(s) { if (s.k === "pick") return ` (${Math.min(Math.max(P.cnt[s.it] || 0, P.bag[s.it] || 0), s.n)}/${s.n})`; if (s.k === "safe") return ` (${Math.min(P.cnt.safe || 0, s.n)}/${s.n})`; return ""; }
 function checkLesson() {
   const l = P.cur && byId[P.cur]; if (!l) return;
   if (!l.steps.every(stepDone)) return;
@@ -386,7 +395,7 @@ function openBuild() {
   };
   const use = (list, keep = []) => list.forEach(([k, n]) => { if (!keep.includes(k)) add(k, -n); });
   openMenu(() => ({ title: u("build"), info: [], opts: [
-    { label: u("b_fire"), fn: () => { const m = need(R.fire); if (m) return toast(m, 3000); if (inMata() || me.z < -26) return toast(u("fireBad"), 3500); use(R.fire, ["pederneira"]); placeFire(me.x + Math.sin(me.rot) * 2, me.z + Math.cos(me.rot) * 2); flag("fire_ok", u("fireLit")); return "close"; } },
+    { label: u("b_fire"), fn: () => { const m = need(R.fire); if (m) { if (has("galhoUmido") || has("capimUmido")) return toast(u("wetNo"), 4000); return toast(m, 3000); } if (inMata() || me.z < -26) return toast(u("fireBad"), 3500); use(R.fire, ["pederneira"]); placeFire(me.x + Math.sin(me.rot) * 2, me.z + Math.cos(me.rot) * 2); flag("fire_ok", u("fireLit")); return "close"; } },
     { label: u("b_shelter"), fn: () => { const m = need(R.shelter); if (m) return toast(m, 3000); if (Math.hypot(me.x - HILL.x, me.z - HILL.z) > HILL.r || me.y < 1) return toast(u("shelterBad"), 3500); use(R.shelter); placeShelter(me.x, me.z); flag("shelter_ok", u("shelterOk")); return "close"; } },
     { label: u("b_filter"), fn: () => { const m = need(R.filter); if (m) return toast(m, 3000); use(R.filter); add("aguaFiltrada"); flag("w_filter", itName("aguaFiltrada") + " ✓"); return "close"; } },
     { label: u("b_rod"), fn: () => { const m = need(R.rod); if (m) return toast(m, 3000); add("galho", -1); add("vara"); flag("fish_rod", itName("vara") + " ✓"); return "close"; } },
@@ -447,6 +456,7 @@ spot(0, RIVER_Z - 4.5, 0, () => u("i_river"), () => {
 }, { zone: () => Math.abs(me.z - (RIVER_Z - 3)) < 3.5 });
 spot(0, 0, 3, () => u("i_fire"), () => openMenu(() => ({ title: "🔥 " + u("i_fire"), info: [], opts: [
   { label: u("f_coal"), fn: () => { add("carvao"); flag("w_coal", "+1 " + itName("carvao")); } },
+  { label: u("f_dry"), dis: !has("galhoUmido") && !has("capimUmido"), fn: () => { for (const k of ["galho", "capim"]) { const n = P.bag[k + "Umido"] || 0; if (n) { add(k + "Umido", -n); add(k, n); P.cnt[k] = (P.cnt[k] || 0) + n; } } toast(u("f_dried"), 2500); Audio.play("ok"); } },
   { label: u("f_boil"), dis: !has("aguaFiltrada"), fn: () => { add("aguaFiltrada", -1); add("aguaBoa"); flag("w_boil", u("boiled")); } },
   { label: u("f_cook"), dis: !has("peixe"), fn: () => { add("peixe", -1); add("peixeAssado"); flag("fish_cook", u("cooked")); } },
   { label: u("f_out"), cls: ".gray", fn: () => { S.remove(built.fire.g); built.fire = null; P.built.fire = null; toast(u("f_outOk"), 2500); Audio.play("ok"); return "close"; } },
@@ -528,9 +538,10 @@ lessonEl.addEventListener("click", () => lessonEl.classList.toggle("open"));
 const btn = (e, fn, title) => h("button.ez-rbtn", { title, onclick: fn }, e);
 const topEl = h("div.ez-top", progPill, roomPill(room), h("div.ez-spacer"),
     btn("🌳", () => openTree(), "T"), btn("🎒", () => openBag(), "I"), btn("💬", () => openQuickChat(sayChat)),
-    btn("👥", () => { pause(false); openRoomPanel(room, { onClose: resume }); }), btn("⏸", () => pause()));
+    btn("👥", () => { pause(false); openRoomPanel(room, { onClose: resume }); }), btn("⏸", () => pause()), btn("❓", () => openHow()));
 const hud = h("div.ez-hud.ez-hidden", topEl, lessonEl, prompt);
 document.body.appendChild(hud);
+function openHow() { openMenu(() => ({ title: t("howTitle"), info: ["how1", "how2", "howL3", "howL4", "howL5"].map((k) => h("p", t(k))), closeLabel: t("gotIt") })); }
 function updHud() {
   progPill.textContent = u("title") + " · " + u("progress", { d: P.done.length, n: LESSONS.length });
   lessonEl.style.top = topEl.getBoundingClientRect().bottom + 6 + "px";
@@ -553,8 +564,10 @@ function showTitle() {
     h("h1", "🔦 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.7 } }, u("title") + " · " + u("sub") + " · v" + VERSION),
     cv, ageRow,
     h("div.ez-col", { style: { marginTop: "10px" } },
-      h("button.ez-btn.wide", { onclick: () => { close(); if (!P.done.length && !P.cur) intro(); else start(); } }, "▶ " + t("play") + (P.done.length ? " · " + u("progress", { d: P.done.length, n: LESSONS.length }) : "")),
+      h("button.ez-btn.wide", { onclick: () => { close(); if (!P.done.length && !P.cur) intro(); else start(); } }, "▶ " + (P.done.length || P.cur ? u("contL") : u("startL")) + (P.done.length ? " · " + u("progress", { d: P.done.length, n: LESSONS.length }) : "")),
+      h("p.ez-msg", { style: { margin: "-4px 0 4px", textAlign: "center" } }, t("learnDesc")),
       h("button.ez-btn.gray.wide", { onclick: () => { location.href = "./"; } }, u("real")),
+      h("p.ez-msg", { style: { margin: "-4px 0 4px", textAlign: "center" } }, t("realDesc")),
       h("div.ez-row", { style: { justifyContent: "center" } },
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
@@ -564,7 +577,7 @@ function showTitle() {
   ]);
 }
 function intro() { const s = screen([h("h2", "⛺ " + u("title")), h("p", u("intro")), h("button.ez-btn.wide", { onclick: () => { s.close(); start(); } }, "▶ " + t("play"))]); }
-function start() { playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false); Audio.init(); updHud(); track("ez_play", { game: GAME_ID, multiplayer: room.connected ? 1 : 0 }); }
+function start() { playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false); Audio.init(); updHud(); track("ez_play", { game: GAME_ID, multiplayer: room.connected ? 1 : 0 }); if (!store.get("howSeenL")) { store.set("howSeenL", "1"); openHow(); } }
 function pause(showMenu = true) {
   playing = false; world.setPaused(true); input.setVisible(false); save();
   if (!showMenu) return;

@@ -10,6 +10,7 @@
 - **Recusado:** profissões iniciais com bônus.
 - **Ordem:** começar pelo **Apagão Real** (cidade, Dia 0 → 72 h); o Aprendizado vem depois.
 - **Ajustes pedidos no teste (13/11):** objetivo escrito com "onde achar" cada item; rádio sempre explica onde está e para que serve; mochila explica cada item ao tocar; barras sem cobrir o "Sozinho"; sem barra de ânimo e com saúde só quando cair; água da torneira depois do apagão = **não tratada** (alerta + ferver ou água sanitária); o jogador mora num **apartamento urbano** e o objetivo principal é o protocolo de **ficar em casa em segurança** (elevador para, bomba do prédio para).
+- **Clareza (13/11, 2º teste):** tela inicial com 2 botões explicados (Apagão Real / Aprendizado) e "Novo jogo" só do Apagão; cartão "Como jogar" na 1ª vez e botão ❓; no Aprendizado, material **úmido** (beira do rio e sombra da mata) não acende e pode ser seco perto do fogo; passos "pegar" contam o que já está na mochila.
 - **Depois do Apagão Real, o autor escolheu o Modo Aprendizado** (antes do Capítulo 2).
 - **Nome:** Apagão: Sobreviva. **Publicação:** direto no main, com card no portal.
 

@@ -18,7 +18,8 @@ export const ERAS = [
 ];
 
 export const ITEMS = {
-  galho: { e: "🪵", n: T("Galho", "Stick", "Rama") }, capim: { e: "🌾", n: T("Capim seco", "Dry grass", "Pasto seco") },
+  galho: { e: "🪵", n: T("Galho seco", "Dry stick", "Rama seca") }, capim: { e: "🌾", n: T("Capim seco", "Dry grass", "Pasto seco") },
+  galhoUmido: { e: "💦", n: T("Galho úmido", "Damp stick", "Rama húmeda") }, capimUmido: { e: "💦", n: T("Capim úmido", "Damp grass", "Pasto húmedo") },
   folhas: { e: "🍃", n: T("Folhas de palmeira", "Palm leaves", "Hojas de palmera") }, cipo: { e: "🪢", n: T("Cipó", "Vine", "Bejuco") },
   areia: { e: "⏳", n: T("Areia", "Sand", "Arena") }, carvao: { e: "⚫", n: T("Carvão", "Charcoal", "Carbón") },
   pequi: { e: "🟡", n: T("Pequi", "Pequi", "Pequi"), safe: 1 }, baru: { e: "🌰", n: T("Baru", "Baru nut", "Barú"), safe: 1 },
@@ -243,7 +244,7 @@ export const LESSONS = [
     t: T("Fogo", "Fire", "Fuego"),
     c: [
       T("O fogo precisa de 3 coisas: calor, combustível e ar. Tire uma delas e ele apaga.", "Fire needs 3 things: heat, fuel and air. Remove one and it goes out.", "El fuego necesita 3 cosas: calor, combustible y aire. Quita una y se apaga."),
-      T("Junte na ordem: isca (capim seco), gravetos finos, depois lenha mais grossa. A faísca da pederneira acende a isca.", "Gather in order: tinder (dry grass), thin twigs, then thicker wood. The fire steel's spark lights the tinder.", "Junta en orden: yesca (pasto seco), ramitas finas y luego leña más gruesa. La chispa del pedernal enciende la yesca."),
+      T("Junte na ordem: isca (capim seco), gravetos finos, depois lenha mais grossa. Tudo tem que estar SECO: material úmido (perto do rio, na sombra, depois da chuva) solta fumaça e não pega. Isca seca: capim no sol, galho caído em lugar alto, a parte de dentro da casca. Úmido dá para secar perto de um fogo que já está aceso.", "Gather in order: tinder (dry grass), thin twigs, then thicker wood. Everything must be DRY: damp material (near the river, in shade, after rain) smokes and won't catch. Dry tinder: grass in the sun, sticks fallen on high ground, the inside of bark. You can dry damp material next to a fire that's already burning.", "Junta en orden: yesca (pasto seco), ramitas finas y luego leña más gruesa. Todo debe estar SECO: lo húmedo (cerca del río, a la sombra, tras la lluvia) humea y no prende. Yesca seca: pasto al sol, ramas caídas en lugar alto, el interior de la corteza. Lo húmedo se puede secar junto a un fuego ya encendido."),
       T("Limpe 1 metro em volta e fique longe do mato seco: no Cerrado, a seca é época de queimadas. Nunca deixe o fogo sozinho; apague com água e terra até esfriar.", "Clear 1 meter around it and stay away from dry brush: in the Cerrado, the dry season brings wildfires. Never leave a fire alone; put it out with water and dirt until cold.", "Limpia 1 metro alrededor y aléjate del pasto seco: en el Cerrado, la sequía trae incendios. Nunca dejes el fuego solo; apágalo con agua y tierra hasta que enfríe."),
     ],
     q: [
