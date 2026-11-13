@@ -53,3 +53,5 @@
 .say.you b { color: #0369a1; }
 .say.crit { background: #fee2e2; border-left-color: #dc2626; }
 .say.crit b { color: #b91c1c; }
+
+.sv-goals .what .ln { display: block; margin-bottom: 3px; }

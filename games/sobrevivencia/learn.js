@@ -8,7 +8,7 @@ import {
 } from "../../engine/ez.js";
 import "./strings.js";
 import { ERAS, LESSONS, byId, ITEMS, itName, L } from "./lessons.js";
-import { modeMenu, consumeAction, M_PER_UNIT } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen } from "./menu.js";
 
 const GAME_ID = "sobrevivencia-aprender";
 registerPWA("../../sw.js");
@@ -23,7 +23,7 @@ const U = {
   whereCamp: T("📍 Onde: no Cerrado, ao SUL do acampamento (rio, morrinho, trilha). O painel da esquerda mostra os passos.", "📍 Where: in the Cerrado, SOUTH of camp (river, hill, trail). The left panel shows the steps.", "📍 Dónde: en el Cerrado, al SUR del campamento (río, loma, sendero). El panel izquierdo muestra los pasos."),
   startL: T("Começar as aulas", "Start the lessons", "Empezar las clases"), contL: T("Continuar as aulas", "Continue the lessons", "Continuar las clases"),
   real: T("🌑 Ir para o Apagão Real", "🌑 Go to Real Blackout", "🌑 Ir al Apagón Real"),
-  tree: T("🌳 Árvore de tecnologia", "🌳 Tech tree", "🌳 Árbol tecnológico"),
+  tree: T("📒 Manual de treinamento", "📒 Training manual", "📒 Manual de entrenamiento"),
   locked: T("🔒 Complete antes: {r}", "🔒 Finish first: {r}", "🔒 Completa antes: {r}"),
   soon: T("em breve", "coming soon", "pronto"),
   start: T("Começar a aula", "Start lesson", "Empezar la clase"), review: T("Rever a aula", "Review lesson", "Repasar la clase"),
@@ -103,7 +103,7 @@ const U = {
   critT: T("🆘 Plano B · situação crítica", "🆘 Plan B · critical situation", "🆘 Plan B · situación crítica"),
   bagQ: T("Monte a mochila (até 10 kg). Peso: {w} kg", "Pack the bag (up to 10 kg). Weight: {w} kg", "Arma la mochila (hasta 10 kg). Peso: {w} kg"), bagHeavy: T("Pesada demais! Tire o que só pesa.", "Too heavy! Remove what's just weight.", "¡Demasiado pesada! Saca lo que solo pesa."),
   bagMiss: T("Faltam itens essenciais (lona, panela, pederneira, faca, cantil, comida, roupa de frio, roupas de baixo, papel higiênico, escova de dente…).", "Essential items missing (tarp, pot, fire steel, knife, canteen, food, warm clothes, underwear, toilet paper, toothbrush…).", "Faltan objetos esenciales (lona, olla, pedernal, cuchillo, cantimplora, comida, ropa de abrigo, ropa interior, papel higiénico, cepillo…)."), bagOk: T("🎒 Mochila leve e completa!", "🎒 Light and complete pack!", "🎒 ¡Mochila ligera y completa!"),
-  teacherHi: T("\"Olá! Escolha uma aula na árvore. Quando terminar o desafio, a próxima abre.\"", "\"Hi! Pick a lesson on the tree. Finish the challenge and the next one opens.\"", "\"¡Hola! Elige una clase en el árbol. Al terminar el desafío, se abre la siguiente.\""),
+  teacherHi: T("\"Olá! Escolha uma aula no manual de treinamento. Quando terminar o desafio, a próxima abre.\"", "\"Hi! Pick a lesson in the training manual. Finish the challenge and the next one opens.\"", "\"¡Hola! Elige una clase en el manual de entrenamiento. Al terminar el desafío, se abre la siguiente.\""),
   age: T("Idade", "Age", "Edad"),
 };
 const u = (k, vars) => { let s = L(U[k]); if (vars) s = s.replace(/\{(\w+)\}/g, (_, x) => vars[x] ?? ""); return s; };
@@ -319,7 +319,8 @@ const flag = (f, msg) => { if (P.w[f]) return; P.w[f] = 1; if (msg) toast(msg, 2
 // Faixa infantil usa crit_k (ou nenhum); 13+ usa crit.
 function cardsOf(l) {
   const crit = kid() ? l.crit_k : l.crit;
-  return l.c.map((c) => ({ c })).concat(crit ? [{ c: crit, crit: true }] : []);
+  // cada cartão vira partes de uma frase: ninguém lê texto grande
+  return l.c.flatMap((c) => parts(L(c)).map((x) => ({ c: x }))).concat(crit ? parts(L(crit)).map((x) => ({ c: x, crit: true })) : []);
 }
 function cardInfo(card) {
   if (card.crit) return h("div.say.crit", { style: { fontSize: "17px" } }, h("b", u("critT")), h("br"), L(card.c));
@@ -561,11 +562,11 @@ lessonEl.addEventListener("click", () => lessonEl.classList.toggle("open"));
 const btn = (e, fn, title) => h("button.ez-rbtn", { title, onclick: fn }, e);
 const chatBtn = btn("💬", () => openQuickChat(sayChat));
 const topEl = h("div.ez-top", progPill, roomPill(room), h("div.ez-spacer"),
-    btn("🌳", () => openTree(), "T"), btn("🎒", () => openBag(), "I"), chatBtn, btn("✕", () => pause(), t("closeT")));
+    btn("📒", () => openTree(), "T"), btn("🎒", () => openBag(), "I"), chatBtn, btn("✕", () => pause(), t("closeT")));
 const guideEl = h("div.sv-guide.ez-hidden", h("span.arr", "⬆"), h("span.txt"));
 const hud = h("div.ez-hud.ez-hidden", topEl, lessonEl, prompt, guideEl);
 document.body.appendChild(hud);
-function openHow() { openMenu(() => ({ title: t("howTitle"), info: ["how1", "how2", "howL3", "howL4", "howL5"].map((k) => h("p", t(k))), closeLabel: t("gotIt") })); }
+function openHow() { const ps = ["how1", "how2", "howL3", "howL4", "howL5"].map((k) => t(k)); let i = 0; openMenu(() => ({ title: t("howTitle") + ` · ${i + 1}/${ps.length}`, info: [h("p", { style: { fontSize: "18px" } }, ps[i])], opts: i < ps.length - 1 ? [{ label: u("next"), fn: () => { i++; } }] : [], noClose: i < ps.length - 1, closeLabel: t("gotIt") })); }
 function updHud() {
   progPill.textContent = u("title") + " · " + u("progress", { d: P.done.length, n: LESSONS.length });
   chatBtn.style.display = room.connected ? "" : "none";
@@ -598,10 +599,10 @@ function showTitle() {
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
         h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
       gameLinks(t("title")),
-      isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · E: interagir · I: mochila · T: árvore · Arraste: câmera", "WASD/arrows: move · E: interact · I: backpack · T: tree · Drag: camera", "WASD/flechas: mover · E: interactuar · I: mochila · T: árbol · Arrastra: cámara")))),
+      isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · E: interagir · I: mochila · T: manual · Arraste: câmera", "WASD/arrows: move · E: interact · I: backpack · T: manual · Drag: camera", "WASD/flechas: mover · E: interactuar · I: mochila · T: manual · Arrastra: cámara")))),
   ]);
 }
-function intro() { const s = screen([h("h2", "⛺ " + u("title")), h("p", u("intro")), h("button.ez-btn.wide", { onclick: () => { s.close(); start(); } }, "▶ " + t("play"))]); }
+function intro() { pagedScreen(h, screen, { title: "⛺ " + u("title"), text: u("intro"), nextLabel: u("next"), endLabel: "▶ " + t("play"), onEnd: start }); }
 function start() { playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false); Audio.init(); updHud(); track("ez_play", { game: GAME_ID, multiplayer: room.connected ? 1 : 0 }); if (!store.get("howSeenL")) { store.set("howSeenL", "1"); openHow(); } }
 function pause(showMenu = true) {
   playing = false; world.setPaused(true); input.setVisible(false); save();

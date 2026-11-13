@@ -39,3 +39,18 @@ export function modeMenu(store, on) {
 
 /** Escala de distância mostrada ao jogador: 1 unidade do mundo ≈ 1 passo do boneco ≈ 0,5 m. */
 export const M_PER_UNIT = 0.5;
+
+/** Divide um texto em partes curtas (uma frase por parte; frases muito curtas ficam com a seguinte). */
+export function parts(text) {
+  const raw = String(text).split(/(?<=[.!?…])\s+(?=[A-ZÀ-ÚÑ¿¡"“(]|\p{Extended_Pictographic})/u), out = [];
+  for (const r of raw) { if (out.length && out[out.length - 1].length < 45) out[out.length - 1] += " " + r; else out.push(r); }
+  return out;
+}
+/** Tela com o texto em partes: "Próximo ▶" até a última, depois o botão final. */
+export function pagedScreen(h, screen, { title, text, nextLabel, endLabel, onEnd }) {
+  const ps = Array.isArray(text) ? text : parts(text); let i = 0;
+  const body = h("div"), scr = screen([h("h2", title), body]);
+  const draw = () => body.replaceChildren(h("p", { style: { fontSize: "18px", minHeight: "70px" } }, ps[i]), h("p.ez-msg", { style: { textAlign: "center" } }, `${i + 1}/${ps.length}`),
+    h("button.ez-btn.wide", { onclick: () => { if (i < ps.length - 1) { i++; draw(); } else { scr.close(); onEnd(); } } }, i < ps.length - 1 ? nextLabel : endLabel));
+  draw();
+}

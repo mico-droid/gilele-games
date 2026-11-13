@@ -8,7 +8,7 @@ import {
 } from "../../engine/ez.js";
 import { tx, setKidMode } from "./strings.js";
 import { buildCity, HOME, BED, ZONES } from "./city.js";
-import { modeMenu, consumeAction, M_PER_UNIT } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen } from "./menu.js";
 
 const GAME_ID = "sobrevivencia";
 registerPWA("../../sw.js");
@@ -107,7 +107,13 @@ function showNextTip() {
   if (!tipQueue.length || menuOpen || !playing) return;
   const key = tipQueue.shift();
   Audio.play("pop");
-  openMenu(() => ({ title: t("tipTitle"), info: [tx(key)], opts: [], closeLabel: t("gotIt") }));
+  pagedMenu(t("tipTitle"), parts(tx(key)));
+}
+/** Menu com texto em partes (uma frase por vez). */
+function pagedMenu(title, ps) {
+  let i = 0;
+  openMenu(() => ({ title: title + (ps.length > 1 ? ` · ${i + 1}/${ps.length}` : ""), info: [h("p", { style: { fontSize: "18px" } }, ps[i])],
+    opts: i < ps.length - 1 ? [{ label: t("nextP"), fn: () => { i++; } }] : [], noClose: i < ps.length - 1, closeLabel: t("gotIt") }));
 }
 
 // ---------------------------------------------------------------- notícias e eventos
@@ -219,7 +225,7 @@ function openMenu(build) {
       ...(d.who && (d.opts || []).some(Boolean) ? [h("p.say.you", h("b", t("youSay")))] : []),
       h("div.ez-col", { style: { marginTop: "10px" } },
         ...(d.opts || []).filter(Boolean).map((o) => h("button.ez-btn.wide" + (o.cls || ""), { disabled: o.dis ? true : null, style: o.dis ? { opacity: 0.45 } : null, onclick: () => { if (o.dis) return; Audio.play("click"); const r = o.fn(); if (r === "close") close(); else if (scr.el.isConnected) draw(); } }, o.label)),
-        h("button.ez-btn.gray.wide", { onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || t("a_leave"))),
+        d.noClose ? null : (h("button.ez-btn.gray.wide", { onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || t("a_leave")))),
     );
   }
   draw();
@@ -600,7 +606,7 @@ function goals() {
   m.target = spotKey ? SPOTS.find((s) => s.key === spotKey) : null;
   if (m.id !== lastMission) { if (lastMission && playing) Audio.play("cp"); lastMission = m.id; goalsEl.classList.remove("open"); }
   const kids = [h("small.ph", t(m.phase)), h("b", "🚩 " + (m.i ? t("msN", { i: m.i, n: m.n }) : t("msNow"))),
-    h("div.what", t("ms_" + m.id, m.vars ? m.vars() : null)), h("small.why", "💡 " + t("msWhy") + tx("mw_" + m.id))];
+    h("div.what", ...parts(t("ms_" + m.id, m.vars ? m.vars() : null)).map((x) => h("span.ln", x))), h("small.why", "💡 " + t("msWhy") + tx("mw_" + m.id))];
   if (!after()) kids.push(h("small.more", "▾ " + t("msList")), ...MS_PRE.map((x, i) => h("div.li" + (x.done() ? ".ok" : ""), (x.done() ? "✅ " : i + 1 === m.i ? "▶ " : "⬜ ") + t("ms_" + x.id).split(/[.(]/)[0])));
   kids.push(h("small.obj", t("objMain")));
   goalsEl.replaceChildren(...kids);
@@ -632,7 +638,7 @@ function updHud() {
   for (const k in bars) { const v = st.s[k]; bars[k].style.width = v + "%"; bars[k].style.background = v < 20 ? "#ef4444" : v < 45 ? "#f59e0b" : "#22c55e"; }
   goals();
 }
-function openHow() { openMenu(() => ({ title: t("howTitle"), info: ["how1", "how2", "how3", "how4", "how5"].map((k) => h("p", t(k))), closeLabel: t("gotIt") })); }
+function openHow() { pagedMenu(t("howTitle"), ["how1", "how2", "how3", "how4", "how5"].map((k) => t(k))); }
 function openTips() {
   openMenu(() => ({ title: t("tipsBook"), info: st.tips.length ? st.tips.map((k) => h("p", { style: { fontSize: "14px", background: "#f1f5f9", borderRadius: "10px", padding: "6px 10px" } }, tx(k))) : [t("noTips")] }));
 }
@@ -692,7 +698,7 @@ function showSetup() {
   scr = screen([h("h2", t("m_real") + " · " + t("newGame")), body]);
 }
 function showIntro() {
-  const scr = screen([h("h2", "🌆 " + t("sub")), h("p", t("intro")), h("button.ez-btn.wide", { onclick: () => { scr.close(); start(); } }, "▶ " + t("play"))]);
+  pagedScreen(h, screen, { title: "🌆 " + t("sub"), text: t("intro"), nextLabel: t("nextP"), endLabel: "▶ " + t("play"), onEnd: start });
 }
 function load(s) {
   st = s; setKidMode(st.age === "kid");
