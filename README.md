@@ -16,6 +16,7 @@ engine/               Gilele Engine (módulos JS, sem build)
 games/demo/           Playground Testes: jogo-modelo (inclui pegar e arremessar objetos)
 games/auto-escola/    Auto Escola: simulado de direção (CTB + MBEDV)
 games/tabuada/        Batalha da Tabuada: jogo 2D de contas (HTML único, PWA própria)
+games/sobrevivencia/  Apagão: Sobreviva — sobrevivencialismo (Cap. 1: primeiras 72 h de um apagão)
 tests/                Ferramentas de teste (piloto automático da Auto Escola)
 ```
 
@@ -78,6 +79,18 @@ Plano e decisões: `games/auto-escola/PLANO.md`. Arquivos:
 | `cockpit.js` | Painel, volante, quadro de instrumentos, colunas A e os 3 retrovisores renderizados |
 | `modes.js` | Prova (3 percursos sorteados), 8 lições, 7 cenários de Trânsito Difícil e passeio livre |
 | `main.js` | Controles (teclado e toque: volante, 3 pedais, alavanca), câmeras interior/externa, HUD, minimapa, replay e menus |
+
+## Apagão: Sobreviva
+
+Plano completo (eras 0 a 6, dois mapas, bots 80/20): `games/sobrevivencia/PLANO.md`. Arquivos:
+
+| Arquivo | O que faz |
+|---|---|
+| `strings.js` | Textos PT/EN/ES; chaves `_k` são a versão infantil (até 12 anos) e `tx()` escolhe |
+| `city.js` | Bairro de Goiânia: sua casa (dá para entrar), vizinhos, mercado, farmácia, banco 24h, posto, torre de celular, hospital, praça |
+| `main.js` | Relógio do colapso, barras (fome, sede, energia, saúde, ânimo), mochila com peso, lojas, celular, rádio, lanterna, eventos, dicas ("Por quê?"), multidões, nota final |
+
+No console: `GAME.advance(horas)` avança o relógio e dispara os eventos (bom para testar o final).
 
 ## Multijogador
 

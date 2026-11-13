@@ -1,6 +1,6 @@
 # 🔦 Sobrevivência: plano (rascunho v1)
 
-> **Status (13/11/2026):** em planejamento (rascunho v1). Nada jogável ainda.
+> **Status (13/11/2026):** **Capítulo 1 do Apagão Real jogável (v0.1)** — Goiânia, Dia 0 → 72 h. O resto segue em planejamento.
 
 ### Decisões do autor (13/11)
 - **Público:** faixas de idade, como na Tabuada. Infantil = sem cenas pesadas; 13+ = mais realista, ainda sem gore.
@@ -8,6 +8,8 @@
 - **Morte no Apagão Real:** depende da dificuldade. Fácil = volta ao último acampamento e perde parte da mochila; Difícil = recomeça do Dia 0.
 - **Aprovados:** Era 6 (Energia) e a função **curandeiro** na vila.
 - **Recusado:** profissões iniciais com bônus.
+- **Ordem:** começar pelo **Apagão Real** (cidade, Dia 0 → 72 h); o Aprendizado vem depois.
+- **Nome:** Apagão: Sobreviva. **Publicação:** direto no main, com card no portal.
 
 Jogo 3D do Gilele Engine (`games/sobrevivencia/`), estilo Roblox (bonecos de blocos), PWA, celular e teclado, PT/EN/ES, multijogador de até 4 por sala (WebRTC, sem login).
 
@@ -149,7 +151,25 @@ games/sobrevivencia/
 
 ---
 
-## 7. Entregas propostas
+## 7. Entregas (ordem decidida: Apagão Real primeiro)
+
+### ✅ Capítulo 1 — As primeiras 72 horas (v0.1, feito)
+- Começa 17:00 do Dia 0. Antes do apagão o tempo corre devagar (≈1 min real = 1 h): dá para sacar dinheiro, abastecer, encher água, comprar pilhas e carregar o celular.
+- O apagão cai às 19:00 (Fácil) ou 18:24 (Difícil). Depois: 1 h de jogo ≈ 22 s (Fácil) / 16 s (Difícil). Dormir na cama pula a noite.
+- Eventos: caixa eletrônico e bombas param; maquininha sem sinal (só dinheiro, preços sobem); multidão no mercado e na praça (empurrão, furto/"deixou cair"); gerador do vizinho na garagem (avisar = salva); sinal fraco em 4 h e nenhum em 8 h; mercado fecha em 10 h; Seu Zé (idoso) pede água; Dona Cida faz trocas; geladeira estraga em 24 h; água da rua para em 28 h (resta a caixa d'água); boletins de rádio da Defesa Civil.
+- Fogão com acendedor elétrico precisa de fósforo; carvão dentro de casa = monóxido de carbono.
+- 13 dicas "Por quê?" (mini-aulas) e livro de dicas. Nota final em 10 itens, com a explicação de cada um.
+- Multijogador: o dono da sala controla o relógio; cada um tem a sua mochila.
+
+### Próximas
+| Fase | O que fica jogável |
+|---|---|
+| **Cap. 2** | Semana 1–2: crise de água e comida, ferver/filtrar, saneamento, bots aparecem |
+| **Cap. 3** | Mês 1–2: saques, doenças, decidir sair da cidade |
+| **A** | Modo Aprendizado: Era 0 e Era 1 com o professor |
+| **A2** | Mapa do Rio (reaproveita a base) |
+
+### Plano original (referência)
 | Fase | O que fica jogável |
 |---|---|
 | **A** | Base: mapa de Goiânia, barras, mochila, coleta, construir fogueira/abrigo, dia/noite, sistema de aula+quiz, faixas de idade. Era 0 e Era 1 no Aprendizado |
