@@ -4,7 +4,7 @@ import { Audio } from "./audio.js";
 import {
   KINDS, HAIRS, HAIRCOLS, PALETTE, SKINS, ACCS, FACES, KIND_SKIN, sanitizeLook, randomLook, saveLook, createAvatarPreview,
 } from "./avatar.js";
-import { canInstall, promptInstall, isIos, isStandalone } from "./pwa.js";
+import { canInstall, promptInstall, isIos, isStandalone, onInstallable } from "./pwa.js";
 
 /** h("div.cls#id", {attrs, onclick}, ...children) */
 export function h(sel, attrs, ...kids) {
@@ -129,6 +129,37 @@ export function installButton() {
   if (canInstall()) return h("button.ez-btn.blue.wide", { style: { marginTop: "12px" }, onclick: () => promptInstall() }, "📲 " + t("install"));
   if (isIos()) return h("p.ez-msg", "📲 " + t("installIos"));
   return null;
+}
+
+/**
+ * Rodapé padrão da tela inicial de todo jogo: 🏠 gi-lele games · 📲 Instalar · 📤 Compartilhar.
+ * - Instalar some quando o app já está instalado; sem o pedido nativo do navegador, abre "Como instalar".
+ * - Compartilhar usa o menu do celular (navigator.share) ou copia o link.
+ * @param {string} gameName  nome do jogo no texto do compartilhamento
+ * @param {string} portal    link do portal (padrão: raiz do monorepo, ../../)
+ */
+export const PORTAL_URL = "https://mico-droid.github.io/gilele-games/";
+export function gameLinks(gameName, { portal = "../../" } = {}) {
+  const row = h("div.ez-row.ez-links", { style: { justifyContent: "center", flexWrap: "wrap", marginTop: "10px" } });
+  const shareUrl = location.origin + location.pathname;
+  const share = async () => {
+    const text = t("shareText", { g: gameName });
+    try { if (navigator.share) { await navigator.share({ title: gameName, text, url: shareUrl }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    try { await navigator.clipboard.writeText(text + " " + shareUrl); toast(t("linkCopied"), 2600); }
+    catch { prompt(t("mpShare"), shareUrl); }
+  };
+  const howTo = () => {
+    const scr = screen([h("h2", "📲 " + t("howInstall")), h("p", t("installHow")), h("button.ez-btn.wide", { onclick: () => scr.close() }, t("close"))], { dim: true });
+  };
+  const draw = () => {
+    row.replaceChildren(
+      h("a.ez-btn.gray.small", { href: portal, style: { textDecoration: "none" } }, "🏠 " + t("portal")),
+      isStandalone() ? null : h("button.ez-btn.blue.small", { onclick: async () => { if (canInstall()) await promptInstall(); else howTo(); } }, "📲 " + t("install")),
+      h("button.ez-btn.blue.small", { onclick: share }, "📤 " + t("share")),
+    );
+  };
+  draw(); onInstallable(draw);
+  return row;
 }
 
 // ------------------------------------------------------------------ multiplayer panel

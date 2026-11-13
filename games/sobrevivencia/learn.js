@@ -3,7 +3,7 @@
 import {
   THREE, createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot,
   createRoom, createRemotePlayers, loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openAvatarEditor,
-  openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, createAvatarPreview, registerPWA,
+  openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks, createAvatarPreview, registerPWA,
   track, initGTM, isTouch, isMobile, createStore, VERSION, part, getMat, addGround, addLabel, Character,
 } from "../../engine/ez.js";
 import "./strings.js";
@@ -597,7 +597,7 @@ function showTitle() {
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
         h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
-      installButton(),
+      gameLinks(t("title")),
       isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · E: interagir · I: mochila · T: árvore · Arraste: câmera", "WASD/arrows: move · E: interact · I: backpack · T: tree · Drag: camera", "WASD/flechas: mover · E: interactuar · I: mochila · T: árbol · Arrastra: cámara")))),
   ]);
 }

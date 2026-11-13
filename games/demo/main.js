@@ -3,7 +3,7 @@
 import {
   THREE, createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot,
   createRoom, createRemotePlayers, loadLook, randomLook, Audio, addStrings, t, onLangChange, applyDom,
-  h, toast, screen, openAvatarEditor, openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton,
+  h, toast, screen, openAvatarEditor, openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks,
   addGround, addTree, addCloud, addTrampoline, addSign, createCoins, addCheckpoint, addMover, createAvatarPreview,
   registerPWA, track, initGTM, isTouch, VERSION, createThrowables, GEO, getMat,
 } from "../../engine/ez.js";
@@ -177,7 +177,7 @@ function showTitle() {
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
         h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
-      installButton(),
+      gameLinks(t("title")),
       isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, t("help")),
     ),
   ]);

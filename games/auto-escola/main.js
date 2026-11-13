@@ -2,7 +2,7 @@
 // Regras: Res. CONTRAN 1.020/2025 + MBEDV. Modos: Aprendizado, Prova, Trânsito Difícil (e passeio livre).
 import {
   THREE, createWorld, createPhysics, createRoads, createTraffic, createVehicle, createFirstPersonCamera, Character,
-  loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openSettings, installButton, registerPWA, track, initGTM,
+  loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openSettings, installButton, gameLinks, registerPWA, track, initGTM,
   isTouch, isMobile, createStore, getLang, VERSION,
 } from "../../engine/ez.js";
 import "./strings.js";
@@ -549,7 +549,7 @@ function showTitle() {
       card("🗺️", "m_free", () => { titleScr.close(); chooseGearbox(() => startMode(createFree)); })),
     h("div.ez-row", { style: { justifyContent: "center", marginTop: "10px" } },
       h("button.ez-btn.gray.small", { onclick: () => { titleScr.close(); openSettings({ world, onClose: showTitle }); } }, "⚙️ " + t("settings"))),
-    installButton(),
+    gameLinks(t("title")),
     h("p.ez-msg", { style: { textAlign: "center", fontSize: "12px" } }, t("disclaimer") + " · Gilele Engine v" + VERSION),
   ]);
 }
