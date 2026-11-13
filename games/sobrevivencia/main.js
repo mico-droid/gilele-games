@@ -7,6 +7,7 @@ import {
   track, initGTM, isTouch, isMobile, createStore, VERSION,
 } from "../../engine/ez.js";
 import { tx, setKidMode } from "./strings.js";
+import { setupSocial } from "./social.js";
 import { buildCity, HOME, BED, ZONES } from "./city.js";
 import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack } from "./menu.js";
 
@@ -275,7 +276,7 @@ function openItem(k) {
     else if (k === "flash") opts.push({ label: "🔦 " + (st.flashOn ? "OFF" : "ON"), fn: () => toggleFlash() });
     else if (k === "radio") opts.push({ label: t("radio"), fn: () => { setTimeout(openRadio, 0); return "close"; } });
     if (home && k !== "water" && k !== "raw") opts.push({ label: t("storePantry"), cls: ".blue", fn: () => { add(st.bag, k, -1); add(st.cupboard, k, 1); } });
-    opts.push({ label: t("a_drop"), cls: ".gray", fn: () => add(st.bag, k, k === "water" || k === "raw" ? -Math.min(1.5, n) : -1) });
+    opts.push({ label: "⬇️ " + t("gr_drop"), cls: ".gray", fn: () => { social.drop(k); } });
     return { title: `${itName(k)} · ${k === "water" || k === "raw" ? n.toFixed(1) + " L" : "×" + n}`, info: [desc], opts, closeLabel: "🎒 " + t("bag"), onClose: openBag };
   });
 }
@@ -642,7 +643,6 @@ function updHud() {
   barsEl.style.top = top + "px"; goalsEl.style.top = top + barsEl.offsetHeight + 8 + "px";
   bars.health.parentNode.parentNode.style.display = st.s.health < 95 ? "" : "none";
   chatBtn.style.display = room.connected ? "" : "none";
-  wearPack(me.ch);
   badge.set(Object.keys(st.bag).filter((x) => IT[x] && st.bag[x] > 0).length);
   for (const k in bars) { const v = st.s[k]; bars[k].style.width = v + "%"; bars[k].style.background = v < 20 ? "#ef4444" : v < 45 ? "#f59e0b" : "#22c55e"; }
   goals();
@@ -710,6 +710,7 @@ function showIntro() {
   pagedScreen(h, screen, { title: "🌆 " + t("sub"), text: t("intro"), nextLabel: t("nextP"), endLabel: "▶ " + t("play"), onEnd: start });
 }
 function load(s) {
+  setTimeout(() => social.loadGround((s && s.ground) || []), 0);
   st = s; setKidMode(st.age === "kid");
   allowRespawn = true; me.respawn({ x: st.pos.x, y: 0.05, z: st.pos.z }); allowRespawn = false;
   city.setPower(!after()); city.setTowerLight(st.T < B() + 8);
@@ -746,6 +747,16 @@ addEventListener("keydown", (e) => {
   else { const n = parseInt(e.key, 10); if (n >= 0 && n <= 9) sayChat(n === 0 ? 9 : n - 1); }
 });
 
+// ---------------------------------------------------------------- jogar junto: chão, troca, mochila nas costas
+const unitOf = (k) => (k === "water" || k === "raw" ? Math.min(1, st.bag[k] || 0) : 1);
+const social = setupSocial({ world, room, remotes, me, openMenu, busy: () => menuOpen || !playing,
+  onGround: (list) => { if (st && !room.connected) st.ground = list; },
+  bag: {
+    list: () => Object.keys(st.bag).filter((k) => IT[k] && st.bag[k] > 0),
+    has: (k) => (st.bag[k] || 0) > 0, take: (k) => { const n = unitOf(k); add(st.bag, k, -n); return n; }, give: (k, n) => add(st.bag, k, n),
+    fits: (k) => fits(k, 1), label: (k) => itName(k).replace(/ \(.*\)/, ""), emoji: (k) => IT[k] && IT[k].e, slots: () => (st ? slotsUsed() : 0),
+  } });
+
 // ---------------------------------------------------------------- loop
 let near = null, crowdTick = 0, inCrowdPrev = false, saveT = 0;
 function nearestSpot() {
@@ -767,9 +778,11 @@ world.onUpdate((dt) => {
     if (st.s.health <= 0) { faint(); return; }
     // interação
     near = nearestSpot();
-    prompt.classList.toggle("ez-hidden", !near);
-    if (near) prompt.textContent = (isTouch ? "✋ " : "E · ") + t(near.key);
-    if (near && input.pressed("act")) { if (near.onTry) near.onTry(); near.open(); }
+    const soc = social.near(!near);   // item no chão tem prioridade; troca só longe dos lugares
+    const useSoc = soc && (!near || soc.text.startsWith("⬆"));
+    prompt.classList.toggle("ez-hidden", !near && !soc);
+    if (useSoc) { prompt.textContent = (isTouch ? "✋ " : "E · ") + soc.text; if (input.pressed("act")) soc.act(); }
+    else if (near) { prompt.textContent = (isTouch ? "✋ " : "E · ") + t(near.key); if (input.pressed("act")) { if (near.onTry) near.onTry(); near.open(); } }
     // aglomeração
     const inCrowd = Object.entries(ZONES).some(([k, z]) => crowdOn(k) && Math.hypot(me.x - z.x, me.z - z.z) < z.r);
     crowdPill.classList.toggle("ez-hidden", !inCrowd);
@@ -796,6 +809,7 @@ world.onUpdate((dt) => {
     if (room.connected && room.isHost) { shareT -= dt; if (shareT <= 0) { shareT = 1; room.setShared({ T: st.T, B: st.B, cause: st.cause }); } }
   }
   remotes.update(dt);
+  if (st) social.update(dt);
   endFrame(phys);
   input.endFrame();
 });

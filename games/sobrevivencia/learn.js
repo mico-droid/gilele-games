@@ -7,6 +7,7 @@ import {
   track, initGTM, isTouch, isMobile, createStore, VERSION, part, getMat, addGround, addLabel, Character,
 } from "../../engine/ez.js";
 import "./strings.js";
+import { setupSocial } from "./social.js";
 import { ERAS, LESSONS, byId, ITEMS, itName, L } from "./lessons.js";
 import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack } from "./menu.js";
 
@@ -431,7 +432,7 @@ function openItem(k) {
     if (ITEMS[k].safe || k === "peixeAssado") opts.push({ label: u("eat"), fn: () => { add(k, -1); toast(u("yum")); Audio.play("coin"); } });
     else if (k === "aguaBoa") opts.push({ label: u("drink"), fn: () => { add(k, -1); toast(u("yum")); Audio.play("pop"); } });
     else if (k === "aguaSuja") opts.push({ label: "⚠️ " + u("drink"), cls: ".warn", fn: () => { toast(u("r_drinkBad"), 3500); Audio.play("wrong"); } });
-    opts.push({ label: u("drop1"), cls: ".gray", fn: () => add(k, -1) });
+    opts.push({ label: "⬇️ " + t("gr_drop"), cls: ".gray", fn: () => { social.drop(k); } });
     return { title: `${itName(k)} · ×${P.bag[k]}`, info: [], opts, closeLabel: u("bag"), onClose: openBag };
   });
 }
@@ -606,7 +607,6 @@ let stepsSeen = { id: null, n: 0 };
 function updHud() {
   progPill.textContent = u("title") + " · " + u("progress", { d: P.done.length, n: LESSONS.length });
   chatBtn.style.display = room.connected ? "" : "none";
-  wearPack(me.ch);
   badge.set(typeof slotsUsed === "function" && P ? slotsUsed() : 0);
   lessonEl.style.top = topEl.getBoundingClientRect().bottom + 6 + "px";
   const l = P.cur && byId[P.cur];
@@ -664,6 +664,13 @@ addEventListener("keydown", (e) => {
 });
 addEventListener("pagehide", save);
 
+// ---------------------------------------------------------------- jogar junto: chão, troca, mochila nas costas
+const social = setupSocial({ world, room, remotes, me, openMenu, busy: () => menuOpen || !playing,
+  onGround: (list) => { if (!room.connected) { P.ground = list; } },
+  bag: { list: () => slotKeys(), has: (k) => has(k), take: (k) => { add(k, -1); return 1; }, give: (k, n) => { add(k, n); P.cnt[k] = (P.cnt[k] || 0) + n; },
+    fits: (k) => fits(k), label: (k) => itName(k), emoji: (k) => ITEMS[k] && ITEMS[k].e, slots: () => slotsUsed() + Object.keys(P.bag).filter((k) => HAND.has(k)).length } });
+social.loadGround(P.ground || []);
+
 // ---------------------------------------------------------------- loop
 let checkT = 0, crowdRun = false, near = null;
 function nearest() {
@@ -686,9 +693,11 @@ world.onUpdate((dt) => {
       if (Math.hypot(n.x - me.x, n.z - me.z) < 1.6 && canTake(n.it)) { n.m.visible = false; n.back = 25; add(n.it); P.cnt[n.it] = (P.cnt[n.it] || 0) + 1; Audio.play("coin"); toast("+1 " + itName(n.it), 900); }
     }
     near = nearest();
-    prompt.classList.toggle("ez-hidden", !near);
-    if (near) prompt.textContent = (isTouch ? "✋ " : "E · ") + near.name();
-    if (near && input.pressed("act")) near.open();
+    const soc = social.near(!near);
+    const useSoc = soc && (!near || soc.text.startsWith("⬆"));
+    prompt.classList.toggle("ez-hidden", !near && !soc);
+    if (useSoc) { prompt.textContent = (isTouch ? "✋ " : "E · ") + soc.text; if (input.pressed("act")) soc.act(); }
+    else if (near) { prompt.textContent = (isTouch ? "✋ " : "E · ") + near.name(); if (input.pressed("act")) near.open(); }
     // ponto de encontro
     if (P.w.meet_pick && !P.w.meet_go) { const m = MEET[P.w.meet]; if (Math.hypot(m.x - me.x, m.z - me.z) < 3) flag("meet_go", u("meetOk")); }
     // multidão: portão A → B pelas bordas
@@ -719,6 +728,7 @@ world.onUpdate((dt) => {
   if (built.fire) { const k = 1 + Math.sin(performance.now() / 90) * 0.15; built.fire.fl.scale.y = 0.8 * k; built.fire.fl2.scale.y = 0.5 / k; }
   [teacher, leo, stranger, lurdes].forEach((c) => c.animate(dt, 0, true, c === leo ? "sit" : "walk"));
   remotes.update(dt);
+  social.update(dt);
   endFrame(phys);
   input.endFrame();
 });

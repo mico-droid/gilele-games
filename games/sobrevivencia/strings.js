@@ -385,6 +385,23 @@ const S = {
   howL5: ["Botões de cima: 📒 manual de treinamento · 🎒 mochila (e 🔨 Construir) · ✕ fechar/pausar (lá ficam: amigos, ajuda e sair).", "Top buttons: 📒 training manual · 🎒 backpack (and 🔨 Build) · ✕ close/pause (inside: friends, help and exit).", "Botones de arriba: 📒 manual de entrenamiento · 🎒 mochila (y 🔨 Construir) · ✕ cerrar/pausar (dentro: amigos, ayuda y salir)."],
   msShow: ["Ver missão", "Show mission", "Ver misión"],
   howL5: ["Botões de cima: 📒 manual de treinamento · 🎒 mochila (9 espaços) · 🔨 construir (fogueira, abrigo, filtro, vara, arapuca) · ✕ fechar/pausar (lá ficam: amigos, ajuda e sair).", "Top buttons: 📒 training manual · 🎒 backpack (9 slots) · 🔨 build (fire, shelter, filter, rod, trap) · ✕ close/pause (inside: friends, help and exit).", "Botones de arriba: 📒 manual de entrenamiento · 🎒 mochila (9 espacios) · 🔨 construir (fogata, refugio, filtro, caña, trampa) · ✕ cerrar/pausar (dentro: amigos, ayuda y salir)."],
+  // v0.6 — largar no chão e troca entre jogadores
+  gr_drop: ["Largar 1 no chão", "Drop 1 on the ground", "Soltar 1 en el suelo"],
+  gr_dropped: ["{x} ficou no chão. Dá para pegar de volta.", "{x} is on the ground. You can pick it back up.", "{x} quedó en el suelo. Puedes recogerlo."],
+  gr_pick: ["⬆ Pegar {x}", "⬆ Pick up {x}", "⬆ Recoger {x}"],
+  tr_player: ["Jogador", "Player", "Jugador"], tr_with: ["Trocar com {n}", "Trade with {n}", "Intercambiar con {n}"],
+  tr_pick: ["O que você oferece? (1 unidade)", "What do you offer? (1 unit)", "¿Qué ofreces? (1 unidad)"],
+  tr_empty: ["Sua mochila está vazia: não há o que oferecer.", "Your backpack is empty: nothing to offer.", "Tu mochila está vacía: no hay qué ofrecer."],
+  tr_offer: ["Oferecer {x}", "Offer {x}", "Ofrecer {x}"], tr_sent: ["Oferta enviada. Esperando {n}…", "Offer sent. Waiting for {n}…", "Oferta enviada. Esperando a {n}…"],
+  tr_offers: ["\"Te ofereço {x}.\"", "\"I offer you {x}.\"", "\"Te ofrezco {x}.\""], tr_what: ["O que você dá em troca?", "What do you give in return?", "¿Qué das a cambio?"],
+  tr_fullGive: ["Sua mochila está cheia: para aceitar, dê algo em troca.", "Your backpack is full: to accept, give something in return.", "Tu mochila está llena: para aceptar, da algo a cambio."],
+  tr_give: ["Dar {x}", "Give {x}", "Dar {x}"], tr_gift: ["Aceitar de presente (não dar nada)", "Accept as a gift (give nothing)", "Aceptar como regalo (no dar nada)"],
+  tr_refuse: ["Recusar", "Refuse", "Rechazar"], tr_wait: ["Proposta enviada. Esperando {n}…", "Proposal sent. Waiting for {n}…", "Propuesta enviada. Esperando a {n}…"],
+  tr_counter: ["\"Te dou {y} pelo seu {x}.\"", "\"I'll give you {y} for your {x}.\"", "\"Te doy {y} por tu {x}.\""],
+  tr_counterGift: ["\"Aceito o seu {x} de presente. Obrigado!\"", "\"I accept your {x} as a gift. Thanks!\"", "\"Acepto tu {x} como regalo. ¡Gracias!\""],
+  tr_accept: ["Fechar a troca", "Make the trade", "Cerrar el trato"], tr_done: ["Troca feita com {n}!", "Trade done with {n}!", "¡Trato hecho con {n}!"],
+  tr_cancel: ["{n} recusou a troca.", "{n} refused the trade.", "{n} rechazó el trato."], tr_busy: ["{n} está ocupado agora. Tente de novo.", "{n} is busy right now. Try again.", "{n} está ocupado ahora. Inténtalo de nuevo."],
+  tr_timeout: ["A troca expirou.", "The trade expired.", "El trato expiró."],
   // Learn mode placeholder
   learnSoon: ["O Modo Aprendizado (aulas da Era 0 à Era 6) vem nas próximas versões.", "Learning Mode (lessons from Era 0 to Era 6) is coming in the next versions.", "El Modo Aprendizaje (clases de la Era 0 a la Era 6) llega en las próximas versiones."],
 };

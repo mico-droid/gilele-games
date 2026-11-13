@@ -24,6 +24,7 @@
 - **13/11:** no jogo os mapas aparecem só pelo bioma, sem nome de cidade: "Cidade no Cerrado" e "Cidade na Mata Atlântica" (Goiânia/Rio ficam só como referência interna).
 - **13/11:** a mochila do Aprendizado é igual à do Apagão Real: 9 quadradinhos (3×3), toque abre o item (usar/largar). O equipamento do baú ocupa 1 quadradinho ("Kit da mochila"); balde e gerador vão na mão; mochila cheia não pega item novo.
 - **13/11:** no Aprendizado o botão 🔨 Construir fica na barra de cima (tecla B), fora da mochila; o boneco do jogador usa uma mochila desenhada nas costas nos dois modos (`wearPack` em `menu.js`).
+- **13/11 (jogar junto, `social.js`, vale nos dois modos):** mochila nas costas de todo jogador que tem itens (some com a mochila vazia); "Largar 1 no chão" deixa o item no mundo (caixinha com o ícone; chegue perto e E/✋ para pegar; no multijogador qualquer um pega); troca entre jogadores sem texto livre: chegar perto → "Trocar com X" → oferecer 1 item → o outro escolhe o que dá (ou aceita de presente, ou recusa) → quem ofereceu fecha ou recusa.
 - **Depois do Apagão Real, o autor escolheu o Modo Aprendizado** (antes do Capítulo 2).
 - **Nome:** Apagão: Sobreviva. **Publicação:** direto no main, com card no portal.
 
