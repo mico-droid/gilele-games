@@ -1,0 +1,143 @@
+# 🔦 Sobrevivência: plano inicial (rascunho v0)
+
+> **Status (13/11/2026):** em planejamento. Nada jogável ainda. As decisões marcadas com ❓ esperam resposta do autor.
+
+Jogo 3D do Gilele Engine (`games/sobrevivencia/`), estilo Roblox (bonecos de blocos), PWA, celular e teclado, PT/EN/ES, multijogador de até 4 por sala (WebRTC, sem login).
+
+---
+
+## 1. O que a pesquisa trouxe
+
+### Cenário "Black Sky"
+- O termo vem do **EIS Council** (Electric Infrastructure Security Council). Um *Black Sky Hazard* é um evento catastrófico que interrompe as infraestruturas críticas **em várias regiões e por muito tempo**.
+- Não é só um apagão. A falta de energia derruba em cascata os outros sistemas que dependem dela: água, saúde, comunicação, combustível, alimentos.
+- Causas citadas pelo EIS Council: clima extremo, tempestade solar, ataque cibernético, pulso eletromagnético (EMP), ataque físico coordenado, terremoto, pandemia severa.
+- Exemplo real recente: o apagão da Península Ibérica (Espanha/Portugal), que o EIS Council tratou como um "Black Sky em tempo real".
+- O DHS (EUA) usa **mais de 72 horas** como marca de "interrupção de longa duração". Isso casa com a "Primeiras 72 horas" da linha do tempo.
+- Risco que quase ninguém lembra e que vira aula: **intoxicação por monóxido de carbono** (gerador, fogareiro ou braseiro dentro de casa) — a UNDRR cita isso como impacto típico de apagões.
+
+### Tecnologias sociais da Embrapa (para as eras avançadas)
+| Tecnologia | O que é | Onde entra no jogo |
+|---|---|---|
+| **Sisteminha Embrapa** | Sistema integrado para uma família de 4: tanque de peixes no centro, e os resíduos nutrem os outros módulos (galinhas, hortaliças, minhocas, biodigestor, carvoaria, tratamento de água — 15 módulos) | Era 4: "vila autossuficiente" (objetivo final da agricultura) |
+| **PAIS** (Produção Agroecológica Integrada e Sustentável) | Horta em mandala ao redor do galinheiro, sem agrotóxicos | Era 4: horta em mandala |
+| **Clorador Embrapa** | Peça simples de cano PVC que clora a água da caixa d'água | Era 3/4: água segura em escala (antes: ferver/filtrar) |
+| **Fossa Séptica Biodigestora** | 3 caixas em sequência que tratam o esgoto do vaso; o efluente vira adubo | Era 4: saneamento → evita surtos de cólera/disenteria |
+| **Jardim Filtrante** | Trata a "água cinza" (pia, chuveiro, tanque) | Era 4: complemento da fossa |
+| **Barraginhas / cisterna** | Pequenas bacias que seguram a chuva e recarregam o solo | Era 4: irrigação e água na seca do Cerrado |
+
+No jogo essas tecnologias aparecem de forma **simplificada** (o jogador monta peças e vê o efeito), com o nome real e um link "saiba mais" para a Embrapa.
+
+---
+
+## 2. Os dois modos
+
+### 📚 Modo Aprendizado
+- Acampamento-escola seguro, com um **professor** (NPC) que dá as mini-aulas.
+- Segue a árvore de tecnologia era por era. Sem pressa, sem morte permanente.
+- Cada etapa: **mini-aula curta (3 a 5 cartões, até 1 minuto) → quiz de 2 perguntas → desafio prático no mundo → desbloqueio**.
+- Pode repetir qualquer aula a qualquer hora (livro de aulas).
+
+### 🌑 Modo Apagão Real
+- Começa num bairro de cidade brasileira, no **Dia 0**, minutos antes do apagão.
+- Segue a **linha do tempo do colapso** (abaixo), em tempo acelerado.
+- Barras de sobrevivência: fome, sede, saúde, cansaço, higiene (higiene baixa → risco de doença) e ânimo.
+- O jogador decide quando sair da cidade. Quem fica tempo demais enfrenta falta de água, doença e saques.
+- Ao "morrer", o jogador volta ao último acampamento salvo e perde parte da mochila (❓ ver dúvidas).
+
+#### Linha do tempo no jogo (eventos que acontecem no mapa)
+| Fase | O que o jogador vê | O que ele precisa aprender |
+|---|---|---|
+| **Dia 0** | Notícias estranhas no rádio e no celular, luz piscando | Era 0: sinais de risco, sacar dinheiro, encher o tanque, estocar água |
+| **Primeiras 72 h** | Celular sem sinal quando as torres esgotam, posto sem bomba, caixa eletrônico desligado, ônibus parado | Rádio a pilha/manivela, dinheiro físico, ponto de encontro |
+| **Semana 1–2** | Torneira seca, esgoto transbordando, comida estragando, hospital sem diesel | Água (achar, filtrar, ferver), comida que não estraga, primeiros socorros |
+| **Mês 1–2** | Saques, aglomerações, polícia ausente, surtos de doença | Fugir de aglomerações, discrição, higiene, sair da cidade |
+| **Mês 3–6** | Êxodo para o campo; a terra precisa produzir | Eras 1 a 4 de verdade: abrigo, plantio, ferramentas, vila |
+
+Na versão infantil, as partes pesadas (mortes em hospital, violência) aparecem só como notícia curta e sem imagem.
+
+---
+
+## 3. Árvore de tecnologia
+
+Cada nó tem uma mini-aula e destrava os seguintes. Exemplo de corrente: **fogo → forno de barro → fundição → ferro → roda**.
+
+### Era 0 — Identificação de risco
+Sinais e notícias (fontes confiáveis × boatos) · Kit 72 h (água, comida, lanterna, rádio, remédios, documentos) · Dinheiro físico · Combustível · Estoque de água · Ponto de encontro e rota de fuga · Fugir de aglomerações · Auto-segurança (não expor estoque, andar em grupo, horários) · Perigo do monóxido de carbono · Cuidar de quem depende de energia (idosos, remédios na geladeira).
+
+### Era 1 — Sobreviver
+Mochila (peso × utilidade) · Abrigo (lona, folhas, local seco e alto) · Água (achar, filtrar com pano/areia/carvão, ferver) · Fogo (fricção, pederneira, lupa; manter e apagar) · Orientação (sol, sombra, estrelas, Cruzeiro do Sul) · Primeiros socorros (corte, queimadura, desidratação, picada) · Coleta segura (frutas do Cerrado: pequi, baru, cagaita, mangaba, buriti; regra "não conhece, não come"; mandioca mansa × brava) · Pesca (linha, anzol improvisado, covo) · Armadilhas simples de caça (para crianças: o bicho aparece capturado, sem cena gráfica).
+
+### Era 2 — Pedra e madeira
+Pedra lascada: machado, faca, lança · Cordas de fibra (embira, buriti) e cestos · Potes de barro · Plantar as primeiras sementes (milho, feijão, mandioca, abóbora) · Guardar comida (secar, salgar, defumar) · Banco de sementes.
+
+### Era 3 — Metais
+Achar minério · Carvoaria · Forno · Fundir cobre → bronze → ferro · Ferramentas melhores: enxada, serra, martelo · A roda: carrinho de mão e carroça · Clorador para a água do grupo.
+
+### Era 4 — Agricultura e vila
+Arado · Irrigação (barraginha, cisterna, canal) · Rotação de culturas e adubo (composteira, minhocário) · Criação de animais (galinhas, peixes no tanque) · Celeiro · Moinho · Saneamento (fossa biodigestora + jardim filtrante) · **Sisteminha** como meta da vila · No multijogador cada um assume uma função: agricultor, ferreiro, construtor (e ❓ curandeiro?).
+
+### Era 5 — Segurança
+Armadilhas de alarme (latas, cordão) · Cercas e cerca-viva espinhosa · Esconderijos (despensa escondida, sementes escondidas) · Torre de vigia e sinais entre o grupo · Armas caseiras **só como itens do jogo** (estilingue, arco, lança, escudo).
+> Regra do conteúdo: o jogo ensina **defesa, discrição e prevenção**. As armas não têm instrução de fabricação real, nada de arma de fogo ou explosivo, e no jogo elas só **espantam** (o bot foge).
+
+### 💡 Ideia extra: Era 6 — Energia (final)
+Roda d'água, biodigestor (biogás), dínamo de bicicleta, painel solar resgatado. Final do jogo: **"reacender a vila"** — o grupo faz o *black start* da sua própria rede.
+
+---
+
+## 4. Bots
+
+- Aparecem a partir da **Era 2** no Aprendizado e a partir do **Mês 1** no Apagão Real (quando há o que roubar).
+- **80% amigáveis:** trocam itens (por valor), ficam amigos com presentes e ajuda, ensinam dicas, ajudam em tarefas e podem se juntar à vila.
+- **20% agressivos:** chegam perto, empurram, roubam 1 item e fogem. Depois de 2 ou 3 contra-ataques (empurrão, estilingue, cão de guarda, armadilha de alarme) eles desistem e vão embora.
+- Versão infantil: os agressivos são "trombadinhas" de desenho, e o roubo é tipo pega-pega.
+
+---
+
+## 5. Escolha de personagem e multijogador
+- Usa o editor do motor (tipos, cabelo, cores, acessórios). Ideia: acessórios temáticos (mochila, chapéu de palha, lanterna de cabeça).
+- ❓ Profissões iniciais com bônus pequeno (enfermeira, mecânico, agricultor, professor)?
+- Sala de até 4. O host controla o mundo, os recursos e os bots. Chat só com frases prontas (ECA Digital), sem login.
+
+---
+
+## 6. Arquitetura
+
+```
+games/sobrevivencia/
+  index.html, manifest.webmanifest, style.css
+  main.js        menus, HUD, câmera, modos
+  world.js       mapa: bairro + periferia + estrada + Cerrado (rio, mata, morro com minério)
+  survival.js    barras (fome, sede, saúde, cansaço, higiene, ânimo), dia/noite, clima
+  items.js       itens, receitas, inventário/mochila
+  tech.js        árvore de tecnologia (dados) + desbloqueios
+  lessons.js     mini-aulas e quizzes (PT/EN/ES)
+  build.js       construir (abrigo, fogueira, forno, cerca, celeiro…)
+  bots.js        bots amigáveis/agressivos, trocas, amizade
+  timeline.js    eventos do Apagão Real
+  strings.js     textos da interface
+```
+- Coisas que servirem para outros jogos (inventário, dia/noite, construção, NPC com diálogo) sobem depois para o `engine/`.
+- Salva o progresso no aparelho (localStorage), sem dados pessoais.
+- Celular fraco: árvores e pedras com *instancing*, mapa em blocos que carregam por perto.
+
+---
+
+## 7. Entregas propostas
+| Fase | O que fica jogável |
+|---|---|
+| **A** | Base: mapa, barras, mochila, coleta, construir fogueira/abrigo, dia/noite, sistema de aula+quiz. Era 0 e Era 1 no Aprendizado |
+| **B** | Apagão Real: Dia 0 → Semana 2 (cidade) |
+| **C** | Eras 2 e 3, bots 80/20, trocas |
+| **D** | Era 4 (vila, Sisteminha), multijogador com funções |
+| **E** | Era 5, Mês 1–6 do Apagão Real, Era 6 (se aprovada) |
+
+---
+
+## 8. Fontes
+- EIS Council — Black Sky Hazards: https://eiscouncil.org/black-sky/
+- UNDRR — Power outage/blackout (HIPs): https://www.undrr.org/understanding-disaster-risk/terminology/hips/tl0013
+- Embrapa — Sisteminha: https://embrapa.br/sisteminha
+- Embrapa Instrumentação — Fossa Séptica Biodigestora e Clorador (Documentos 72, 2021): https://www.infoteca.cnptia.embrapa.br/infoteca/handle/doc/1138679
+- Sebrae — Cartilha PAIS
