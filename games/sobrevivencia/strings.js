@@ -6,6 +6,12 @@ const S = {
   title: ["Apagão: Sobreviva", "Blackout: Survive", "Apagón: Sobrevive"],
   sub: ["Capítulo 1 · As primeiras 72 horas", "Chapter 1 · The first 72 hours", "Capítulo 1 · Las primeras 72 horas"],
   newGame: ["Novo jogo", "New game", "Nuevo juego"],
+  you: ["Você", "You", "Tú"], youSay: ["💬 Você:", "💬 You:", "💬 Tú:"],
+  secCont: ["▶ Continuar jogo anterior", "▶ Continue previous game", "▶ Continuar partida anterior"],
+  secNew: ["🆕 Novo jogo", "🆕 New game", "🆕 Nueva partida"],
+  contLearn: ["📚 Continuar as aulas · {d}/{n}", "📚 Continue the lessons · {d}/{n}", "📚 Continuar las clases · {d}/{n}"],
+  confirmNewL: ["Começar as aulas do zero? O progresso atual das aulas será apagado.", "Start the lessons from scratch? Your current lesson progress will be erased.", "¿Empezar las clases desde cero? Se borrará el progreso actual."],
+  confirmNewR: ["Começar um novo Apagão Real? O jogo salvo será substituído.", "Start a new Real Blackout? Your saved game will be replaced.", "¿Empezar un nuevo Apagón Real? La partida guardada será reemplazada."],
   continue: ["Continuar", "Continue", "Continuar"],
   mode: ["Modo", "Mode", "Modo"],
   m_real: ["🌑 Apagão Real", "🌑 Real Blackout", "🌑 Apagón Real"],
@@ -371,7 +377,7 @@ const S = {
   howL5: ["Botões de cima: 🌳 aulas · 🎒 mochila (e 🔨 Construir) · ✕ fechar/pausar (lá ficam: amigos, ajuda e sair).", "Top buttons: 🌳 lessons · 🎒 backpack (and 🔨 Build) · ✕ close/pause (inside: friends, help and exit).", "Botones de arriba: 🌳 clases · 🎒 mochila (y 🔨 Construir) · ✕ cerrar/pausar (dentro: amigos, ayuda y salir)."],
   help: ["WASD/setas: andar · E: interagir · I: mochila · F: lanterna · Q: celular e rádio · Arraste: câmera", "WASD/arrows: move · E: interact · I: backpack · F: flashlight · Q: phone and radio · Drag: camera", "WASD/flechas: mover · E: interactuar · I: mochila · F: linterna · Q: celular y radio · Arrastra: cámara"],
 
-  tip_pack: ["Mochila de emergência: água, comida que não estraga, lanterna, rádio, documentos, remédios e fósforos. Deixe pronta ANTES de precisar sair.", "Emergency backpack: water, non-perishable food, flashlight, radio, documents, medicines and matches. Have it ready BEFORE you need to leave.", "Mochila de emergencia: agua, comida no perecible, linterna, radio, documentos, medicinas y fósforos. Tenla lista ANTES de tener que salir."],
+  tip_pack: ["Mochila de emergência: água, comida fácil que não estraga, lanterna, rádio, documentos, remédios, fósforos, canivete, cordão comprido, roupa de frio, roupas de baixo, papel higiênico e escova de dente. Deixe pronta ANTES de precisar sair.", "Emergency backpack: water, easy non-perishable food, flashlight, radio, documents, medicines, matches, pocketknife, long cord, warm clothes, underwear, toilet paper and toothbrush. Have it ready BEFORE you need to leave.", "Mochila de emergencia: agua, comida fácil no perecible, linterna, radio, documentos, medicinas, fósforos, navaja, cordón largo, ropa de abrigo, ropa interior, papel higiénico y cepillo de dientes. Tenla lista ANTES de tener que salir."],
   inHand: ["na mão (não ocupa espaço)", "in hand (takes no slot)", "en la mano (no ocupa espacio)"],
   a_leave: ["Fechar", "Close", "Cerrar"],
   // Learn mode placeholder

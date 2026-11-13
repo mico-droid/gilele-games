@@ -45,3 +45,11 @@
   .sv-goals { max-width: 44vw; } .sv-goals .what { font-size: 12px; } .sv-goals .why { display: none; } .sv-goals.open .why { display: block; }
   .sv-guide { font-size: 12px; top: 24%; } .sv-grid { max-width: 250px; gap: 5px; } .sv-slot span { font-size: 22px; }
 }
+
+/* falas nos diálogos: quem fala (outro personagem), a vez do jogador ("Você:") e o cartão 🆘 Plano B */
+.say { background: #fef9c3; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 8px 10px; margin: 6px 0; }
+.say b { color: #b45309; }
+.say.you { background: #e0f2fe; border-left-color: #0284c7; margin-bottom: 0; }
+.say.you b { color: #0369a1; }
+.say.crit { background: #fee2e2; border-left-color: #dc2626; }
+.say.crit b { color: #b91c1c; }

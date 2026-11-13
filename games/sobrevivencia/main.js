@@ -8,6 +8,7 @@ import {
 } from "../../engine/ez.js";
 import { tx, setKidMode } from "./strings.js";
 import { buildCity, HOME, BED, ZONES } from "./city.js";
+import { modeMenu, consumeAction, M_PER_UNIT } from "./menu.js";
 
 const GAME_ID = "sobrevivencia";
 registerPWA("../../sw.js");
@@ -214,7 +215,8 @@ function openMenu(build) {
     const d = build(close);
     card.replaceChildren(
       h("h2", d.title),
-      ...(d.info || []).filter(Boolean).map((p) => (p instanceof Node ? p : h("p", p))),
+      ...(d.info || []).filter(Boolean).map((p) => (p instanceof Node ? p : d.who ? h("p.say", h("b", "🗣️ " + d.who + ": "), p) : h("p", p))),
+      ...(d.who && (d.opts || []).some(Boolean) ? [h("p.say.you", h("b", t("youSay")))] : []),
       h("div.ez-col", { style: { marginTop: "10px" } },
         ...(d.opts || []).filter(Boolean).map((o) => h("button.ez-btn.wide" + (o.cls || ""), { disabled: o.dis ? true : null, style: o.dis ? { opacity: 0.45 } : null, onclick: () => { if (o.dis) return; Audio.play("click"); const r = o.fn(); if (r === "close") close(); else if (scr.el.isConnected) draw(); } }, o.label)),
         h("button.ez-btn.gray.wide", { onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || t("a_leave"))),
@@ -451,13 +453,13 @@ spot(-46, -40, 5, "i_gas", () => {
 });
 spot(-15, 16.4, 2.6, "i_ze", () => openMenu(() => {
   const need = after() && st.T > B() + 12 && !st.f.helpedZe;
-  return { title: "👴 " + t("i_ze"), info: [need ? tx("zeAsk") : st.f.helpedZe ? tx("zeThanks") : tx("zeFine")], opts: need ? [
+  return { title: "👴 " + t("i_ze"), who: t("i_ze"), info: [need ? tx("zeAsk") : st.f.helpedZe ? tx("zeThanks") : tx("zeFine")], opts: need ? [
     { label: t("zeGive"), dis: !has(st.bag, "water", 1.5), fn: () => { add(st.bag, "water", -1.5); st.f.helpedZe = 1; st.s.mood = clamp(st.s.mood + 15); Audio.play("ok"); } },
   ] : [] };
 }), { mark: () => after() && st.T > B() + 12 && !st.f.helpedZe });
 spot(14, 3, 2.6, "i_cida", () => openMenu(() => {
   const open = after() && st.T > B() + 14;
-  return { title: "👩 " + t("i_cida"), info: [tx("cidaHi")], opts: open ? [
+  return { title: "👩 " + t("i_cida"), who: t("i_cida"), info: [tx("cidaHi")], opts: open ? [
     { label: t("cidaT1"), dis: !has(st.bag, "water", 3) || st.f.cida1, fn: () => { add(st.bag, "water", -3); add(st.bag, "batt", 1); st.f.cida1 = 1; toast(t("cidaDone")); Audio.play("ok"); } },
     { label: t("cidaT2"), dis: !has(st.bag, "can") || st.f.cida2, fn: () => { add(st.bag, "can", -1); add(st.bag, "candle", 2); add(st.bag, "matches", 1); st.f.cida2 = 1; toast(t("cidaDone")); Audio.play("ok"); } },
   ] : [] };
@@ -465,7 +467,7 @@ spot(14, 3, 2.6, "i_cida", () => openMenu(() => {
 spot(-5, -17.4, 2.8, "i_valdir", () => openMenu(() => {
   const gen = st.f.gen && !st.f.warned;
   if (gen) tip("tip_co");
-  return { title: "👨 " + t("i_valdir"), info: [gen ? tx("valdirGen") : st.f.warned ? tx("valdirThanks") : tx("valdirIdle")], opts: gen ? [
+  return { title: "👨 " + t("i_valdir"), who: t("i_valdir"), info: [gen ? tx("valdirGen") : st.f.warned ? tx("valdirThanks") : tx("valdirIdle")], opts: gen ? [
     { label: t("valdirWarn"), fn: () => { st.f.warned = 1; city.gen.position.set(-8, 0, -18.5); st.s.mood = clamp(st.s.mood + 10); Audio.play("ok"); } },
   ] : [] };
 }), { mark: () => st.f.gen && !st.f.warned });
@@ -614,7 +616,7 @@ function updGuide() {
   const b = cam.basis(), dx = tg.x - me.x, dz = tg.z - me.z;
   const ang = Math.atan2(dx * b.rx + dz * b.rz, dx * b.fx + dz * b.fz);
   guideEl.firstChild.style.transform = `rotate(${ang}rad)`;
-  guideEl.lastChild.textContent = " " + t(tg.key) + " · " + t("guideM", { m: Math.round(d) });
+  guideEl.lastChild.textContent = " " + t(tg.key) + " · " + t("guideM", { m: Math.max(1, Math.round(d * M_PER_UNIT)) });
 }
 let hudT = 0;
 function updHud() {
@@ -653,17 +655,16 @@ function showTitle() {
   const cv = h("canvas", { style: { width: "150px", height: "200px", display: "block", margin: "0 auto" } });
   const pv = createAvatarPreview(cv); pv.set(me.ch.look); pv.start();
   const saved = store.getJSON("save", null);
+  const act = consumeAction();
+  if (act === "cont" && saved && !saved.ended) { pv.stop(); load(saved); start(); return; }
+  if (act === "novo") { pv.stop(); showSetup(); return; }
   let scr = null;
   const close = () => { pv.stop(); scr.close(); };
   scr = screen([
     h("h1", "🔦 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.7 } }, t("tagline") + " · v" + VERSION),
     cv,
     h("div.ez-col", { style: { marginTop: "10px" } },
-      saved && !saved.ended ? h("button.ez-btn.wide", { onclick: () => { close(); load(saved); start(); } }, t("contReal", { d: t("day", { d: Math.floor((17 + saved.T) / 24) }) })) : null,
-      h("button.ez-btn.wide" + (saved && !saved.ended ? ".gray" : ""), { onclick: () => { close(); showSetup(); } }, t("m_real") + (saved && !saved.ended ? " · " + t("newGame") : "")),
-      h("p.ez-msg", { style: { margin: "-4px 0 4px", textAlign: "center" } }, t("realDesc")),
-      h("button.ez-btn.blue.wide", { onclick: () => { location.href = "?modo=aprender"; } }, t("m_learn")),
-      h("p.ez-msg", { style: { margin: "-4px 0 4px", textAlign: "center" } }, t("learnDesc")),
+      ...modeMenu(store, { contReal: () => { close(); load(saved); start(); }, newReal: () => { close(); showSetup(); } }),
       h("div.ez-row", { style: { justifyContent: "center" } },
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
@@ -770,7 +771,7 @@ world.onUpdate((dt) => {
   if (st) {
     for (const [k, list] of Object.entries(crowds)) { const on = crowdOn(k); list.forEach((b) => { b.ch.root.visible = on; if (on) b.update(dt); }); }
     for (const s of SPOTS) if (s.sprite) { s.sprite.visible = !!s.mark(); s.sprite.position.y = 4.6 + Math.sin(performance.now() / 300) * 0.2; }
-    const cp = world.camera.position, camIn = cp.y < 14 && cp.x > HOME.x - HOME.w / 2 - 5 && cp.x < HOME.x + HOME.w / 2 + 1.5 && cp.z > HOME.z - HOME.d / 2 - 1.5 && cp.z < HOME.z + HOME.d / 2 + 2.5;
+    const cp = world.camera.position, camIn = cp.y < 18 && cp.x > HOME.x - HOME.w / 2 - 5 && cp.x < HOME.x + HOME.w / 2 + 1.5 && cp.z > HOME.z - HOME.d / 2 - 1.5 && cp.z < HOME.z + HOME.d / 2 + 2.5;
     const inside = city.insideHome(me.x, me.z); city.roof.visible = !inside && !camIn; city.homeLabel.visible = Math.hypot(me.x - HOME.x, me.z - HOME.z) > 16;
     Object.values(city.npcs).forEach((c) => c.animate(dt, 0, true));
     updateLight(dt);

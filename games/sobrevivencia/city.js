@@ -35,6 +35,7 @@ export function buildCity(world, phys) {
 
   /** Prédio/casa fechada com janelas que acendem. */
   function building(x, z, w, d, h, color, { roof = "#9a3412", face = "+z", windows = true } = {}) {
+    h = Math.max(h, 5); // pé-direito realista: o boneco tem ~2,7 de altura
     phys.addBox({ x, y: h / 2, z, w, h, d, color, scene: S });
     part(w + 0.6, 0.4, d + 0.6, roof, x, h + 0.2, z, S);
     if (!windows) return;
@@ -50,7 +51,7 @@ export function buildCity(world, phys) {
   }
 
   // ---------------------------------------------------------------- sua casa (dá para entrar)
-  const H = HOME, x0 = H.x - H.w / 2, x1 = H.x + H.w / 2, z0 = H.z - H.d / 2, z1 = H.z + H.d / 2, WH = 3, T = 0.3;
+  const H = HOME, x0 = H.x - H.w / 2, x1 = H.x + H.w / 2, z0 = H.z - H.d / 2, z1 = H.z + H.d / 2, WH = 4.5, T = 0.3;
   const wall = (x, z, w, d, c = "#fef3c7") => phys.addBox({ x, y: WH / 2, z, w, h: WH, d, color: c, scene: S });
   part(H.w, 0.06, H.d, "#e7e5e4", H.x, 0.03, H.z, S, false);                  // piso
   wall(H.x, z0, H.w, T); wall(x0, H.z, T, H.d); wall(x1, H.z, T, H.d);         // fundos e laterais
@@ -60,16 +61,16 @@ export function buildCity(world, phys) {
   const roof = new THREE.Group(); S.add(roof);
   const FL = 3;
   for (let f = 1; f <= FL; f++) {
-    const y = WH + (f - 1) * 3;
+    const y = WH + (f - 1) * 3.5;
     part(H.w + 4, 0.3, H.d + 1, "#cbd5e1", H.x - 1.5, y + 0.15, H.z, roof);
-    part(H.w + 4, 2.7, H.d + 1, "#e2e8f0", H.x - 1.5, y + 1.65, H.z, roof);
+    part(H.w + 4, 3.2, H.d + 1, "#e2e8f0", H.x - 1.5, y + 1.9, H.z, roof);
     for (let i = 0; i < 4; i++) [H.z + H.d / 2 + 0.55, H.z - H.d / 2 - 0.55].forEach((wz) => { const m = part(1.6, 1.2, 0.1, "#fde68a", H.x - 6 + i * 4, y + 1.7, wz, roof, false); m.material = winOn; lit.push({ m, on: winOn, off: winOff }); });
     part(H.w + 5, 0.2, 1.2, "#94a3b8", H.x - 1.5, y + 0.2, H.z + H.d / 2 + 1, roof); // varandas
   }
-  part(H.w + 4.4, 0.4, H.d + 1.4, "#64748b", H.x - 1.5, WH + FL * 3 + 0.2, H.z, roof);
-  part(3, 1.6, 3, "#60a5fa", H.x + 2, WH + FL * 3 + 1.2, H.z - 2, roof);           // caixa d'água do prédio
+  part(H.w + 4.4, 0.4, H.d + 1.4, "#64748b", H.x - 1.5, WH + FL * 3.5 + 0.2, H.z, roof);
+  part(3, 1.6, 3, "#60a5fa", H.x + 2, WH + FL * 3.5 + 1.2, H.z - 2, roof);           // caixa d'água do prédio
   // hall do prédio (lado oeste): elevador e escada
-  phys.addBox({ x: x0 - 1.5, y: 1.5, z: H.z, w: 3, h: 3, d: H.d, color: "#e2e8f0", scene: S });
+  phys.addBox({ x: x0 - 1.5, y: WH / 2, z: H.z, w: 3, h: WH, d: H.d, color: "#e2e8f0", scene: S });
   part(1.4, 2.4, 0.1, "#94a3b8", x0 - 1.5, 1.2, z1 + 0.06, S);                     // porta do elevador
   part(0.15, 2.4, 0.12, "#475569", x0 - 1.5, 1.2, z1 + 0.08, S);
   const elevLamp = part(0.3, 0.3, 0.1, "#22c55e", x0 - 1.5, 2.6, z1 + 0.1, S, false); elevLamp.material = getMat("#22c55e", 1.2); lit.push({ m: elevLamp, on: elevLamp.material, off: winOff });
@@ -103,7 +104,7 @@ export function buildCity(world, phys) {
   building(-8, -12, 10, 8, 3.2, "#e9d5ff");      // Seu Valdir
   part(4, 2.6, 0.2, "#6b7280", -8, 1.3, -16.1, S); // portão da garagem do Valdir
   building(10, -14, 8, 8, 3.2, "#fed7aa");
-  const homeLabel = addLabel(world, "🏢 " + t("l_building"), H.x, WH + 11.5, H.z, { color: "#fde047" });
+  const homeLabel = addLabel(world, "🏢 " + t("l_building"), H.x, WH + 14, H.z, { color: "#fde047" });
 
   // ---------------------------------------------------------------- comércio e serviços
   building(0, 46, 26, 16, 6, "#f1f5f9", { roof: "#16a34a" });                     // mercado

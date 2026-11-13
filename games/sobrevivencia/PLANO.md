@@ -17,6 +17,8 @@
   - Caixas de dica se chamam **"Instruções"** (não "Por quê?").
   - Mochila = **9 quadradinhos** (3×3, 9 tipos de item); o galão vai na mão; em casa dá para guardar na despensa.
   - Barra de cima enxuta: 🎒 · 📱 (celular + rádio juntos) · 🔦 · ✕. O ✕ substitui a pausa (mesmo funcionamento) e o submenu tem Instruções, Como jogar, Amigos, Configurações e **"Sair para o Menu"**.
+- **4º teste (13/11):** telas iniciais com seção **"Continuar jogo anterior"** separada de **"Novo jogo"** (Aprendizado primeiro, Apagão Real depois); kit 72 h com roupa de frio, roupas de baixo, papel higiênico, comida fácil não perecível, canivete/faca, cordão comprido e escova de dente; pé-direito mais alto (casas e apartamento) e telhado da casa-treino some quando você está dentro; distâncias na escala **1 passo = 0,5 m**; botão de fechar = "Fechar"; diálogos mostram **quem fala** (🗣️ nome/função) e a vez de **"Você"**.
+- **Cartão 🆘 Plano B (situação crítica):** aulas podem ter um último cartão com o improviso de emergência real (ex.: gasolina em garrafa PET por poucas horas), separado do "jeito certo". Faixa infantil usa `crit_k` (versão sem instrução para criança mexer em coisas perigosas). Já tem em: Combustível, Estoque de água, Fogo.
 - **Depois do Apagão Real, o autor escolheu o Modo Aprendizado** (antes do Capítulo 2).
 - **Nome:** Apagão: Sobreviva. **Publicação:** direto no main, com card no portal.
 

@@ -8,6 +8,7 @@ import {
 } from "../../engine/ez.js";
 import "./strings.js";
 import { ERAS, LESSONS, byId, ITEMS, itName, L } from "./lessons.js";
+import { modeMenu, consumeAction, M_PER_UNIT } from "./menu.js";
 
 const GAME_ID = "sobrevivencia-aprender";
 registerPWA("../../sw.js");
@@ -62,7 +63,7 @@ const U = {
   i_tree: T("Pé de {f}", "{f} tree", "Árbol de {f}"), i_node: T("{f}", "{f}", "{f}"),
   badWarn: T("✋ Não conhece, não come! Melhor deixar no pé.", "✋ If you don't know it, don't eat it! Better leave it.", "✋ ¡Si no la conoces, no la comas! Mejor déjala."),
   bravaWarn: T("✋ Você não tem certeza se é mansa. Mandioca brava crua tem veneno. Deixe.", "✋ You're not sure it's the sweet kind. Raw bitter cassava is poisonous. Leave it.", "✋ No estás seguro de que sea dulce. La yuca amarga cruda es venenosa. Déjala."),
-  leave: T("Deixar no pé", "Leave it", "Dejarla"), harvest: T("Colher", "Harvest", "Cosechar"),
+  leaveIt: T("Deixar no pé", "Leave it", "Dejarla"), harvest: T("Colher", "Harvest", "Cosechar"),
   pequiTip: T("Pequi coletado. Lembre: roer a polpa, nunca morder o caroço (espinhos)!", "Pequi gathered. Remember: gnaw the pulp, never bite the pit (spines)!", "Pequi recolectado. Recuerda: roer la pulpa, ¡nunca morder el hueso (espinas)!"),
   r_dirty: T("Pegar água com a panela", "Collect water with the pot", "Tomar agua con la olla"), r_sand: T("Pegar areia da margem", "Take sand from the bank", "Tomar arena de la orilla"),
   r_drink: T("Beber direto do rio", "Drink straight from the river", "Beber directo del río"), r_drinkBad: T("⚠️ Pode ter micróbios! Água de rio só depois de filtrar e ferver.", "⚠️ It may have germs! River water only after filtering and boiling.", "⚠️ ¡Puede tener microbios! Agua de río solo tras filtrar y hervir."),
@@ -99,8 +100,9 @@ const U = {
   lurdesThanks: T("\"Deus te abençoe! Que bom ter vizinho assim.\" ❤️", "\"Bless you! So good to have a neighbor like you.\" ❤️", "\"¡Dios te bendiga! Qué bueno tener un vecino así.\" ❤️"),
   aidQ: T("Qual é o próximo passo? ({i}/3)", "What's the next step? ({i}/3)", "¿Cuál es el siguiente paso? ({i}/3)"), aidOk: T("🩹 Léo está bem cuidado. Obrigado!", "🩹 Léo is well looked after. Thanks!", "🩹 Léo está bien atendido. ¡Gracias!"),
   north: T("🧭 Isso! Essa é a bandeira do NORTE.", "🧭 Yes! That's the NORTH flag.", "🧭 ¡Eso! Esa es la bandera del NORTE."), notNorth: T("Hmm, não é essa. É de manhã: o sol está a leste. Braço direito para o sol… a frente é o norte.", "Hmm, not this one. It's morning: the sun is in the east. Right arm to the sun… ahead is north.", "Mmm, no es esta. Es de mañana: el sol está al este. Brazo derecho al sol… al frente está el norte."),
+  critT: T("🆘 Plano B · situação crítica", "🆘 Plan B · critical situation", "🆘 Plan B · situación crítica"),
   bagQ: T("Monte a mochila (até 10 kg). Peso: {w} kg", "Pack the bag (up to 10 kg). Weight: {w} kg", "Arma la mochila (hasta 10 kg). Peso: {w} kg"), bagHeavy: T("Pesada demais! Tire o que só pesa.", "Too heavy! Remove what's just weight.", "¡Demasiado pesada! Saca lo que solo pesa."),
-  bagMiss: T("Faltam itens essenciais (lona, panela, pederneira, faca, cantil…).", "Essential items missing (tarp, pot, fire steel, knife, canteen…).", "Faltan objetos esenciales (lona, olla, pedernal, cuchillo, cantimplora…)."), bagOk: T("🎒 Mochila leve e completa!", "🎒 Light and complete pack!", "🎒 ¡Mochila ligera y completa!"),
+  bagMiss: T("Faltam itens essenciais (lona, panela, pederneira, faca, cantil, comida, roupa de frio, roupas de baixo, papel higiênico, escova de dente…).", "Essential items missing (tarp, pot, fire steel, knife, canteen, food, warm clothes, underwear, toilet paper, toothbrush…).", "Faltan objetos esenciales (lona, olla, pedernal, cuchillo, cantimplora, comida, ropa de abrigo, ropa interior, papel higiénico, cepillo…)."), bagOk: T("🎒 Mochila leve e completa!", "🎒 Light and complete pack!", "🎒 ¡Mochila ligera y completa!"),
   teacherHi: T("\"Olá! Escolha uma aula na árvore. Quando terminar o desafio, a próxima abre.\"", "\"Hi! Pick a lesson on the tree. Finish the challenge and the next one opens.\"", "\"¡Hola! Elige una clase en el árbol. Al terminar el desafío, se abre la siguiente.\""),
   age: T("Idade", "Age", "Edad"),
 };
@@ -148,8 +150,8 @@ function buriti(x, z) {
 }
 
 // ---- acampamento (0,0)
-[[-5, -5], [5, -5], [-5, 5], [5, 5]].forEach(([x, z]) => deco(0.3, 3.2, 0.3, "#78350f", x, 1.6, z));
-const tentRoof = deco(11.5, 0.2, 11.5, "#f97316", 0, 3.3, 0);
+[[-5, -5], [5, -5], [-5, 5], [5, 5]].forEach(([x, z]) => deco(0.3, 4.4, 0.3, "#78350f", x, 2.2, z));
+const tentRoof = deco(11.5, 0.2, 11.5, "#f97316", 0, 4.5, 0);
 deco(10, 0.06, 10, "#d6c08a", 0, 0.03, 0);
 [[-2.5, 2], [2.5, 2]].forEach(([x, z]) => solid(x, 0.25, z, 3, 0.5, 0.8, "#a16207"));
 solid(3, 1.2, -3.6, 3, 2, 0.2, "#166534"); // quadro
@@ -220,13 +222,13 @@ for (let i = 0; i < 4; i++) addNode("areia", -20 + i * 14, RIVER_Z - 5);
 deco(120, 0.05, 80, "#a8a29e", 0, 0.025, -66);
 label("🏙️ " + L(T("Cidade-treino", "Training town", "Ciudad de práctica")), 0, 7, -28, "#e0e7ff");
 // casa-treino aberta na frente (0,-55)
-solid(0, 1.5, -61, 14, 3, 0.3, "#fef3c7"); solid(-7, 1.5, -55, 0.3, 3, 12, "#fef3c7"); solid(7, 1.5, -55, 0.3, 3, 12, "#fef3c7");
-deco(14.6, 0.3, 12.6, "#b45309", 0, 3.15, -55);
+solid(0, 2.25, -61, 14, 4.5, 0.3, "#fef3c7"); solid(-7, 2.25, -55, 0.3, 4.5, 12, "#fef3c7"); solid(7, 2.25, -55, 0.3, 4.5, 12, "#fef3c7");
+const houseRoof = deco(14.6, 0.3, 12.6, "#b45309", 0, 4.65, -55);
 solid(-4, 1, -60, 3, 2, 0.8, "#78350f"); // estante
 for (let i = 0; i < 3; i++) deco(0.8, 0.7, 0.8, i < (P.cnt.buckets || 0) ? "#0ea5e9" : "#cbd5e1", 2 + i, 0.35, -59.5);
 deco(1, 1, 0.1, "#fde68a", 7.2, 1.7, -55); // janela
 // garagem (11,-55) aberta
-solid(11, 1.5, -61, 8, 3, 0.3, "#e9d5ff"); solid(15, 1.5, -55, 0.3, 3, 12, "#e9d5ff"); deco(8.6, 0.3, 12.6, "#6b7280", 11, 3.15, -55);
+solid(11, 2.25, -61, 8, 4.5, 0.3, "#e9d5ff"); solid(15, 2.25, -55, 0.3, 4.5, 12, "#e9d5ff"); const garRoof = deco(8.6, 0.3, 12.6, "#6b7280", 11, 4.65, -55);
 const gen = new THREE.Group(); S.add(gen); part(1.2, 0.9, 0.8, "#f59e0b", 0, 0.45, 0, gen); part(0.2, 0.5, 0.2, "#111827", 0.4, 1.1, 0, gen);
 const GEN_IN = { x: 11, z: -58 }, GEN_SAFE = { x: 26, z: -44 };
 const safeDisc = deco(3, 0.06, 3, "#22c55e", GEN_SAFE.x, 0.05, GEN_SAFE.z);
@@ -300,7 +302,8 @@ function openMenu(build) {
   const close = () => { scr.el.remove(); menuOpen = false; if (playing) input.setVisible(true); updHud(); save(); };
   function draw() {
     const d = build(close);
-    card.replaceChildren(h("h2", d.title), ...(d.info || []).filter(Boolean).map((p) => (p instanceof Node ? p : h("p", p))),
+    card.replaceChildren(h("h2", d.title), ...(d.info || []).filter(Boolean).map((p) => (p instanceof Node ? p : d.who ? h("p.say", h("b", "🗣️ " + d.who + ": "), p) : h("p", p))),
+      ...(d.who && (d.opts || []).some(Boolean) ? [h("p.say.you", h("b", t("youSay")))] : []),
       h("div.ez-col", { style: { marginTop: "10px" } },
         ...(d.opts || []).filter(Boolean).map((o) => h("button.ez-btn.wide" + (o.cls || ""), { disabled: o.dis ? true : null, style: o.dis ? { opacity: 0.45 } : null, onclick: () => { if (o.dis) return; Audio.play("click"); const r = o.fn(); if (r === "close") close(); else if (scr.el.isConnected) draw(); } }, o.label)),
         d.noClose ? null : h("button.ez-btn.gray.wide", { onclick: close }, d.closeLabel || u("leave"))));
@@ -312,10 +315,21 @@ const shuffle = (a) => a.map((v) => [Math.random(), v]).sort((x, y) => x[0] - y[
 const flag = (f, msg) => { if (P.w[f]) return; P.w[f] = 1; if (msg) toast(msg, 2600); Audio.play("ok"); save(); };
 
 // ---------------------------------------------------------------- aula: cartões → quiz → desafio
+// Cartões da aula: os normais + o cartão "🆘 Plano B" (situação crítica), se a aula tiver.
+// Faixa infantil usa crit_k (ou nenhum); 13+ usa crit.
+function cardsOf(l) {
+  const crit = kid() ? l.crit_k : l.crit;
+  return l.c.map((c) => ({ c })).concat(crit ? [{ c: crit, crit: true }] : []);
+}
+function cardInfo(card) {
+  if (card.crit) return h("div.say.crit", { style: { fontSize: "17px" } }, h("b", u("critT")), h("br"), L(card.c));
+  return h("p.say", { style: { fontSize: "18px" } }, h("b", "👩‍🏫 " + u("i_teacher") + ": "), L(card.c));
+}
 function startLesson(l) {
   let i = 0, qi = 0, order = null;
+  const cards = cardsOf(l);
   openMenu((close) => {
-    if (i < l.c.length) return { title: `${l.icon} ${L(l.t)} · ${i + 1}/${l.c.length}`, info: [h("p", { style: { fontSize: "18px" } }, L(l.c[i]))], opts: [{ label: u("next"), fn: () => { i++; } }] };
+    if (i < cards.length) return { title: `${l.icon} ${L(l.t)} · ${i + 1}/${cards.length}`, info: [cardInfo(cards[i])], opts: [{ label: u("next"), fn: () => { i++; } }] };
     if (qi < 2) {
       const [q, ok, w1, w2] = L(l.q[qi]);
       if (!order) order = shuffle([ok, w1, w2]);
@@ -332,7 +346,8 @@ function startLesson(l) {
 }
 function reviewLesson(l) {
   let i = 0;
-  openMenu(() => (i < l.c.length ? { title: `${l.icon} ${L(l.t)} · ${i + 1}/${l.c.length}`, info: [L(l.c[i])], opts: [{ label: u("next"), fn: () => { i++; } }] } : { title: `${l.icon} ${L(l.t)}`, info: ["✅"], opts: [] }));
+  const cards = cardsOf(l);
+  openMenu(() => (i < cards.length ? { title: `${l.icon} ${L(l.t)} · ${i + 1}/${cards.length}`, info: [cardInfo(cards[i])], opts: [{ label: u("next"), fn: () => { i++; } }] } : { title: `${l.icon} ${L(l.t)}`, info: ["✅"], opts: [] }));
 }
 function stepText(s) {
   if (s.k === "pick") return `${s.n}× ${itName(s.it)}`;
@@ -408,9 +423,10 @@ function openBuild() {
 // ---------------------------------------------------------------- lugares (interações)
 const SPOTS = [];
 const spot = (x, z, r, name, open, extra) => SPOTS.push(Object.assign({ x, z, r, name, open }, extra || {}));
-spot(0, -2.6, 2.6, () => u("i_teacher"), () => openMenu(() => ({ title: "👩‍🏫 " + u("i_teacher"), info: [u("teacherHi"), P.cur ? "▶️ " + L(byId[P.cur].t) : null], opts: [{ label: u("tree"), fn: () => { setTimeout(openTree, 0); return "close"; } }] })), { mark: () => !P.cur && LESSONS.some(avail) });
+spot(0, -2.6, 2.6, () => u("i_teacher"), () => openMenu(() => ({ title: "👩‍🏫 " + u("i_teacher"), who: u("i_teacher"), info: [u("teacherHi"), P.cur ? h("p", "▶️ " + L(byId[P.cur].t)) : null], opts: [{ label: u("tree"), fn: () => { setTimeout(openTree, 0); return "close"; } }] })), { mark: () => !P.cur && LESSONS.some(avail) });
 spot(-3.6, 0.5, 2.2, () => u("i_chest"), () => {
   const KIT = [["faca", 0.3, 1], ["lona", 1.5, 1], ["corda", 0.5, 1], ["cantil", 1, 1], ["panela", 0.8, 1], ["pederneira", 0.1, 1], ["kit", 0.5, 1], ["linha", 0.1, 1], ["lanterna", 0.3, 1],
+    ["comida", 1, 1], ["roupaFrio", 0.8, 1], ["roupaBaixo", 0.3, 1], ["papel", 0.2, 1], ["escova", 0.1, 1],
     ["x_pillow", 1.5, 0, T("🛏️ Travesseiro grande", "🛏️ Big pillow", "🛏️ Almohada grande")], ["x_laptop", 2.5, 0, T("💻 Notebook", "💻 Laptop", "💻 Portátil")], ["x_pan", 4.5, 0, T("🥘 Panela de pressão grande", "🥘 Big pressure cooker", "🥘 Olla a presión grande")], ["x_dryer", 0.8, 0, T("💨 Secador de cabelo", "💨 Hair dryer", "💨 Secador de pelo")], ["x_books", 3, 0, T("📚 Coleção de livros", "📚 Book collection", "📚 Colección de libros")]];
   const sel = new Set(isDone("e1_bag") ? KIT.filter((k) => k[2]).map((k) => k[0]) : []);
   openMenu(() => {
@@ -444,7 +460,7 @@ FRUITS.forEach(([f, x, z]) => spot(x, z, 3, () => u("i_tree", { f: L(ITEMS[f].n)
 }));
 BADS.forEach(([k, x, z]) => spot(x, z, 2.6, () => u(k === "bad" ? "i_bad" : "i_brava"), () => openMenu(() => ({ title: u(k === "bad" ? "i_bad" : "i_brava"), info: [], opts: [
   { label: u("harvest"), cls: ".warn", fn: () => { toast(u(k === "bad" ? "badWarn" : "bravaWarn"), 3500); Audio.play("wrong"); return "close"; } },
-  { label: u("leave"), fn: () => { toast("👍"); return "close"; } },
+  { label: u("leaveIt"), fn: () => { toast("👍"); return "close"; } },
 ] }))));
 // rio (zona) e fogueira (dinâmica)
 spot(0, RIVER_Z - 4.5, 0, () => u("i_river"), () => {
@@ -481,7 +497,10 @@ spot(-16, -34, 2.8, () => u("i_news"), () => {
   ] });
 }, { mark: () => P.cur === "e0_signs" && !P.w.news_ok });
 spot(-4, -58.6, 2.4, () => u("i_shelf"), () => {
-  const KIT = [[T("💧 Água (4 L por pessoa/dia)", "💧 Water (4 L per person/day)", "💧 Agua (4 L por persona/día)"), 1], [T("🥫 Comida enlatada", "🥫 Canned food", "🥫 Comida enlatada"), 1], [T("🔦 Lanterna e pilhas", "🔦 Flashlight and batteries", "🔦 Linterna y pilas"), 1], [T("📻 Rádio a pilha", "📻 Battery radio", "📻 Radio a pilas"), 1], [T("💊 Remédios de uso contínuo", "💊 Daily medicines", "💊 Medicinas de uso diario"), 1], [T("🩹 Kit de primeiros socorros", "🩹 First-aid kit", "🩹 Botiquín"), 1], [T("📄 Documentos (cópias)", "📄 Documents (copies)", "📄 Documentos (copias)"), 1], [T("💵 Dinheiro vivo", "💵 Cash", "💵 Efectivo"), 1],
+  const KIT = [[T("💧 Água (4 L por pessoa/dia)", "💧 Water (4 L per person/day)", "💧 Agua (4 L por persona/día)"), 1], [T("🥫 Comida fácil que não estraga (enlatados, biscoitos, castanhas)", "🥫 Easy non-perishable food (cans, crackers, nuts)", "🥫 Comida fácil no perecible (latas, galletas, nueces)"), 1], [T("🔦 Lanterna e pilhas", "🔦 Flashlight and batteries", "🔦 Linterna y pilas"), 1], [T("📻 Rádio a pilha", "📻 Battery radio", "📻 Radio a pilas"), 1], [T("💊 Remédios de uso contínuo", "💊 Daily medicines", "💊 Medicinas de uso diario"), 1], [T("🩹 Kit de primeiros socorros", "🩹 First-aid kit", "🩹 Botiquín"), 1], [T("📄 Documentos (cópias)", "📄 Documents (copies)", "📄 Documentos (copias)"), 1], [T("💵 Dinheiro vivo", "💵 Cash", "💵 Efectivo"), 1],
+    [T("🧥 Roupa de frio (casaco, meias)", "🧥 Warm clothes (jacket, socks)", "🧥 Ropa de abrigo (chaqueta, calcetines)"), 1], [T("🩲 Roupas de baixo", "🩲 Underwear", "🩲 Ropa interior"), 1],
+    [T("🧻 Papel higiênico", "🧻 Toilet paper", "🧻 Papel higiénico"), 1], [T("🪥 Escova e pasta de dente", "🪥 Toothbrush and toothpaste", "🪥 Cepillo y pasta de dientes"), 1],
+    [T("🗡️ Canivete suíço ou faca", "🗡️ Swiss army knife or knife", "🗡️ Navaja suiza o cuchillo"), 1], [T("🧶 Cordão comprido", "🧶 Long cord", "🧶 Cordón largo"), 1],
     [T("💨 Secador de cabelo", "💨 Hair dryer", "💨 Secador de pelo"), 0], [T("🎮 Videogame", "🎮 Video game", "🎮 Videojuego"), 0], [T("🧊 Sorvete do freezer", "🧊 Ice cream from the freezer", "🧊 Helado del congelador"), 0]];
   const sel = new Set();
   openMenu(() => ({ title: "🎒 " + u("kitQ"), info: [], opts: [...KIT.map(([nm], i) => ({ label: (sel.has(i) ? "☑️ " : "⬜ ") + L(nm), fn: () => { sel.has(i) ? sel.delete(i) : sel.add(i); } })),
@@ -495,7 +514,7 @@ spot(16, -34, 2.6, () => u("i_atm"), () => openMenu(() => ({ title: "🏧 " + u(
 spot(32, -40, 3, () => u("i_gas"), () => openMenu(() => ({ title: "⛽ " + u("gasQ"), info: [], opts: [
   { label: L(T("Encher o tanque agora (e um galão certificado, guardado fora de casa)", "Fill the tank now (and a certified can, stored outside)", "Llenar el tanque ahora (y un bidón certificado, guardado fuera)")), fn: () => { flag("fuel_ok", "⛽ ✓"); return "close"; } },
   { label: L(T("Deixar para amanhã", "Leave it for tomorrow", "Dejarlo para mañana")), fn: () => { toast(L(T("Amanhã as bombas podem estar paradas.", "Tomorrow the pumps may be dead.", "Mañana las bombas pueden estar paradas.")), 3000); Audio.play("wrong"); } },
-  { label: L(T("Encher garrafas PET de gasolina e guardar no quarto", "Fill plastic bottles with gas and keep them in the bedroom", "Llenar botellas de plástico con gasolina y guardarlas en el cuarto")), fn: () => { toast(L(T("Perigo de incêndio! Só galão certificado e fora de casa.", "Fire hazard! Only certified cans, stored outside.", "¡Peligro de incendio! Solo bidón certificado y fuera de casa.")), 3500); Audio.play("wrong"); } },
+  { label: L(T("Encher garrafas PET de gasolina e guardar no quarto", "Fill plastic bottles with gas and keep them in the bedroom", "Llenar botellas de plástico con gasolina y guardarlas en el cuarto")), fn: () => { toast(L(T("Perigo de incêndio! Gasolina NUNCA dentro de casa. Antes do apagão, dá tempo de fazer o certo: galão certificado, fora de casa. (Garrafa PET é só plano B em emergência real — veja o cartão 🆘 da aula.)", "Fire hazard! Gasoline NEVER indoors. Before the blackout there's time to do it right: a certified can, stored outside. (A plastic bottle is only plan B in a real emergency — see the 🆘 card.)", "¡Peligro de incendio! Gasolina NUNCA dentro de casa. Antes del apagón hay tiempo de hacerlo bien: bidón certificado, fuera de casa. (La botella de plástico es solo plan B en una emergencia real — mira la tarjeta 🆘.)")), 3500); Audio.play("wrong"); } },
 ] })), { mark: () => P.cur === "e0_fuel" && !P.w.fuel_ok });
 spot(-10, -46, 2.4, () => u("i_tap"), () => openMenu(() => ({ title: "🚰 " + u("i_tap"), info: [], opts: [
   { label: u("tapFill"), fn: () => { if (has("balde")) return toast(u("haveBucket")); add("balde"); Audio.play("coin"); return "close"; } },
@@ -505,10 +524,10 @@ spot(3, -58, 2.6, () => u("i_store"), () => openMenu(() => ({ title: "🪣 " + u
   { label: u("storeIt", { n: P.cnt.buckets || 0 }), dis: !has("balde"), fn: () => { add("balde", -1); P.cnt.buckets = (P.cnt.buckets || 0) + 1; Audio.play("coin"); if (P.cnt.buckets >= 3) flag("water3", "🪣🪣🪣 ✓"); } },
 ] })), { mark: () => P.cur === "e0_water" && has("balde") });
 spot(0, -31, 2.6, () => u("i_board"), () => openMenu(() => ({ title: "📌 " + u("boardQ"), info: [], opts: MEET.map((m, i) => ({ label: u(m.k), fn: () => { P.w.meet = i; flag("meet_pick", u("meetGo", { m: u(m.k) })); return "close"; } })) })), { mark: () => P.cur === "e0_meet" && !P.w.meet_pick });
-spot(-26, -46, 2.6, () => u("i_stranger"), () => openMenu(() => ({ title: "🧢 " + u("i_stranger"), info: [u("strangerQ")], opts: shuffle(["s1", "s2", "s3"]).map((k) => ({ label: u(k), fn: () => { if (k === "s1") { flag("safe_ok", u("sOk")); return "close"; } toast(u("sBad"), 3000); Audio.play("wrong"); } })) })), { mark: () => P.cur === "e0_safe" && !P.w.safe_ok });
+spot(-26, -46, 2.6, () => u("i_stranger"), () => openMenu(() => ({ title: "🧢 " + u("i_stranger"), who: u("i_stranger"), info: [u("strangerQ")], opts: shuffle(["s1", "s2", "s3"]).map((k) => ({ label: u(k), fn: () => { if (k === "s1") { flag("safe_ok", u("sOk")); return "close"; } toast(u("sBad"), 3000); Audio.play("wrong"); } })) })), { mark: () => P.cur === "e0_safe" && !P.w.safe_ok });
 spot(GEN_IN.x, GEN_IN.z, 2.6, () => u("i_gen"), () => { if (P.w.co_carry || P.w.co_ok) return; openMenu(() => ({ title: "⚠️ " + u("i_gen"), info: [u("genHere")], opts: [{ label: u("genTake"), fn: () => { add("gerador"); gen.visible = false; flag("co_carry"); return "close"; } }] })); }, { mark: () => P.cur === "e0_co" && !P.w.co_carry });
 spot(GEN_SAFE.x, GEN_SAFE.z, 2.6, () => u("i_safe"), () => { if (!has("gerador")) return; add("gerador", -1); gen.position.set(GEN_SAFE.x, 0, GEN_SAFE.z); gen.visible = true; flag("co_ok", u("genOk")); }, { mark: () => has("gerador") });
-spot(-34, -58.5, 2.6, () => u("i_lurdes"), () => openMenu(() => ({ title: "👵 " + u("i_lurdes"), info: [P.w.care_ok ? u("lurdesThanks") : u("lurdesHi")], opts: P.w.care_ok ? [] : [
+spot(-34, -58.5, 2.6, () => u("i_lurdes"), () => openMenu(() => ({ title: "👵 " + u("i_lurdes"), who: u("i_lurdes"), info: [P.w.care_ok ? u("lurdesThanks") : u("lurdesHi")], opts: P.w.care_ok ? [] : [
   { label: u("lurdesGive"), dis: !has("garrafa"), fn: () => { add("garrafa", -1); flag("care_ok", u("lurdesThanks")); return "close"; } },
 ] })), { mark: () => P.cur === "e0_care" && !P.w.care_ok });
 
@@ -560,6 +579,9 @@ onLangChange(() => updHud());
 // ---------------------------------------------------------------- telas
 function showTitle() {
   playing = false; hud.classList.add("ez-hidden"); input.setVisible(false);
+  const act = consumeAction();
+  if (act === "cont" && (P.done.length || P.cur)) { start(); return; }
+  if (act === "novo") { intro(); return; }
   const cv = h("canvas", { style: { width: "150px", height: "200px", display: "block", margin: "0 auto" } });
   const pv = createAvatarPreview(cv); pv.set(me.ch.look); pv.start();
   let scr = null; const close = () => { pv.stop(); scr.close(); };
@@ -570,10 +592,7 @@ function showTitle() {
     h("h1", "🔦 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.7 } }, u("title") + " · " + u("sub") + " · v" + VERSION),
     cv, ageRow,
     h("div.ez-col", { style: { marginTop: "10px" } },
-      h("button.ez-btn.wide", { onclick: () => { close(); if (!P.done.length && !P.cur) intro(); else start(); } }, "▶ " + (P.done.length || P.cur ? u("contL") : u("startL")) + (P.done.length ? " · " + u("progress", { d: P.done.length, n: LESSONS.length }) : "")),
-      h("p.ez-msg", { style: { margin: "-4px 0 4px", textAlign: "center" } }, t("learnDesc")),
-      h("button.ez-btn.gray.wide", { onclick: () => { location.href = "./"; } }, u("real")),
-      h("p.ez-msg", { style: { margin: "-4px 0 4px", textAlign: "center" } }, t("realDesc")),
+      ...modeMenu(store, { contLearn: () => { close(); start(); }, newLearn: () => { close(); P = structuredClone(P0); save(); location.href = "?modo=aprender&acao=novo"; } }),
       h("div.ez-row", { style: { justifyContent: "center" } },
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
@@ -639,7 +658,11 @@ world.onUpdate((dt) => {
     checkT -= dt; if (checkT <= 0) { checkT = 0.4; checkLesson(); updHud(); }
   }
   crowdBots.forEach((b) => b.update(dt));
-  const dc = Math.hypot(me.x, me.z); const cpp = world.camera.position; tentRoof.visible = !(Math.abs(me.x) < 6.5 && Math.abs(me.z) < 6.5) && !(cpp.y < 6 && Math.abs(cpp.x) < 7 && Math.abs(cpp.z) < 7); campLabel.visible = dc > 14;
+  const dc = Math.hypot(me.x, me.z); const cpp = world.camera.position; tentRoof.visible = !(Math.abs(me.x) < 6.5 && Math.abs(me.z) < 6.5) && !(cpp.y < 7 && Math.abs(cpp.x) < 7 && Math.abs(cpp.z) < 7);
+  // casa-treino e garagem: o telhado some quando você (ou a câmera) está dentro, para ver o boneco
+  const inHouse = (x, z) => x > -7.5 && x < 15.5 && z > -61.5 && z < -48.5;
+  houseRoof.visible = garRoof.visible = !inHouse(me.x, me.z) && !(cpp.y < 7.5 && inHouse(cpp.x, cpp.z));
+  campLabel.visible = dc > 14;
   for (const s of SPOTS) if (s.sprite) { s.sprite.visible = !!s.mark(); s.sprite.position.y = 4.4 + Math.sin(performance.now() / 300) * 0.2; }
   let tg = null, td = 1e9;
   if (playing && !menuOpen) for (const s of SPOTS) if (s.sprite && s.sprite.visible) { const d = Math.hypot(s.x - me.x, s.z - me.z); if (d < td) { td = d; tg = s; } }
@@ -649,7 +672,7 @@ world.onUpdate((dt) => {
     beacon.position.set(tg.x, 20, tg.z);
     const b = cam.basis(), dx = tg.x - me.x, dz = tg.z - me.z;
     guideEl.firstChild.style.transform = `rotate(${Math.atan2(dx * b.rx + dz * b.rz, dx * b.fx + dz * b.fz)}rad)`;
-    guideEl.lastChild.textContent = " " + tg.name() + " · " + Math.round(td) + " m";
+    guideEl.lastChild.textContent = " " + tg.name() + " · " + Math.max(1, Math.round(td * M_PER_UNIT)) + " m";
   }
   if (built.fire) { const k = 1 + Math.sin(performance.now() / 90) * 0.15; built.fire.fl.scale.y = 0.8 * k; built.fire.fl2.scale.y = 0.5 / k; }
   [teacher, leo, stranger, lurdes].forEach((c) => c.animate(dt, 0, true, c === leo ? "sit" : "walk"));
