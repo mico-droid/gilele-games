@@ -1,6 +1,13 @@
-# 🔦 Sobrevivência: plano inicial (rascunho v0)
+# 🔦 Sobrevivência: plano (rascunho v1)
 
-> **Status (13/11/2026):** em planejamento. Nada jogável ainda. As decisões marcadas com ❓ esperam resposta do autor.
+> **Status (13/11/2026):** em planejamento (rascunho v1). Nada jogável ainda.
+
+### Decisões do autor (13/11)
+- **Público:** faixas de idade, como na Tabuada. Infantil = sem cenas pesadas; 13+ = mais realista, ainda sem gore.
+- **Mapas:** dois, à escolha do jogador: **Goiânia (Cerrado)** e **Rio de Janeiro (Mata Atlântica)**.
+- **Morte no Apagão Real:** depende da dificuldade. Fácil = volta ao último acampamento e perde parte da mochila; Difícil = recomeça do Dia 0.
+- **Aprovados:** Era 6 (Energia) e a função **curandeiro** na vila.
+- **Recusado:** profissões iniciais com bônus.
 
 Jogo 3D do Gilele Engine (`games/sobrevivencia/`), estilo Roblox (bonecos de blocos), PWA, celular e teclado, PT/EN/ES, multijogador de até 4 por sala (WebRTC, sem login).
 
@@ -43,7 +50,7 @@ No jogo essas tecnologias aparecem de forma **simplificada** (o jogador monta pe
 - Segue a **linha do tempo do colapso** (abaixo), em tempo acelerado.
 - Barras de sobrevivência: fome, sede, saúde, cansaço, higiene (higiene baixa → risco de doença) e ânimo.
 - O jogador decide quando sair da cidade. Quem fica tempo demais enfrenta falta de água, doença e saques.
-- Ao "morrer", o jogador volta ao último acampamento salvo e perde parte da mochila (❓ ver dúvidas).
+- Dificuldade escolhida no início: **Fácil** (ao morrer, volta ao último acampamento e perde parte da mochila) ou **Difícil** (recomeça do Dia 0).
 
 #### Linha do tempo no jogo (eventos que acontecem no mapa)
 | Fase | O que o jogador vê | O que ele precisa aprender |
@@ -58,6 +65,24 @@ Na versão infantil, as partes pesadas (mortes em hospital, violência) aparecem
 
 ---
 
+## 2b. Os dois mapas
+
+O jogador escolhe o mapa no início. A árvore de tecnologia é a mesma; mudam o cenário, os recursos e algumas aulas.
+
+| | 🟤 Goiânia (Cerrado) | 🟢 Rio de Janeiro (Mata Atlântica) |
+|---|---|---|
+| Cidade | Bairro plano em grade, avenidas largas, prédios médios | Bairro de subúrbio + morro com escadarias, prédios mais juntos |
+| Saída | Periferia → BR → fazendas e veredas | Litoral/baía → trilha → serra com mata fechada |
+| Clima | Seca longa (maio–set) com queimadas; chuva forte no verão | Calor úmido o ano todo, chuva frequente, deslizamento em morro |
+| Água | Córregos, veredas com buriti, cisterna e barraginha na seca | Rios de serra, cachoeiras, muita chuva para captar; mar = água salgada (não beber) |
+| Frutas seguras | Pequi (cuidado com os espinhos do caroço), baru, cagaita, mangaba, buriti, araticum | Jabuticaba, pitanga, araçá, grumixama, cambuci, juçara (fruto), banana |
+| Raízes e folhas | Mandioca mansa × brava (a brava é tóxica crua) | Taioba × "taioba-brava" e plantas parecidas (confusão comum e perigosa) |
+| Pesca | Rio, covo de taquara | Rio e mar (linha, rede, siri na pedra) |
+| Perigo extra | Queimada, desidratação na seca | Deslizamento, enchente, umidade (doenças de pele, mofo na comida) |
+| Material | Pedra, argila do córrego, cupinzeiro (forno) | Pedra, argila, bambu (muito), cipó |
+
+---
+
 ## 3. Árvore de tecnologia
 
 Cada nó tem uma mini-aula e destrava os seguintes. Exemplo de corrente: **fogo → forno de barro → fundição → ferro → roda**.
@@ -66,22 +91,22 @@ Cada nó tem uma mini-aula e destrava os seguintes. Exemplo de corrente: **fogo 
 Sinais e notícias (fontes confiáveis × boatos) · Kit 72 h (água, comida, lanterna, rádio, remédios, documentos) · Dinheiro físico · Combustível · Estoque de água · Ponto de encontro e rota de fuga · Fugir de aglomerações · Auto-segurança (não expor estoque, andar em grupo, horários) · Perigo do monóxido de carbono · Cuidar de quem depende de energia (idosos, remédios na geladeira).
 
 ### Era 1 — Sobreviver
-Mochila (peso × utilidade) · Abrigo (lona, folhas, local seco e alto) · Água (achar, filtrar com pano/areia/carvão, ferver) · Fogo (fricção, pederneira, lupa; manter e apagar) · Orientação (sol, sombra, estrelas, Cruzeiro do Sul) · Primeiros socorros (corte, queimadura, desidratação, picada) · Coleta segura (frutas do Cerrado: pequi, baru, cagaita, mangaba, buriti; regra "não conhece, não come"; mandioca mansa × brava) · Pesca (linha, anzol improvisado, covo) · Armadilhas simples de caça (para crianças: o bicho aparece capturado, sem cena gráfica).
+Mochila (peso × utilidade) · Abrigo (lona, folhas, local seco e alto) · Água (achar, filtrar com pano/areia/carvão, ferver) · Fogo (fricção, pederneira, lupa; manter e apagar) · Orientação (sol, sombra, estrelas, Cruzeiro do Sul) · Primeiros socorros (corte, queimadura, desidratação, picada) · Coleta segura (regra "não conhece, não come"; o conteúdo muda com o mapa — ver seção 2b) · Pesca (linha, anzol improvisado, covo) · Armadilhas simples de caça (para crianças: o bicho aparece capturado, sem cena gráfica).
 
 ### Era 2 — Pedra e madeira
-Pedra lascada: machado, faca, lança · Cordas de fibra (embira, buriti) e cestos · Potes de barro · Plantar as primeiras sementes (milho, feijão, mandioca, abóbora) · Guardar comida (secar, salgar, defumar) · Banco de sementes.
+Pedra lascada: machado, faca, lança · Cordas de fibra (embira e buriti no Cerrado; bananeira, embira e taboa no Rio) e cestos · Potes de barro · Plantar as primeiras sementes (milho, feijão, mandioca, abóbora) · Guardar comida (secar, salgar, defumar) · Banco de sementes.
 
 ### Era 3 — Metais
 Achar minério · Carvoaria · Forno · Fundir cobre → bronze → ferro · Ferramentas melhores: enxada, serra, martelo · A roda: carrinho de mão e carroça · Clorador para a água do grupo.
 
 ### Era 4 — Agricultura e vila
-Arado · Irrigação (barraginha, cisterna, canal) · Rotação de culturas e adubo (composteira, minhocário) · Criação de animais (galinhas, peixes no tanque) · Celeiro · Moinho · Saneamento (fossa biodigestora + jardim filtrante) · **Sisteminha** como meta da vila · No multijogador cada um assume uma função: agricultor, ferreiro, construtor (e ❓ curandeiro?).
+Arado · Irrigação (barraginha, cisterna, canal) · Rotação de culturas e adubo (composteira, minhocário) · Criação de animais (galinhas, peixes no tanque) · Celeiro · Moinho · Saneamento (fossa biodigestora + jardim filtrante) · **Sisteminha** como meta da vila · No multijogador cada um assume uma função: agricultor, ferreiro, construtor ou **curandeiro** (primeiros socorros, ervas seguras, higiene e saneamento da vila).
 
 ### Era 5 — Segurança
 Armadilhas de alarme (latas, cordão) · Cercas e cerca-viva espinhosa · Esconderijos (despensa escondida, sementes escondidas) · Torre de vigia e sinais entre o grupo · Armas caseiras **só como itens do jogo** (estilingue, arco, lança, escudo).
 > Regra do conteúdo: o jogo ensina **defesa, discrição e prevenção**. As armas não têm instrução de fabricação real, nada de arma de fogo ou explosivo, e no jogo elas só **espantam** (o bot foge).
 
-### 💡 Ideia extra: Era 6 — Energia (final)
+### Era 6 — Energia (final, aprovada)
 Roda d'água, biodigestor (biogás), dínamo de bicicleta, painel solar resgatado. Final do jogo: **"reacender a vila"** — o grupo faz o *black start* da sua própria rede.
 
 ---
@@ -97,7 +122,7 @@ Roda d'água, biodigestor (biogás), dínamo de bicicleta, painel solar resgatad
 
 ## 5. Escolha de personagem e multijogador
 - Usa o editor do motor (tipos, cabelo, cores, acessórios). Ideia: acessórios temáticos (mochila, chapéu de palha, lanterna de cabeça).
-- ❓ Profissões iniciais com bônus pequeno (enfermeira, mecânico, agricultor, professor)?
+- Sem profissões iniciais: todo mundo começa igual. As funções (agricultor, ferreiro, construtor, curandeiro) só aparecem na Era 4.
 - Sala de até 4. O host controla o mundo, os recursos e os bots. Chat só com frases prontas (ECA Digital), sem login.
 
 ---
@@ -127,11 +152,12 @@ games/sobrevivencia/
 ## 7. Entregas propostas
 | Fase | O que fica jogável |
 |---|---|
-| **A** | Base: mapa, barras, mochila, coleta, construir fogueira/abrigo, dia/noite, sistema de aula+quiz. Era 0 e Era 1 no Aprendizado |
+| **A** | Base: mapa de Goiânia, barras, mochila, coleta, construir fogueira/abrigo, dia/noite, sistema de aula+quiz, faixas de idade. Era 0 e Era 1 no Aprendizado |
+| **A2** | Mapa do Rio (reaproveita a base; troca cenário, recursos e aulas da seção 2b) |
 | **B** | Apagão Real: Dia 0 → Semana 2 (cidade) |
 | **C** | Eras 2 e 3, bots 80/20, trocas |
 | **D** | Era 4 (vila, Sisteminha), multijogador com funções |
-| **E** | Era 5, Mês 1–6 do Apagão Real, Era 6 (se aprovada) |
+| **E** | Era 5, Mês 1–6 do Apagão Real, Era 6 (Energia) |
 
 ---
 
