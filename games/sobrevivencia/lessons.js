@@ -266,7 +266,7 @@ export const LESSONS = [
     crit_k: T("Sem fósforo, um adulto pode acender fogo usando o sol com uma lente — mas fogo é sempre com um adulto por perto.", "Without matches, an adult can start a fire using the sun and a lens — but fire always needs an adult nearby.", "Sin fósforos, un adulto puede encender fuego con el sol y una lente — pero el fuego siempre con un adulto cerca."),
     steps: [
       { k: "pick", it: "capim", n: 2 }, { k: "pick", it: "galho", n: 3 },
-      { k: "act", f: "fire_ok", txt: T("Faça a fogueira (🎒 → Construir) num lugar limpo, longe da mata", "Build the fire (🎒 → Build) in a clear spot, away from the brush", "Haz la fogata (🎒 → Construir) en un lugar limpio, lejos del monte") },
+      { k: "act", f: "fire_ok", txt: T("Faça a fogueira (🔨 Construir) num lugar limpo, longe da mata", "Build the fire (🔨 Build) in a clear spot, away from the brush", "Haz la fogata (🔨 Construir) en un lugar limpio, lejos del monte") },
     ] },
 
   { id: "e1_water", era: 1, req: ["e1_fire"], icon: "💧", place: "camp",
@@ -288,7 +288,7 @@ export const LESSONS = [
       { k: "act", f: "w_dirty", txt: T("Pegue água do rio com a panela", "Get river water with the pot", "Toma agua del río con la olla") },
       { k: "pick", it: "areia", n: 1 },
       { k: "act", f: "w_coal", txt: T("Pegue carvão da sua fogueira", "Take charcoal from your fire", "Toma carbón de tu fogata") },
-      { k: "act", f: "w_filter", txt: T("Filtre a água (🎒 → Construir → Filtro)", "Filter the water (🎒 → Build → Filter)", "Filtra el agua (🎒 → Construir → Filtro)") },
+      { k: "act", f: "w_filter", txt: T("Filtre a água (🔨 Construir → Filtro)", "Filter the water (🔨 Build → Filter)", "Filtra el agua (🔨 Construir → Filtro)") },
       { k: "act", f: "w_boil", txt: T("Ferva a água filtrada na fogueira", "Boil the filtered water on the fire", "Hierve el agua filtrada en la fogata") },
     ] },
 
@@ -309,7 +309,7 @@ export const LESSONS = [
     ],
     steps: [
       { k: "pick", it: "galho", n: 4 }, { k: "pick", it: "folhas", n: 4 },
-      { k: "act", f: "shelter_ok", txt: T("Construa o abrigo no morrinho (lugar alto) — 🎒 → Construir", "Build the shelter on the little hill (high ground) — 🎒 → Build", "Construye el refugio en la lomita (lugar alto) — 🎒 → Construir") },
+      { k: "act", f: "shelter_ok", txt: T("Construa o abrigo no morrinho (lugar alto) — 🔨 Construir", "Build the shelter on the little hill (high ground) — 🔨 Build", "Construye el refugio en la lomita (lugar alto) — 🔨 Construir") },
     ] },
 
   { id: "e1_orient", era: 1, req: ["e1_shelter"], icon: "🧭", place: "camp",
@@ -379,7 +379,7 @@ export const LESSONS = [
         ["Pescaste un pez. ¿Y ahora?", "Limpiarlo y asarlo pronto, bien cocido", "Guardarlo 3 días en la mochila", "Comerlo crudo", "El pescado crudo o guardado al calor puede enfermarte."]),
     ],
     steps: [
-      { k: "act", f: "fish_rod", txt: T("Faça uma vara (🎒 → Construir → Vara)", "Make a rod (🎒 → Build → Rod)", "Haz una caña (🎒 → Construir → Caña)") },
+      { k: "act", f: "fish_rod", txt: T("Faça uma vara (🔨 Construir → Vara)", "Make a rod (🔨 Build → Rod)", "Haz una caña (🔨 Construir → Caña)") },
       { k: "act", f: "fish_get", txt: T("Pesque um peixe no remanso do rio", "Catch a fish in the river backwater", "Pesca un pez en el remanso del río") },
       { k: "act", f: "fish_cook", txt: T("Asse o peixe na fogueira", "Grill the fish on the fire", "Asa el pez en la fogata") },
     ] },
@@ -401,7 +401,7 @@ export const LESSONS = [
     ],
     steps: [
       { k: "pick", it: "galho", n: 4 }, { k: "pick", it: "cipo", n: 1 },
-      { k: "act", f: "trap_set", txt: T("Monte a arapuca na trilha com pegadas (🎒 → Construir)", "Set the trap on the trail with tracks (🎒 → Build)", "Arma la arapuca en el sendero con huellas (🎒 → Construir)") },
+      { k: "act", f: "trap_set", txt: T("Monte a arapuca na trilha com pegadas (🔨 Construir)", "Set the trap on the trail with tracks (🔨 Build)", "Arma la arapuca en el sendero con huellas (🔨 Construir)") },
       { k: "act", f: "trap_check", txt: T("Volte depois e confira a arapuca", "Come back later and check the trap", "Vuelve después y revisa la arapuca") },
     ] },
 ];

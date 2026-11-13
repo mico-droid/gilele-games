@@ -23,6 +23,7 @@
 - **13/11 (6º retorno):** selo com a quantidade no ícone da mochila, que pisca 3 s ao pegar item; confete + som ao concluir missão/aula (confete pequeno em cada passo); toda caixa (diálogo, instruções, mochila, pausa, painel de missão) tem ✕ no canto superior direito que fecha sem fazer nada (no painel de missão, o ✕ minimiza para "🚩 Ver missão").
 - **13/11:** no jogo os mapas aparecem só pelo bioma, sem nome de cidade: "Cidade no Cerrado" e "Cidade na Mata Atlântica" (Goiânia/Rio ficam só como referência interna).
 - **13/11:** a mochila do Aprendizado é igual à do Apagão Real: 9 quadradinhos (3×3), toque abre o item (usar/largar). O equipamento do baú ocupa 1 quadradinho ("Kit da mochila"); balde e gerador vão na mão; mochila cheia não pega item novo.
+- **13/11:** no Aprendizado o botão 🔨 Construir fica na barra de cima (tecla B), fora da mochila; o boneco do jogador usa uma mochila desenhada nas costas nos dois modos (`wearPack` em `menu.js`).
 - **Depois do Apagão Real, o autor escolheu o Modo Aprendizado** (antes do Capítulo 2).
 - **Nome:** Apagão: Sobreviva. **Publicação:** direto no main, com card no portal.
 

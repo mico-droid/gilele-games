@@ -1,7 +1,7 @@
 // Shared service worker for every game in this repo (scope = whole site).
 // Strategy: network-first for pages (always get updates), stale-while-revalidate for everything else
 // (engine, Three.js from CDN, fonts) so games load fast and work offline after the first visit.
-const CACHE = "gilele-v17";
+const CACHE = "gilele-v18";
 const CDN = ["cdn.jsdelivr.net", "unpkg.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", () => self.skipWaiting());

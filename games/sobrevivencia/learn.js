@@ -8,7 +8,7 @@ import {
 } from "../../engine/ez.js";
 import "./strings.js";
 import { ERAS, LESSONS, byId, ITEMS, itName, L } from "./lessons.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack } from "./menu.js";
 
 const GAME_ID = "sobrevivencia-aprender";
 registerPWA("../../sw.js");
@@ -70,7 +70,7 @@ const U = {
   pequiTip: T("Pequi coletado. Lembre: roer a polpa, nunca morder o caroço (espinhos)!", "Pequi gathered. Remember: gnaw the pulp, never bite the pit (spines)!", "Pequi recolectado. Recuerda: roer la pulpa, ¡nunca morder el hueso (espinas)!"),
   r_dirty: T("Pegar água com a panela", "Collect water with the pot", "Tomar agua con la olla"), r_sand: T("Pegar areia da margem", "Take sand from the bank", "Tomar arena de la orilla"),
   r_drink: T("Beber direto do rio", "Drink straight from the river", "Beber directo del río"), r_drinkBad: T("⚠️ Pode ter micróbios! Água de rio só depois de filtrar e ferver.", "⚠️ It may have germs! River water only after filtering and boiling.", "⚠️ ¡Puede tener microbios! Agua de río solo tras filtrar y hervir."),
-  r_fish: T("🎣 Pescar no remanso", "🎣 Fish in the backwater", "🎣 Pescar en el remanso"), r_noRod: T("Precisa de uma vara (🎒 → Construir).", "You need a rod (🎒 → Build).", "Necesitas una caña (🎒 → Construir)."),
+  r_fish: T("🎣 Pescar no remanso", "🎣 Fish in the backwater", "🎣 Pescar en el remanso"), r_noRod: T("Precisa de uma vara (🔨 Construir).", "You need a rod (🔨 Build).", "Necesitas una caña (🔨 Construir)."),
   r_notHere: T("Aqui a correnteza é forte. Procure o remanso (a parte larga e parada do rio).", "The current is strong here. Find the backwater (the wide, calm part of the river).", "Aquí la corriente es fuerte. Busca el remanso (la parte ancha y quieta del río)."),
   noPot: T("Precisa da panela (lição Mochila).", "You need the pot (Backpack lesson).", "Necesitas la olla (clase Mochila)."),
   fishTitle: T("🎣 Toque em PUXAR quando o peixe estiver na faixa verde", "🎣 Tap PULL when the fish is in the green band", "🎣 Toca TIRAR cuando el pez esté en la franja verde"), pull: T("PUXAR!", "PULL!", "¡TIRAR!"),
@@ -418,7 +418,7 @@ function openBag() {
     }
     return { title: u("bag") + " · " + t("slots", { n: slotsUsed() }), info: [t("bagSub"), grid, cells.length ? null : u("empty")], opts: [
       ...hand.map((k) => ({ label: itName(k) + " · " + t("inHand"), cls: ".gray", dis: true, fn: () => {} })),
-      { label: u("build"), cls: ".blue", fn: () => { setTimeout(openBuild, 0); return "close"; } }] };
+    ] };
   });
 }
 function openKit() {
@@ -597,7 +597,7 @@ const chatBtn = btn("💬", () => openQuickChat(sayChat));
 const bagBtn = btn("🎒", () => openBag(), "I");
 var badge = bagBadge(h, bagBtn);
 const topEl = h("div.ez-top", progPill, roomPill(room), h("div.ez-spacer"),
-    btn("📒", () => openTree(), "T"), bagBtn, chatBtn, btn("✕", () => pause(), t("closeT")));
+    btn("📒", () => openTree(), "T"), bagBtn, btn("🔨", () => openBuild(), "B"), chatBtn, btn("✕", () => pause(), t("closeT")));
 const guideEl = h("div.sv-guide.ez-hidden", h("span.arr", "⬆"), h("span.txt"));
 const hud = h("div.ez-hud.ez-hidden", topEl, lessonEl, prompt, guideEl);
 document.body.appendChild(hud);
@@ -606,6 +606,7 @@ let stepsSeen = { id: null, n: 0 };
 function updHud() {
   progPill.textContent = u("title") + " · " + u("progress", { d: P.done.length, n: LESSONS.length });
   chatBtn.style.display = room.connected ? "" : "none";
+  wearPack(me.ch);
   badge.set(typeof slotsUsed === "function" && P ? slotsUsed() : 0);
   lessonEl.style.top = topEl.getBoundingClientRect().bottom + 6 + "px";
   const l = P.cur && byId[P.cur];
@@ -638,7 +639,7 @@ function showTitle() {
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
         h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
       gameLinks(t("title")),
-      isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · E: interagir · I: mochila · T: manual · Arraste: câmera", "WASD/arrows: move · E: interact · I: backpack · T: manual · Drag: camera", "WASD/flechas: mover · E: interactuar · I: mochila · T: manual · Arrastra: cámara")))),
+      isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · E: interagir · I: mochila · T: manual · B: construir · Arraste: câmera", "WASD/arrows: move · E: interact · I: backpack · T: manual · B: build · Drag: camera", "WASD/flechas: mover · E: interactuar · I: mochila · T: manual · B: construir · Arrastra: cámara")))),
   ]);
 }
 function intro() { pagedScreen(h, screen, { title: "⛺ " + u("title"), text: u("intro"), nextLabel: u("next"), endLabel: "▶ " + t("play"), onEnd: start }); }
@@ -658,7 +659,7 @@ function resume() { start(); }
 input.onAction("pause", () => { if (playing && !menuOpen) pause(); });
 addEventListener("keydown", (e) => {
   if (!playing || menuOpen) return;
-  if (e.code === "KeyI") openBag(); else if (e.code === "KeyT") openTree();
+  if (e.code === "KeyI") openBag(); else if (e.code === "KeyT") openTree(); else if (e.code === "KeyB") openBuild();
   else { const n = parseInt(e.key, 10); if (n >= 0 && n <= 9) sayChat(n === 0 ? 9 : n - 1); }
 });
 addEventListener("pagehide", save);

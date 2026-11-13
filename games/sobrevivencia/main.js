@@ -8,7 +8,7 @@ import {
 } from "../../engine/ez.js";
 import { tx, setKidMode } from "./strings.js";
 import { buildCity, HOME, BED, ZONES } from "./city.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack } from "./menu.js";
 
 const GAME_ID = "sobrevivencia";
 registerPWA("../../sw.js");
@@ -642,6 +642,7 @@ function updHud() {
   barsEl.style.top = top + "px"; goalsEl.style.top = top + barsEl.offsetHeight + 8 + "px";
   bars.health.parentNode.parentNode.style.display = st.s.health < 95 ? "" : "none";
   chatBtn.style.display = room.connected ? "" : "none";
+  wearPack(me.ch);
   badge.set(Object.keys(st.bag).filter((x) => IT[x] && st.bag[x] > 0).length);
   for (const k in bars) { const v = st.s[k]; bars[k].style.width = v + "%"; bars[k].style.background = v < 20 ? "#ef4444" : v < 45 ? "#f59e0b" : "#22c55e"; }
   goals();

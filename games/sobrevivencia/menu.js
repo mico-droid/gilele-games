@@ -2,7 +2,7 @@
 //   ▶ Continuar jogo anterior  → só aparece se houver jogo salvo (Aulas e/ou Apagão Real)
 //   🆕 Novo jogo               → 📚 Aprendizado (primeiro) e 🌑 Apagão Real
 // Trocar de modo recarrega a página com ?modo=…&acao=cont|novo; consumeAction() lê a ação pedida.
-import { h, t } from "../../engine/ez.js";
+import { h, t, THREE, part } from "../../engine/ez.js";
 import { LESSONS } from "./lessons.js";
 
 const here = new URLSearchParams(location.search).get("modo") === "aprender" ? "learn" : "real";
@@ -77,4 +77,16 @@ export function bagBadge(h, button) {
   const b = h("span.sv-badge", "0"); button.style.position = "relative"; button.appendChild(b);
   let tm = 0;
   return { set(n) { b.textContent = n; b.style.display = n ? "" : "none"; }, flash() { button.classList.add("sv-blink"); clearTimeout(tm); tm = setTimeout(() => button.classList.remove("sv-blink"), 3000); } };
+}
+
+/** Desenha a mochila nas costas do boneco (refaz sozinho quando o visual do boneco muda). Chamar de vez em quando. */
+export function wearPack(ch, color = "#b45309") {
+  const body = ch && ch.av && ch.av.body;
+  if (!body || body.getObjectByName("pack")) return;
+  const g = new THREE.Group(); g.name = "pack"; body.add(g);
+  part(0.72, 0.82, 0.34, color, 0, 1.52, -0.43, g);            // corpo da mochila
+  part(0.74, 0.2, 0.36, "#78350f", 0, 1.86, -0.43, g);          // tampa
+  part(0.44, 0.3, 0.1, "#92400e", 0, 1.34, -0.63, g);           // bolso de trás
+  part(0.5, 0.14, 0.3, "#3f6212", 0, 2.02, -0.43, g);           // rolo do saco de dormir
+  [-0.3, 0.3].forEach((x) => { part(0.12, 0.86, 0.04, "#451a03", x, 1.55, 0.27, g, false); part(0.12, 0.05, 0.56, "#451a03", x, 1.98, 0, g, false); }); // alças
 }
