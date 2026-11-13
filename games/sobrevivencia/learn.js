@@ -34,6 +34,9 @@ const U = {
   eraDone: T("Você terminou a Era 1! As Eras 2 a 6 (pedra, metais, vila, segurança e energia) chegam nas próximas versões.", "You finished Era 1! Eras 2–6 (stone, metals, village, security and energy) are coming in the next versions.", "¡Terminaste la Era 1! Las Eras 2 a 6 (piedra, metales, aldea, seguridad y energía) llegan en próximas versiones."),
   pick: T("Pegar", "Take", "Tomar"), progress: T("✅ {d}/{n} aulas", "✅ {d}/{n} lessons", "✅ {d}/{n} clases"),
   noLesson: T("Sem aula ativa. Toque em 🌳 ou fale com a professora.", "No active lesson. Tap 🌳 or talk to the teacher.", "Sin clase activa. Toca 🌳 o habla con la profesora."),
+  bagFull: T("Mochila cheia: só cabem 9 tipos de item. Abra a 🎒 e largue ou use alguma coisa.", "Backpack full: it only holds 9 kinds of item. Open 🎒 and drop or use something.", "Mochila llena: solo caben 9 tipos de objeto. Abre 🎒 y suelta o usa algo."),
+  kitSlot: T("Kit da mochila", "Backpack kit", "Kit de la mochila"), kitInfo: T("Seu equipamento, montado no baú do acampamento. Ocupa um quadradinho só.", "Your gear, packed at the camp chest. It takes just one slot.", "Tu equipo, armado en el baúl del campamento. Ocupa un solo espacio."),
+  drop1: T("Largar 1", "Drop 1", "Soltar 1"),
   bag: T("🎒 Mochila", "🎒 Backpack", "🎒 Mochila"), empty: T("Vazia.", "Empty.", "Vacía."), build: T("🔨 Construir", "🔨 Build", "🔨 Construir"),
   need: T("Falta: {x}", "Missing: {x}", "Falta: {x}"), leave: T("Fechar", "Close", "Cerrar"),
   b_fire: T("🔥 Fogueira (3 galhos + 2 capim + pederneira)", "🔥 Campfire (3 sticks + 2 grass + fire steel)", "🔥 Fogata (3 ramas + 2 pasto + pedernal)"),
@@ -115,7 +118,7 @@ let P = Object.assign(structuredClone(P0), store.getJSON("learn", {}));
 let cfg = store.getJSON("cfg", { age: "kid" });
 const kid = () => cfg.age !== "teen";
 const save = () => store.setJSON("learn", P);
-const add = (k, n = 1) => { P.bag[k] = (P.bag[k] || 0) + n; if (P.bag[k] <= 0) delete P.bag[k]; if (n > 0 && typeof badge !== "undefined" && badge) { badge.flash(); badge.set(Object.keys(P.bag).filter((x) => ITEMS[x]).length); } };
+const add = (k, n = 1) => { P.bag[k] = (P.bag[k] || 0) + n; if (P.bag[k] <= 0) delete P.bag[k]; if (n > 0 && typeof badge !== "undefined" && badge) { badge.flash(); badge.set(typeof slotsUsed === "function" && P ? slotsUsed() : 0); } };
 const has = (k, n = 1) => (P.bag[k] || 0) >= n;
 const isDone = (id) => P.done.includes(id);
 const avail = (l) => !isDone(l.id) && l.req.every(isDone) && !ERAS[l.era].soon;
@@ -306,7 +309,7 @@ function openMenu(build) {
       ...(d.who && (d.opts || []).some(Boolean) ? [h("p.say.you", h("b", t("youSay")))] : []),
       h("div.ez-col", { style: { marginTop: "10px" } },
         ...(d.opts || []).filter(Boolean).map((o) => h("button.ez-btn.wide" + (o.cls || ""), { disabled: o.dis ? true : null, style: o.dis ? { opacity: 0.45 } : null, onclick: () => { if (o.dis) return; Audio.play("click"); const r = o.fn(); if (r === "close") close(); else if (scr.el.isConnected) draw(); } }, o.label)),
-        d.noClose ? null : h("button.ez-btn.gray.wide", { onclick: close }, d.closeLabel || u("leave"))));
+        d.noClose ? null : h("button.ez-btn.gray.wide", { onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || u("leave"))));
   }
   draw(); scr = screen([card], { dim: true });
   addX(h, scr, close);
@@ -391,18 +394,45 @@ function openTree() {
 }
 
 // ---------------------------------------------------------------- mochila e construção
+// Mochila igual à do Apagão Real: 9 quadradinhos (3×3), um tipo de item por quadradinho.
+// O equipamento montado no baú (faca, lona, panela…) ocupa UM quadradinho ("Kit da mochila"); balde e gerador vão na mão.
+const KITSET = new Set(["faca", "lona", "corda", "cantil", "panela", "pederneira", "kit", "linha", "lanterna", "comida", "roupaFrio", "roupaBaixo", "papel", "escova", "canivete", "cordao"]);
+const HAND = new Set(["balde", "gerador"]);
+const SLOTS = 9;
+const kitKeys = () => Object.keys(P.bag).filter((k) => KITSET.has(k));
+const slotKeys = () => Object.keys(P.bag).filter((k) => ITEMS[k] && !KITSET.has(k) && !HAND.has(k));
+const slotsUsed = () => slotKeys().length + (kitKeys().length ? 1 : 0);
+const fits = (k) => KITSET.has(k) || HAND.has(k) || has(k) || slotsUsed() < SLOTS;
+let fullT = 0;
+function canTake(k) { if (fits(k)) return true; if (performance.now() - fullT > 2500) { fullT = performance.now(); toast(u("bagFull"), 3000); Audio.play("wrong"); } return false; }
 function openBag() {
+  openMenu((close) => {
+    const ks = slotKeys(), kit = kitKeys(), hand = Object.keys(P.bag).filter((k) => HAND.has(k));
+    const cells = (kit.length ? ["#kit"] : []).concat(ks), grid = h("div.sv-grid");
+    const go = (fn) => () => { Audio.play("click"); close(); setTimeout(fn, 0); };
+    for (let i = 0; i < Math.max(SLOTS, cells.length); i++) {
+      const k = cells[i];
+      if (!k) grid.appendChild(h("div.sv-slot.empty"));
+      else if (k === "#kit") grid.appendChild(h("button.sv-slot", { onclick: go(openKit) }, h("span", "🧰"), h("small", "×" + kit.length), h("em", u("kitSlot"))));
+      else grid.appendChild(h("button.sv-slot" + (k === "aguaSuja" || k.endsWith("Umido") ? ".bad" : ""), { onclick: go(() => openItem(k)) }, h("span", ITEMS[k].e), h("small", "×" + P.bag[k]), h("em", L(ITEMS[k].n).replace(/ \(.*\)/, ""))));
+    }
+    return { title: u("bag") + " · " + t("slots", { n: slotsUsed() }), info: [t("bagSub"), grid, cells.length ? null : u("empty")], opts: [
+      ...hand.map((k) => ({ label: itName(k) + " · " + t("inHand"), cls: ".gray", dis: true, fn: () => {} })),
+      { label: u("build"), cls: ".blue", fn: () => { setTimeout(openBuild, 0); return "close"; } }] };
+  });
+}
+function openKit() {
+  openMenu(() => ({ title: "🧰 " + u("kitSlot"), info: [u("kitInfo"), h("p", kitKeys().map((k) => itName(k)).join(" · "))], opts: [], closeLabel: u("bag"), onClose: openBag }));
+}
+function openItem(k) {
   openMenu(() => {
-    const ks = Object.keys(P.bag).filter((k) => ITEMS[k]);
-    const opts = ks.map((k) => {
-      const lab = `${itName(k)} ×${P.bag[k]}`;
-      if (ITEMS[k].safe || k === "peixeAssado") return { label: lab + " → " + u("eat"), fn: () => { add(k, -1); toast(u("yum")); Audio.play("coin"); } };
-      if (k === "aguaBoa") return { label: lab + " → " + u("drink"), fn: () => { add(k, -1); toast(u("yum")); Audio.play("pop"); } };
-      if (k === "aguaSuja") return { label: lab + " → " + u("drink"), cls: ".warn", fn: () => { toast(u("r_drinkBad"), 3500); Audio.play("wrong"); } };
-      return { label: lab, cls: ".gray", dis: true, fn: () => {} };
-    });
-    opts.unshift({ label: u("build"), cls: ".blue", fn: () => { setTimeout(openBuild, 0); return "close"; } });
-    return { title: u("bag"), info: [ks.length ? null : u("empty")], opts };
+    if (!has(k)) return { title: itName(k), info: [u("empty")], opts: [], closeLabel: u("bag"), onClose: openBag };
+    const opts = [];
+    if (ITEMS[k].safe || k === "peixeAssado") opts.push({ label: u("eat"), fn: () => { add(k, -1); toast(u("yum")); Audio.play("coin"); } });
+    else if (k === "aguaBoa") opts.push({ label: u("drink"), fn: () => { add(k, -1); toast(u("yum")); Audio.play("pop"); } });
+    else if (k === "aguaSuja") opts.push({ label: "⚠️ " + u("drink"), cls: ".warn", fn: () => { toast(u("r_drinkBad"), 3500); Audio.play("wrong"); } });
+    opts.push({ label: u("drop1"), cls: ".gray", fn: () => add(k, -1) });
+    return { title: `${itName(k)} · ×${P.bag[k]}`, info: [], opts, closeLabel: u("bag"), onClose: openBag };
   });
 }
 const inMata = () => me.x > MATA.x0 && me.x < MATA.x1 && me.z > MATA.z0 && me.z < MATA.z1;
@@ -417,7 +447,7 @@ function openBuild() {
     { label: u("b_fire"), fn: () => { const m = need(R.fire); if (m) { if (has("galhoUmido") || has("capimUmido")) return toast(u("wetNo"), 4000); return toast(m, 3000); } if (inMata() || me.z < -26) return toast(u("fireBad"), 3500); use(R.fire, ["pederneira"]); placeFire(me.x + Math.sin(me.rot) * 2, me.z + Math.cos(me.rot) * 2); flag("fire_ok", u("fireLit")); return "close"; } },
     { label: u("b_shelter"), fn: () => { const m = need(R.shelter); if (m) return toast(m, 3000); if (Math.hypot(me.x - HILL.x, me.z - HILL.z) > HILL.r || me.y < 1) return toast(u("shelterBad"), 3500); use(R.shelter); placeShelter(me.x, me.z); flag("shelter_ok", u("shelterOk")); return "close"; } },
     { label: u("b_filter"), fn: () => { const m = need(R.filter); if (m) return toast(m, 3000); use(R.filter); add("aguaFiltrada"); flag("w_filter", itName("aguaFiltrada") + " ✓"); return "close"; } },
-    { label: u("b_rod"), fn: () => { const m = need(R.rod); if (m) return toast(m, 3000); add("galho", -1); add("vara"); flag("fish_rod", itName("vara") + " ✓"); return "close"; } },
+    { label: u("b_rod"), fn: () => { const m = need(R.rod); if (m) return toast(m, 3000); if (!canTake("vara")) return; add("galho", -1); add("vara"); flag("fish_rod", itName("vara") + " ✓"); return "close"; } },
     { label: u("b_trap"), fn: () => { const m = need(R.trap); if (m) return toast(m, 3000); if (Math.hypot(me.x - TRAIL.x, me.z - TRAIL.z) > TRAIL.r + 2) return toast(u("trapBad"), 3500); use(R.trap); placeTrap(me.x, me.z, Date.now()); flag("trap_set", u("trapOk")); return "close"; } },
   ] }));
 }
@@ -457,6 +487,7 @@ spot(7, 5, 2.4, () => u("i_leo"), () => {
 }, { mark: () => P.cur === "e1_aid" && !P.w.aid_ok });
 // árvores frutíferas e plantas
 FRUITS.forEach(([f, x, z]) => spot(x, z, 3, () => u("i_tree", { f: L(ITEMS[f].n) }), () => {
+  if (!canTake(f)) return;
   add(f); P.cnt[f] = (P.cnt[f] || 0) + 1; P.cnt.safe = (P.cnt.safe || 0) + 1; Audio.play("coin");
   toast(f === "pequi" ? u("pequiTip") : "+1 " + itName(f), f === "pequi" ? 3500 : 1500); save();
 }));
@@ -468,14 +499,14 @@ BADS.forEach(([k, x, z]) => spot(x, z, 2.6, () => u(k === "bad" ? "i_bad" : "i_b
 spot(0, RIVER_Z - 4.5, 0, () => u("i_river"), () => {
   const atRem = Math.abs(me.x - 30) < 12;
   openMenu(() => ({ title: "〰️ " + u("i_river"), info: [], opts: [
-    { label: u("r_dirty"), fn: () => { if (!has("panela")) return toast(u("noPot"), 3000); add("aguaSuja"); flag("w_dirty", "+1 " + itName("aguaSuja")); } },
-    { label: u("r_sand"), fn: () => { add("areia"); P.cnt.areia = (P.cnt.areia || 0) + 1; Audio.play("coin"); } },
-    { label: u("r_fish"), fn: () => { if (!has("vara")) return toast(u("r_noRod"), 3000); if (!atRem) return toast(u("r_notHere"), 3500); setTimeout(fishGame, 0); return "close"; } },
+    { label: u("r_dirty"), fn: () => { if (!has("panela")) return toast(u("noPot"), 3000); if (!canTake("aguaSuja")) return; add("aguaSuja"); flag("w_dirty", "+1 " + itName("aguaSuja")); } },
+    { label: u("r_sand"), fn: () => { if (!canTake("areia")) return; add("areia"); P.cnt.areia = (P.cnt.areia || 0) + 1; Audio.play("coin"); } },
+    { label: u("r_fish"), fn: () => { if (!has("vara")) return toast(u("r_noRod"), 3000); if (!canTake("peixe")) return; if (!atRem) return toast(u("r_notHere"), 3500); setTimeout(fishGame, 0); return "close"; } },
     { label: u("r_drink"), cls: ".warn", fn: () => { toast(u("r_drinkBad"), 3500); Audio.play("wrong"); } },
   ] }));
 }, { zone: () => Math.abs(me.z - (RIVER_Z - 3)) < 3.5 });
 spot(0, 0, 3, () => u("i_fire"), () => openMenu(() => ({ title: "🔥 " + u("i_fire"), info: [], opts: [
-  { label: u("f_coal"), fn: () => { add("carvao"); flag("w_coal", "+1 " + itName("carvao")); } },
+  { label: u("f_coal"), fn: () => { if (!canTake("carvao")) return; add("carvao"); flag("w_coal", "+1 " + itName("carvao")); } },
   { label: u("f_dry"), dis: !has("galhoUmido") && !has("capimUmido"), fn: () => { for (const k of ["galho", "capim"]) { const n = P.bag[k + "Umido"] || 0; if (n) { add(k + "Umido", -n); add(k, n); P.cnt[k] = (P.cnt[k] || 0) + n; } } toast(u("f_dried"), 2500); Audio.play("ok"); } },
   { label: u("f_boil"), dis: !has("aguaFiltrada"), fn: () => { add("aguaFiltrada", -1); add("aguaBoa"); flag("w_boil", u("boiled")); } },
   { label: u("f_cook"), dis: !has("peixe"), fn: () => { add("peixe", -1); add("peixeAssado"); flag("fish_cook", u("cooked")); } },
@@ -520,7 +551,7 @@ spot(32, -40, 3, () => u("i_gas"), () => openMenu(() => ({ title: "⛽ " + u("ga
 ] })), { mark: () => P.cur === "e0_fuel" && !P.w.fuel_ok });
 spot(-10, -46, 2.4, () => u("i_tap"), () => openMenu(() => ({ title: "🚰 " + u("i_tap"), info: [], opts: [
   { label: u("tapFill"), fn: () => { if (has("balde")) return toast(u("haveBucket")); add("balde"); Audio.play("coin"); return "close"; } },
-  { label: u("tapBottle"), fn: () => { add("garrafa"); flag("care_bottle"); return "close"; } },
+  { label: u("tapBottle"), fn: () => { if (!canTake("garrafa")) return; add("garrafa"); flag("care_bottle"); return "close"; } },
 ] })), { mark: () => (P.cur === "e0_water" && !has("balde")) || (P.cur === "e0_care" && !has("garrafa")) });
 spot(3, -58, 2.6, () => u("i_store"), () => openMenu(() => ({ title: "🪣 " + u("i_store"), info: [], opts: [
   { label: u("storeIt", { n: P.cnt.buckets || 0 }), dis: !has("balde"), fn: () => { add("balde", -1); P.cnt.buckets = (P.cnt.buckets || 0) + 1; Audio.play("coin"); if (P.cnt.buckets >= 3) flag("water3", "🪣🪣🪣 ✓"); } },
@@ -575,7 +606,7 @@ let stepsSeen = { id: null, n: 0 };
 function updHud() {
   progPill.textContent = u("title") + " · " + u("progress", { d: P.done.length, n: LESSONS.length });
   chatBtn.style.display = room.connected ? "" : "none";
-  badge.set(Object.keys(P.bag).filter((x) => ITEMS[x]).length);
+  badge.set(typeof slotsUsed === "function" && P ? slotsUsed() : 0);
   lessonEl.style.top = topEl.getBoundingClientRect().bottom + 6 + "px";
   const l = P.cur && byId[P.cur];
   if (!l) { lessonEl.replaceChildren(h("b", "📚 " + u("noLesson"))); return; }
@@ -651,7 +682,7 @@ world.onUpdate((dt) => {
     // coleta de recursos ao encostar
     for (const n of NODES) {
       if (n.back > 0) { n.back -= dt; if (n.back <= 0) n.m.visible = true; continue; }
-      if (Math.hypot(n.x - me.x, n.z - me.z) < 1.6) { n.m.visible = false; n.back = 25; add(n.it); P.cnt[n.it] = (P.cnt[n.it] || 0) + 1; Audio.play("coin"); toast("+1 " + itName(n.it), 900); }
+      if (Math.hypot(n.x - me.x, n.z - me.z) < 1.6 && canTake(n.it)) { n.m.visible = false; n.back = 25; add(n.it); P.cnt[n.it] = (P.cnt[n.it] || 0) + 1; Audio.play("coin"); toast("+1 " + itName(n.it), 900); }
     }
     near = nearest();
     prompt.classList.toggle("ez-hidden", !near);
