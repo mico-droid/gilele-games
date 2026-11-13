@@ -441,9 +441,11 @@ function childLevel(){ // nível da criança = fases concluídas (todas as modal
   return{n,lv:1+Math.floor(n/LEVEL_EVERY),into:n%LEVEL_EVERY};
 }
 let DEFERRED=null; // evento de instalação do navegador (Chrome/Android/desktop)
-addEventListener('beforeinstallprompt',e=>{e.preventDefault();DEFERRED=e});
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();DEFERRED=e;try{localStorage.removeItem('ez:installed:'+location.pathname)}catch(_){}});
+addEventListener('appinstalled',()=>{try{localStorage.setItem('ez:installed:'+location.pathname,'1')}catch(_){}});
 addEventListener('appinstalled',()=>{DEFERRED=null});
 const isStandalone=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+try{if(isStandalone())localStorage.setItem('ez:installed:'+location.pathname,'1')}catch(_){}
 function showModal(title,body){
   const m=document.createElement('div');m.className='modal';
   m.innerHTML=`<div class="box"><h2>${title}</h2><p>${body}</p><button class="btn" type="button">${t('close')}</button></div>`;
@@ -469,7 +471,7 @@ function topBar(){
   <select class="langsel" data-change="lang" aria-label="${t('langAria')}">${LANGS.map(l=>`<option value="${l}" ${lang()===l?'selected':''}>${{pt:'PT-BR',en:'EN',es:'ES'}[l]}</option>`).join('')}</select>
   <a class="tb" href="../../" style="text-decoration:none" aria-label="gi-lele games"><span>🏠</span>gi-lele</a>
   <button class="tb" data-a="shareapp"><span>📤</span>${t('shareApp')}</button>
-  ${isStandalone()?'':`<button class="tb" data-a="install"><span>📲</span>${t('addApp')}</button>`}</div>`;
+  ${isStandalone()||(!DEFERRED&&(()=>{try{return localStorage.getItem('ez:installed:'+location.pathname)==='1'}catch(_){return false}})())?'':`<button class="tb" data-a="install"><span>📲</span>${t('addApp')}</button>`}</div>`;
 }
 function modeCard(m){
   const p=prog(m.id),M=META[m.id],cl=p.unlocked-1,w=cl%10,c=Math.floor(cl/10),pc=w*10;

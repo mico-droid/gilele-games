@@ -151,14 +151,24 @@ export function gameLinks(gameName, { portal = "../../" } = {}) {
   const howTo = () => {
     const scr = screen([h("h2", "📲 " + t("howInstall")), h("p", t("installHow")), h("button.ez-btn.wide", { onclick: () => scr.close() }, t("close"))], { dim: true });
   };
+  // "já instalado": aberto como app, ou marcado antes (o app instalado e o navegador dividem o mesmo armazenamento)
+  const KEY = "ez:installed:" + location.pathname;
+  const mark = () => { try { localStorage.setItem(KEY, "1"); } catch {} };
+  if (isStandalone()) mark();
+  addEventListener("appinstalled", mark);
+  const installed = () => { try { return isStandalone() || localStorage.getItem(KEY) === "1"; } catch { return isStandalone(); } };
   const draw = () => {
-    row.replaceChildren(
+    // o navegador só oferece instalar quando o app NÃO está instalado: se oferecer, a marca antiga é falsa (app removido)
+    if (canInstall()) { try { localStorage.removeItem(KEY); } catch {} }
+    row.replaceChildren(...[
       h("a.ez-btn.gray.small", { href: portal, style: { textDecoration: "none" } }, "🏠 " + t("portal")),
-      isStandalone() ? null : h("button.ez-btn.blue.small", { onclick: async () => { if (canInstall()) await promptInstall(); else howTo(); } }, "📲 " + t("install")),
+      installed() && !canInstall() ? null : h("button.ez-btn.blue.small", { onclick: async () => { if (canInstall()) { if (await promptInstall()) { mark(); draw(); } } else howTo(); } }, "📲 " + t("install")),
       h("button.ez-btn.blue.small", { onclick: share }, "📤 " + t("share")),
-    );
+    ].filter(Boolean));
   };
   draw(); onInstallable(draw);
+  // Chrome/Android: pergunta ao sistema se este app já está instalado
+  if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps().then((a) => { if (a && a.length) { mark(); draw(); } }).catch(() => {});
   return row;
 }
 
