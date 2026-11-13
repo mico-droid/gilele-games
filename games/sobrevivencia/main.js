@@ -33,9 +33,9 @@ const CAUSES = ["solar", "cyber", "grid"];
 function newState(cfg) {
   const hard = cfg.diff === "hard";
   return {
-    v: 1, ...cfg, T: 0, B: hard ? 1.4 : 2, cause: CAUSES[Math.floor(Math.random() * 3)],
+    v: 1, ...cfg, T: 0, B: hard ? 2 : 3, cause: CAUSES[Math.floor(Math.random() * 3)],
     s: { food: 75, water: 70, energy: 72, health: 100, mood: 70 },
-    bag: { water: 0.5, docs: 0 }, cash: 20, bankBal: 800, withdrawn: 0,
+    bag: { water: 0.5 }, cash: 20, bankBal: 800, withdrawn: 0,
     fridge: { meat: 2, milk: 1, fruit: 3, bread: 1 }, cupboard: { can: 1, rice: 1, matches: 1, bottle: 4, bleach: 1 },
     shelf: { flash: 1, radio: 1, candle: 2, docs: 1, pbank: 1 },
     homeWater: 0, homeRaw: 0, tankWater: hard ? 20 : 35, phone: 35, pbankPct: 30, flashH: 0, radioH: 0, flashOn: false, phoneLight: false, candleUntil: -1, carFuel: 15,
@@ -56,7 +56,13 @@ const bagKg = () => Object.entries(st.bag).reduce((a, [k, n]) => a + (IT[k] ? IT
 const add = (o, k, n = 1) => { o[k] = Math.round(((o[k] || 0) + n) * 100) / 100; if (o[k] <= 0.001) delete o[k]; };
 const has = (o, k, n = 1) => (o[k] || 0) >= n - 1e-6;
 const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
-function canCarry(k, n = 1) { if (bagKg() + IT[k].kg * n > MAXKG + 1e-6) { toast(t("full")); Audio.play("wrong"); return false; } return true; }
+const SLOTS = 9, stackMax = (k) => (k === "water" || k === "raw" ? 8 : k === "gascan" ? 1 : 9);
+const slotsUsed = () => Object.keys(st.bag).filter((k) => IT[k] && st.bag[k] > 0 && k !== "gascan").length; // o galão vai na mão
+const fits = (k, n = 1) => (k === "gascan" || (st.bag[k] || 0) > 0 || slotsUsed() < SLOTS) && (st.bag[k] || 0) + n <= stackMax(k) + 1e-6;
+function canCarry(k, n = 1) {
+  if (fits(k, n)) return true;
+  toast(t((st.bag[k] || 0) > 0 || slotsUsed() < SLOTS ? "stackFull" : "full"), 3000); Audio.play("wrong"); return false;
+}
 const fmtT = () => { const hh = hourOf(), m = Math.floor((hh % 1) * 60); return t("day", { d: dayOf() }) + " · " + String(Math.floor(hh)).padStart(2, "0") + ":" + String(m).padStart(2, "0"); };
 
 // ---------------------------------------------------------------- mundo
@@ -133,9 +139,10 @@ const EVENTS = [
   [() => B() + 30, () => news("r3", null, { radio: true })],
   [() => B() + 36, () => news("nSewer")],
   [() => B() + 46, () => news("r4", null, { radio: true })],
+  [() => B() + 48, () => { news("nLeave"); Audio.play("radio"); }],
   [() => B() + 48, () => { news("nHosp"); spoilFood(48); }],
   [() => B() + 60, () => news("r5", null, { radio: true })],
-  [() => B() + 72, () => endChapter()],
+  [() => B() + 72, () => endChapter("forced")],
 ];
 function runEvents() { EVENTS.forEach(([when, fn], i) => { if (!st.fired[i] && st.T >= when()) { st.fired[i] = 1; fn(); } }); }
 function spoilFood(hours) {
@@ -149,7 +156,7 @@ function blackout() {
   const np = ["can", "biscuit", "rice"].reduce((a, k) => a + (st.bag[k] || 0) + (st.cupboard[k] || 0), 0);
   st.f.cashB = st.cash; st.f.foodB = np;
   st.f.lightB = (has(st.bag, "flash") || has(st.shelf, "flash")) && (st.flashH > 0 || has(st.bag, "batt") || has(st.cupboard, "batt")) ? 1 : 0;
-  st.f.fuelB = st.carFuel >= 80 || has(st.bag, "gascan") ? 1 : 0;
+  st.f.fuelB = st.carFuel >= 50 || has(st.bag, "gascan") ? 1 : 0;
   for (const k in st.stock) st.stock[k] = Math.ceil(st.stock[k] / 2);
 }
 function radioWorks() {
@@ -204,7 +211,7 @@ function openMenu(build) {
   let scr = null;
   const close = () => { scr.el.remove(); menuOpen = false; if (playing) input.setVisible(true); updHud(); };
   function draw() {
-    const d = build();
+    const d = build(close);
     card.replaceChildren(
       h("h2", d.title),
       ...(d.info || []).filter(Boolean).map((p) => (p instanceof Node ? p : h("p", p))),
@@ -221,18 +228,23 @@ function takeOpts(o, onTake) {
   const ks = Object.keys(o).filter((k) => IT[k] && o[k] > 0);
   if (!ks.length) return [];
   const list = ks.map((k) => ({ label: `${t("a_take")} ${itName(k)} ×${o[k]}`, fn: () => { if (!canCarry(k)) return; add(o, k, -1); add(st.bag, k, 1); Audio.play("coin"); onTake && onTake(k); } }));
-  if (ks.length > 1) list.push({ label: t("a_takeAll"), cls: ".blue", fn: () => { for (const k of ks) while (o[k] > 0 && bagKg() + IT[k].kg <= MAXKG) { add(o, k, -1); add(st.bag, k, 1); } Audio.play("coin"); } });
+  if (ks.length > 1) list.push({ label: t("a_takeAll"), cls: ".blue", fn: () => { for (const k of ks) while (o[k] > 0 && fits(k)) { add(o, k, -1); add(st.bag, k, 1); } Audio.play("coin"); } });
   return list;
 }
 const minutes = (m) => { if (!room.connected || room.isHost) advance(m / 60); toast(t("queue", { m })); };
 
 // ---------------------------------------------------------------- mochila e itens
 function openBag() {
-  openMenu(() => {
-    const ks = Object.keys(st.bag).filter((k) => IT[k] && st.bag[k] > 0);
-    const info = [t("bagSub"), h("p.ez-msg", t("money", { c: st.cash, b: st.bankBal }) + " · 🎒 " + t("kg", { w: bagKg().toFixed(1), m: MAXKG })), ks.length ? null : t("bagEmptyHint")];
-    const opts = ks.map((k) => ({ label: `${itName(k)} · ${k === "water" || k === "raw" ? st.bag[k].toFixed(1) + " L" : "×" + st.bag[k]}`, cls: k === "spoiled" || k === "raw" ? ".warn" : ".blue", fn: () => { setTimeout(() => openItem(k), 0); return "close"; } }));
-    return { title: t("bag"), info, opts };
+  openMenu((close) => {
+    const ks = Object.keys(st.bag).filter((k) => IT[k] && st.bag[k] > 0 && k !== "gascan");
+    const grid = h("div.sv-grid");
+    for (let i = 0; i < SLOTS; i++) {
+      const k = ks[i];
+      grid.appendChild(k ? h("button.sv-slot" + (k === "spoiled" || k === "raw" ? ".bad" : ""), { title: t("it_" + k), onclick: () => { Audio.play("click"); close(); setTimeout(() => openItem(k), 0); } },
+        h("span", IT[k].e), h("small", k === "water" || k === "raw" ? st.bag[k].toFixed(1) + " L" : "×" + st.bag[k]), h("em", t("it_" + k).replace(/ \(.*\)/, "")))
+        : h("div.sv-slot.empty"));
+    }
+    return { title: t("bag") + " · " + t("slots", { n: ks.length }), info: [t("bagSub"), grid, h("p.ez-msg", t("money", { c: st.cash, b: st.bankBal })), ks.length ? null : t("bagEmptyHint")], opts: [has(st.bag, "gascan") ? { label: itName("gascan") + " · " + t("inHand"), cls: ".blue", fn: () => { setTimeout(() => openItem("gascan"), 0); return "close"; } } : null] };
   });
 }
 function openItem(k) {
@@ -253,6 +265,7 @@ function openItem(k) {
     else if (k === "pbank") opts.push({ label: t("usePbank") + ` (${Math.round(st.pbankPct)}%)`, dis: st.pbankPct < 5 || st.phone >= 99, fn: () => usePbank() });
     else if (k === "flash") opts.push({ label: "🔦 " + (st.flashOn ? "OFF" : "ON"), fn: () => toggleFlash() });
     else if (k === "radio") opts.push({ label: t("radio"), fn: () => { setTimeout(openRadio, 0); return "close"; } });
+    if (home && k !== "water" && k !== "raw") opts.push({ label: t("storePantry"), cls: ".blue", fn: () => { add(st.bag, k, -1); add(st.cupboard, k, 1); } });
     opts.push({ label: t("a_drop"), cls: ".gray", fn: () => add(st.bag, k, k === "water" || k === "raw" ? -Math.min(1.5, n) : -1) });
     return { title: `${itName(k)} · ${k === "water" || k === "raw" ? n.toFixed(1) + " L" : "×" + n}`, info: [desc], opts, closeLabel: "🎒 " + t("bag"), onClose: openBag };
   });
@@ -267,12 +280,13 @@ function eat(o, k) {
 function toggleFlash() {
   if (!has(st.bag, "flash")) { toast(t("noFlash")); return; }
   if (!st.flashOn && st.flashH <= 0) { if (has(st.bag, "batt")) { add(st.bag, "batt", -1); st.flashH = 10; } else { toast(t("flashNoBatt")); Audio.play("wrong"); return; } }
-  st.flashOn = !st.flashOn; Audio.play("click"); if (st.flashOn) toast(t("flashOn"));
+  st.flashOn = !st.flashOn; Audio.play("click"); if (st.flashOn) { toast(t("flashOn")); if (after()) st.f.usedLight = 1; }
 }
 function usePbank() { const give = Math.min(50, 100 - st.phone, st.pbankPct); st.phone += give; st.pbankPct -= give; Audio.play("ok"); }
 
 // ---------------------------------------------------------------- celular e rádio
 function openPhone() {
+  st.f.sawNews = 1;
   openMenu(() => {
     if (st.phone <= 0) return { title: t("phone"), info: [t("phoneDead")], opts: [has(st.bag, "pbank") && st.pbankPct > 5 ? { label: t("usePbank"), fn: usePbank } : null] };
     const sg = signal();
@@ -294,12 +308,18 @@ function openPhone() {
     return { title: t("phone"), info, opts };
   });
 }
+function openComm() {
+  openMenu(() => ({ title: t("comm"), info: [], opts: [
+    { label: t("commPhone") + " · " + Math.round(st.phone) + "%", fn: () => { setTimeout(openPhone, 0); return "close"; } },
+    { label: t("commRadio"), cls: ".blue", fn: () => { setTimeout(openRadio, 0); return "close"; } },
+  ] }));
+}
 function openRadio() {
   let info;
   if (!has(st.bag, "radio")) info = [t("radioWhere"), t("radioWhy")];
   else if (!radioWorks()) info = [t("radioNoBatt"), t("radioWhy")];
   else {
-    Audio.play("radio");
+    Audio.play("radio"); st.f.heard = 1;
     const heard = st.news.filter((n) => n.m.startsWith("📻"));
     info = after() ? (heard.length ? [h("b", t("radioLog")), ...heard.slice(0, 6).map((n) => h("p", { style: { fontSize: "14px" } }, n.m))] : [t("radioStatic")]) : [t("radioPre")];
     info.push(h("p.ez-msg", t("radioWhy")));
@@ -373,9 +393,9 @@ spot(BED.x, BED.z, 2.2, "i_bed", () => openMenu(() => {
 spot(x0 + 1.2, hz + 1, 1.9, "i_shelf", () => openMenu(() => {
   const opts = takeOpts(st.shelf);
   const pw = city.power;
-  opts.push({ label: "🔌 " + t("chargePhone") + ` (${Math.round(st.phone)}%)`, dis: st.phone >= 99, fn: () => { if (!pw) { toast(t("noPower")); return; } minutes(40); st.phone = 100; Audio.play("ok"); } });
-  opts.push({ label: "🔋 " + t("chargeBank") + ` (${Math.round(st.pbankPct)}%)`, dis: st.pbankPct >= 99, fn: () => { if (!pw) { toast(t("noPower")); return; } minutes(30); st.pbankPct = 100; Audio.play("ok"); } });
-  if (has(st.bag, "candle") && has(st.bag, "matches")) opts.push({ label: "🕯️ " + t("lightCandle"), fn: () => { add(st.bag, "candle", -1); st.candleUntil = st.T + 4; toast(t("candleTip"), 3000); } });
+  opts.push({ label: "🔌 " + t("chargePhone") + ` (${Math.round(st.phone)}%)`, dis: st.phone >= 99, fn: () => { if (!pw) { toast(t("noPower")); return; } minutes(20); st.phone = 100; Audio.play("ok"); } });
+  opts.push({ label: "🔋 " + t("chargeBank") + ` (${Math.round(st.pbankPct)}%)`, dis: st.pbankPct >= 99, fn: () => { if (!pw) { toast(t("noPower")); return; } minutes(15); st.pbankPct = 100; Audio.play("ok"); } });
+  if (has(st.bag, "candle") && has(st.bag, "matches")) opts.push({ label: "🕯️ " + t("lightCandle"), fn: () => { add(st.bag, "candle", -1); st.candleUntil = st.T + 4; st.f.usedLight = 1; toast(t("candleTip"), 3000); } });
   return { title: "📚 " + t("i_shelf"), opts };
 }));
 spot(hx, z0 - 2.5, 2, "i_yard", () => openMenu(() => {
@@ -385,9 +405,10 @@ spot(hx, z0 - 2.5, 2, "i_yard", () => openMenu(() => {
     { label: t("coalYard"), dis: !food || !water || !has(st.bag, "matches"), fn: () => { add(st.bag, food, -1); if (has(st.bag, "water", 0.5)) add(st.bag, "water", -0.5); else st.homeWater -= 0.5; add(st.bag, "cooked", 1); minutes(45); toast(t("cooked")); Audio.play("ok"); } },
   ] };
 }));
-spot(9.5, 12, 3.2, "i_parking", () => openMenu(() => ({ title: "🚗 " + t("i_car"), info: [t("carFuel", { v: Math.round(st.carFuel) })], opts: [
+spot(9.5, 12, 3.2, "i_parking", () => openMenu(() => ({ title: "🚗 " + t("i_car"), info: [t("carFuel", { v: Math.round(st.carFuel) }), after() && st.T < B() + 48 ? t("departEarly") : null], opts: [
   { label: t("carCharge"), dis: st.carFuel < 3 || st.phone >= 99, fn: () => { st.carFuel -= 2; st.phone = Math.min(100, st.phone + 40); minutes(30); Audio.play("ok"); } },
-  has(st.bag, "gascan") ? { label: t("pourCan"), fn: () => { add(st.bag, "gascan", -1); st.carFuel = Math.min(100, st.carFuel + 12); Audio.play("ok"); } } : null,
+  has(st.bag, "gascan") ? { label: t("pourCan"), fn: () => { add(st.bag, "gascan", -1); st.carFuel = Math.min(100, st.carFuel + 40); Audio.play("ok"); } } : null,
+  after() ? { label: st.carFuel >= 50 ? t("depart") : t("departFoot"), cls: st.carFuel >= 50 ? "" : ".warn", dis: st.T < B() + 48, fn: () => { setTimeout(() => endChapter(st.carFuel >= 50 ? "car" : "foot"), 0); return "close"; } } : null,
 ] })));
 // comércio
 function pay(price, card) {
@@ -476,7 +497,8 @@ function faint() {
 function grade() {
   const f = st.f, rows = [
     ["e_cash", (f.cashB ?? st.cash) >= 100 ? 10 : (f.cashB ?? st.cash) >= 50 ? 5 : 0, "tip_cash"],
-    ["e_fuel", f.fuelB ? 10 : 0, "tip_fuel"],
+    ["e_car", st.carFuel >= 50 ? 10 : f.fuelB ? 5 : 0, "tip_fuel"],
+    ["e_bag", (5 - packMissing().length) * 2, "tip_pack"],
     ["e_water", f.waterMax >= 10 ? 10 : f.waterMax >= 5 ? 5 : 0, "tip_water"],
     ["e_food", (f.foodB ?? 0) >= 4 ? 10 : (f.foodB ?? 0) >= 2 ? 5 : 0, "tip_fridge"],
     ["e_light", f.lightB ? 10 : 0, "tip_night"],
@@ -487,7 +509,7 @@ function grade() {
     ["e_help", f.helpedZe ? 10 : 0, "tip_elder"],
   ];
   if (f.ateSpoiled) rows.push(["e_spoiled", -5, "tip_spoiled"]);
-  return { rows, total: Math.max(0, rows.reduce((a, r) => a + r[1], 0)) };
+  return { rows, total: Math.max(0, Math.round(rows.reduce((a, r) => a + r[1], 0) / 110 * 100)) };
 }
 function debrief() {
   const { rows, total } = grade();
@@ -497,13 +519,14 @@ function debrief() {
       h("summary", { style: { fontWeight: 700, cursor: "pointer" } }, (p >= 10 ? "✅ " : p > 0 ? "🟡 " : "❌ ") + t(k) + ` (${p})`),
       h("p", { style: { fontSize: "14px" } }, tx(tk)))));
 }
-function endChapter() {
+function endChapter(how = "forced") {
+  if (st.ended) return;
   st.ended = 1; playing = false; input.setVisible(false); Audio.play("win");
   const { total } = grade();
   const best = Math.max(total, +store.get("best", 0)); store.set("best", best); store.del("save");
   track("ez_finish", { game: GAME_ID, score: total, diff: st.diff });
   const stars = total >= 80 ? "⭐⭐⭐" : total >= 55 ? "⭐⭐" : "⭐";
-  screen([h("h1", stars), h("h2", { style: { textAlign: "center" } }, t("endTitle")), h("p", t("endSub")), debrief(), h("p", t("best", { v: best })), h("p.ez-msg", t("next")),
+  screen([h("h1", stars), h("h2", { style: { textAlign: "center" } }, t(how === "car" ? "endCar" : how === "foot" ? "endFoot" : "endForced")), h("p", t("endSub")), debrief(), h("p", t("best", { v: best })), h("p.ez-msg", t("next")),
     h("button.ez-btn.wide", { onclick: () => location.reload() }, "🏠 " + t("menu"))], { dim: true });
 }
 
@@ -516,45 +539,82 @@ const prompt = h("div.sv-prompt.ez-hidden"), crowdPill = h("div.sv-alert.ez-hidd
 const goalsEl = h("div.sv-goals", { onclick: () => goalsEl.classList.toggle("open") });
 const feedEl = h("div.sv-feed");
 const btn = (e, fn, title) => h("button.ez-rbtn", { title, onclick: fn }, e);
+const chatBtn = btn("💬", () => openQuickChat(sayChat));
 const topEl = h("div.ez-top", clockPill, powerPill, cashPill, roomPill(room), h("div.ez-spacer"),
-    btn("🎒", () => openBag(), "I"), btn("📱", () => openPhone(), "Q"), btn("📻", () => openRadio()), btn("🔦", () => toggleFlash(), "F"),
-    btn("📖", () => openTips()), btn("💬", () => openQuickChat(sayChat)), btn("👥", () => { pause(false); openRoomPanel(room, { onClose: resume }); }), btn("⏸", () => pause()), btn("❓", () => openHow()));
+    btn("🎒", () => openBag(), "I"), btn("📱", () => openComm(), "Q"), btn("🔦", () => toggleFlash(), "F"), chatBtn, btn("✕", () => pause(), t("closeT")));
+const guideEl = h("div.sv-guide.ez-hidden", h("span.arr", "⬆"), h("span.txt"));
 const hud = h("div.ez-hud.ez-hidden", topEl,
   barsEl,
-  goalsEl, feedEl, prompt, crowdPill);
+  goalsEl, feedEl, prompt, crowdPill, guideEl);
 document.body.appendChild(hud);
 function feed(msg) {
   const el = h("div", msg); feedEl.prepend(el);
   while (feedEl.children.length > 3) feedEl.lastChild.remove();
   setTimeout(() => el.classList.add("old"), 9000);
 }
-function goals() {
-  const f = st.f, water = st.homeWater + st.homeRaw + (st.bag.water || 0) + (st.bag.raw || 0);
-  const np = ["can", "biscuit", "rice"].reduce((a, k) => a + (st.bag[k] || 0) + (st.cupboard[k] || 0), 0);
-  let head, list;
+const waterAll = () => st.homeWater + st.homeRaw + (st.bag.water || 0) + (st.bag.raw || 0);
+const npAll = () => ["can", "biscuit", "rice"].reduce((a, k) => a + (st.bag[k] || 0) + (st.cupboard[k] || 0), 0);
+const packMissing = () => [
+  (st.bag.water || 0) >= 3 ? null : "pk_water", ["can", "biscuit", "cooked"].reduce((a, k) => a + (st.bag[k] || 0), 0) >= 2 ? null : "pk_food",
+  has(st.bag, "flash") ? null : "pk_flash", has(st.bag, "radio") ? null : "pk_radio", has(st.bag, "docs") ? null : "pk_docs"].filter(Boolean);
+// Fase 1: em ordem. { id, done, spot (para a seta) }
+const MS_PRE = [
+  { id: "news", done: () => st.f.sawNews },
+  { id: "shelf", done: () => has(st.bag, "flash") && has(st.bag, "radio"), spot: "i_shelf" },
+  { id: "charge", done: () => st.phone >= 80, spot: "i_shelf" },
+  { id: "meet", done: () => st.f.meet },
+  { id: "cupboard", done: () => has(st.bag, "matches") || !has(st.cupboard, "matches"), spot: "i_cupboard" },
+  { id: "water", done: () => waterAll() >= 10, spot: "i_sink" },
+  { id: "cash", done: () => st.cash >= 100 || st.withdrawn > 0, spot: "i_atm" },
+  { id: "market", done: () => (has(st.bag, "batt") || st.flashH > 0) && npAll() >= 4, spot: "i_market" },
+  { id: "fuel", done: () => st.carFuel >= 50, spot: () => (has(st.bag, "gascan") ? "i_parking" : "i_gas") },
+];
+// Fases 2 e 3: a primeira que valer agora.
+const MS_POST = [
+  { id: "light", when: () => isDark() && !st.f.usedLight && has(st.bag, "flash") && (st.flashH > 0 || has(st.bag, "batt")) },
+  { id: "valdir", when: () => st.f.gen && !st.f.warned, spot: "i_valdir" },
+  { id: "radio", when: () => !st.f.heard && has(st.bag, "radio") && (st.radioH > 0 || has(st.bag, "batt")) },
+  { id: "eat", when: () => st.s.food < 40 || st.s.water < 40 },
+  { id: "treat", when: () => (st.bag.raw || 0) + st.homeRaw > 0 && (has(st.bag, "matches") || has(st.bag, "bleach")), spot: "i_stove" },
+  { id: "ze", when: () => st.T > B() + 12 && !st.f.helpedZe && (st.bag.water || 0) + st.homeWater >= 3, spot: "i_ze" },
+  { id: "pack", when: () => st.T >= B() + 48 && packMissing().length, vars: () => ({ x: packMissing().map((k) => t(k)).join(", ") }), phase: "phLeave" },
+  { id: "leave", when: () => st.T >= B() + 48, spot: "i_parking", phase: "phLeave" },
+  { id: "sleep", when: () => isDark() && st.s.energy < 75, spot: "i_bed" },
+  { id: "wait", when: () => true, vars: () => ({ h: Math.max(0, Math.ceil(B() + 48 - st.T)) }) },
+];
+function curMission() {
   if (!after()) {
-    head = t("objMain");
-    list = [
-      ["g_cash", st.cash >= 100, "h_cash"], ["g_water", water >= 10, "h_water"], ["g_food", np >= 4, "h_food"],
-      ["g_light", has(st.bag, "flash") && (st.flashH > 0 || has(st.bag, "batt")), "h_light"], ["g_radio", has(st.bag, "radio") && (st.radioH > 0 || has(st.bag, "batt")), "h_radio"],
-      ["g_phone", f.meet, "h_phone"], ["g_charge", st.phone >= 80, "h_charge"], ["g_fuel", st.carFuel >= 80 || has(st.bag, "gascan"), "h_fuel"],
-    ];
-  } else {
-    head = t("objAfter", { h: Math.max(0, Math.ceil(B() + 72 - st.T)) });
-    list = [
-      f.gen && !f.warned ? ["t_valdir", false] : null,
-      st.T > B() + 12 && !f.helpedZe ? ["t_ze", false] : null,
-      st.T > B() + 14 && !(f.cida1 && f.cida2) ? ["t_cida", false] : null,
-      (st.bag.raw || 0) + st.homeRaw > 0 ? ["t_treat", false] : null,
-      st.s.food < 50 || st.s.water < 50 ? ["t_eat", false] : null,
-      isDark() || st.s.energy < 40 ? ["t_sleep", false] : null,
-    ].filter(Boolean);
+    const i = MS_PRE.findIndex((m) => !m.done());
+    if (i < 0) return { id: "ready", phase: "phPre", spot: "i_bed" };
+    return Object.assign({ phase: "phPre", i: i + 1, n: MS_PRE.length }, MS_PRE[i]);
   }
-  const done = list.filter((g) => g[1]).length;
-  const items = [...list.filter((g) => !g[1]), ...list.filter((g) => g[1])];
-  goalsEl.replaceChildren(h("b", head + (!after() ? ` (${done}/${list.length})` : "")),
-    ...items.map(([k, ok, hint], i) => h("div" + (ok ? ".ok" : i < 3 ? ".next" : ""), (ok ? "✅ " : "⬜ ") + t(k), hint && !ok ? h("small", " — " + t(hint)) : null)),
-    items.length > 3 ? h("small.more", "▾ " + t("more")) : null);
+  const m = MS_POST.find((x) => x.when());
+  return Object.assign({ phase: "phPost" }, m);
+}
+let mission = null, lastMission = "";
+function goals() {
+  mission = curMission();
+  const m = mission, spotKey = typeof m.spot === "function" ? m.spot() : m.spot;
+  m.target = spotKey ? SPOTS.find((s) => s.key === spotKey) : null;
+  if (m.id !== lastMission) { if (lastMission && playing) Audio.play("cp"); lastMission = m.id; goalsEl.classList.remove("open"); }
+  const kids = [h("small.ph", t(m.phase)), h("b", "🚩 " + (m.i ? t("msN", { i: m.i, n: m.n }) : t("msNow"))),
+    h("div.what", t("ms_" + m.id, m.vars ? m.vars() : null)), h("small.why", "💡 " + t("msWhy") + tx("mw_" + m.id))];
+  if (!after()) kids.push(h("small.more", "▾ " + t("msList")), ...MS_PRE.map((x, i) => h("div.li" + (x.done() ? ".ok" : ""), (x.done() ? "✅ " : i + 1 === m.i ? "▶ " : "⬜ ") + t("ms_" + x.id).split(/[.(]/)[0])));
+  kids.push(h("small.obj", t("objMain")));
+  goalsEl.replaceChildren(...kids);
+}
+const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 40, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }));
+beacon.visible = false; world.scene.add(beacon);
+function updGuide() {
+  const tg = mission && mission.target, d = tg ? Math.hypot(tg.x - me.x, tg.z - me.z) : 0;
+  const on = !!tg && playing && !menuOpen && d > tg.r * 0.8;
+  guideEl.classList.toggle("ez-hidden", !on); beacon.visible = on && d > 5;
+  if (!on) return;
+  beacon.position.set(tg.x, 20, tg.z); beacon.material.opacity = 0.28 + Math.sin(performance.now() / 250) * 0.1;
+  const b = cam.basis(), dx = tg.x - me.x, dz = tg.z - me.z;
+  const ang = Math.atan2(dx * b.rx + dz * b.rz, dx * b.fx + dz * b.fz);
+  guideEl.firstChild.style.transform = `rotate(${ang}rad)`;
+  guideEl.lastChild.textContent = " " + t(tg.key) + " · " + t("guideM", { m: Math.round(d) });
 }
 let hudT = 0;
 function updHud() {
@@ -566,6 +626,7 @@ function updHud() {
   const top = topEl.getBoundingClientRect().bottom + 6;
   barsEl.style.top = top + "px"; goalsEl.style.top = top + barsEl.offsetHeight + 8 + "px";
   bars.health.parentNode.parentNode.style.display = st.s.health < 95 ? "" : "none";
+  chatBtn.style.display = room.connected ? "" : "none";
   for (const k in bars) { const v = st.s[k]; bars[k].style.width = v + "%"; bars[k].style.background = v < 20 ? "#ef4444" : v < 45 ? "#f59e0b" : "#22c55e"; }
   goals();
 }
@@ -649,9 +710,11 @@ function pause(showMenu = true) {
   if (!showMenu) return;
   const scr = screen([h("h2", "⏸ " + t("paused")), h("div.ez-col",
     h("button.ez-btn.wide", { onclick: () => { scr.close(); resume(); } }, "▶ " + t("resume")),
-    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); openTips(); resume(); } }, t("tipsBook")),
+    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); resume(); openTips(); } }, t("tipsBook")),
+    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); resume(); openHow(); } }, t("howTitle")),
+    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); openRoomPanel(room, { onClose: resume }); } }, t("friends")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); openSettings({ world, onClose: () => pause() }); } }, "⚙️ " + t("settings")),
-    h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, "🏠 " + t("menu")))], { dim: true });
+    h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("exitMenu")))], { dim: true });
 }
 function resume() { start(); }
 function save() { if (st && !st.ended) { st.pos = { x: me.x, z: me.z }; store.setJSON("save", st); } }
@@ -662,7 +725,7 @@ input.onAction("pause", () => { if (playing && !menuOpen) pause(); });
 input.onAction("chat", () => { if (playing && !menuOpen) openQuickChat(sayChat); });
 addEventListener("keydown", (e) => {
   if (!playing || menuOpen) return;
-  if (e.code === "KeyI") openBag(); else if (e.code === "KeyF") toggleFlash(); else if (e.code === "KeyQ") openPhone();
+  if (e.code === "KeyI") openBag(); else if (e.code === "KeyF") toggleFlash(); else if (e.code === "KeyQ") openComm();
   else { const n = parseInt(e.key, 10); if (n >= 0 && n <= 9) sayChat(n === 0 ? 9 : n - 1); }
 });
 
@@ -679,7 +742,7 @@ world.onUpdate((dt) => {
     me.update(dt);
     // relógio: antes do apagão o tempo corre devagar (dá para se preparar)
     if (!room.connected || room.isHost) {
-      const rate = !after() ? 1 / 55 : st.diff === "hard" ? 1 / 16 : 1 / 22;
+      const rate = !after() ? (st.diff === "hard" ? 1 / 100 : 1 / 150) : st.diff === "hard" ? 1 / 16 : 1 / 22;
       advance(dt * rate);
     }
     runEvents();
@@ -696,7 +759,7 @@ world.onUpdate((dt) => {
     if (inCrowd) {
       crowdPill.textContent = t("inCrowd");
       if (!inCrowdPrev) { tip("tip_crowd"); if (st.cash > 0 && Math.random() < 0.4) { const v = Math.max(5, Math.round(st.cash * (kid() ? 0.15 : 0.3))); st.cash -= Math.min(v, st.cash); toast(tx(kid() ? "crowdLost_k" : "crowdLost", { v }), 3000); Audio.play("push"); } }
-      const g = dt * (!after() ? 1 / 55 : 1 / 22) * 60; st.f.crowdMin += g; crowdTick += g;
+      const g = dt * (!after() ? 1 / 150 : 1 / 22) * 60; st.f.crowdMin += g; crowdTick += g;
       if (crowdTick > 15) { crowdTick = 0; st.s.mood = clamp(st.s.mood - 4); st.s.health = clamp(st.s.health - 2); if (Math.random() < 0.5) { me.body.push(Math.random() - 0.5, Math.random() - 0.5, 3, 8); Audio.play("push"); } }
     }
     inCrowdPrev = inCrowd;
@@ -712,6 +775,7 @@ world.onUpdate((dt) => {
     Object.values(city.npcs).forEach((c) => c.animate(dt, 0, true));
     updateLight(dt);
     hudT -= dt; if (hudT <= 0) { hudT = 0.5; updHud(); }
+    updGuide();
     if (room.connected && room.isHost) { shareT -= dt; if (shareT <= 0) { shareT = 1; room.setShared({ T: st.T, B: st.B, cause: st.cause }); } }
   }
   remotes.update(dt);

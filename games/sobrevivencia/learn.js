@@ -18,6 +18,8 @@ const U = {
   title: T("📚 Aprendizado", "📚 Learning", "📚 Aprendizaje"),
   sub: T("Acampamento-escola · Era 0 e Era 1", "Camp school · Era 0 and Era 1", "Campamento-escuela · Era 0 y Era 1"),
   intro: T("Bem-vindo ao acampamento-escola! Fale com a professora Iara (❗) para começar. Cada aula tem cartões curtos, 2 perguntas e um desafio prático. Cada aula concluída desbloqueia as próximas. Para pegar galhos, capim, folhas e areia, é só encostar neles. Para falar ou usar algo, chegue perto e aperte E (ou ✋).", "Welcome to the camp school! Talk to teacher Iara (❗) to begin. Each lesson has short cards, 2 questions and a hands-on challenge. Each finished lesson unlocks the next ones. To pick up sticks, grass, leaves and sand, just walk into them. To talk or use something, walk up and press E (or ✋).", "¡Bienvenido al campamento-escuela! Habla con la profesora Iara (❗) para empezar. Cada clase tiene tarjetas cortas, 2 preguntas y un desafío práctico. Cada clase terminada desbloquea las siguientes. Para recoger ramas, pasto, hojas y arena, solo tócalos. Para hablar o usar algo, acércate y pulsa E (o ✋)."),
+  whereTown: T("📍 Onde: na cidade-treino, ao NORTE do acampamento. Siga a seta amarela e o ❗.", "📍 Where: in the training town, NORTH of camp. Follow the yellow arrow and the ❗.", "📍 Dónde: en la ciudad de práctica, al NORTE del campamento. Sigue la flecha amarilla y el ❗."),
+  whereCamp: T("📍 Onde: no Cerrado, ao SUL do acampamento (rio, morrinho, trilha). O painel da esquerda mostra os passos.", "📍 Where: in the Cerrado, SOUTH of camp (river, hill, trail). The left panel shows the steps.", "📍 Dónde: en el Cerrado, al SUR del campamento (río, loma, sendero). El panel izquierdo muestra los pasos."),
   startL: T("Começar as aulas", "Start the lessons", "Empezar las clases"), contL: T("Continuar as aulas", "Continue the lessons", "Continuar las clases"),
   real: T("🌑 Ir para o Apagão Real", "🌑 Go to Real Blackout", "🌑 Ir al Apagón Real"),
   tree: T("🌳 Árvore de tecnologia", "🌳 Tech tree", "🌳 Árbol tecnológico"),
@@ -32,7 +34,7 @@ const U = {
   pick: T("Pegar", "Take", "Tomar"), progress: T("✅ {d}/{n} aulas", "✅ {d}/{n} lessons", "✅ {d}/{n} clases"),
   noLesson: T("Sem aula ativa. Toque em 🌳 ou fale com a professora.", "No active lesson. Tap 🌳 or talk to the teacher.", "Sin clase activa. Toca 🌳 o habla con la profesora."),
   bag: T("🎒 Mochila", "🎒 Backpack", "🎒 Mochila"), empty: T("Vazia.", "Empty.", "Vacía."), build: T("🔨 Construir", "🔨 Build", "🔨 Construir"),
-  need: T("Falta: {x}", "Missing: {x}", "Falta: {x}"), leave: T("Sair", "Leave", "Salir"),
+  need: T("Falta: {x}", "Missing: {x}", "Falta: {x}"), leave: T("Fechar", "Close", "Cerrar"),
   b_fire: T("🔥 Fogueira (3 galhos + 2 capim + pederneira)", "🔥 Campfire (3 sticks + 2 grass + fire steel)", "🔥 Fogata (3 ramas + 2 pasto + pedernal)"),
   b_shelter: T("⛺ Abrigo (4 galhos + 4 folhas)", "⛺ Shelter (4 sticks + 4 leaves)", "⛺ Refugio (4 ramas + 4 hojas)"),
   b_filter: T("🫗 Filtro (água suja + areia + carvão)", "🫗 Filter (dirty water + sand + charcoal)", "🫗 Filtro (agua sucia + arena + carbón)"),
@@ -323,7 +325,7 @@ function startLesson(l) {
         else { Audio.play("wrong"); toast(u("wrong") + " " + exp, 4000); order = shuffle([ok, w1, w2]); }
       } })) };
     }
-    return { title: u("chal"), info: [...l.steps.map((s) => "▪️ " + stepText(s))], opts: [{ label: u("go"), fn: () => {
+    return { title: u("chal"), info: [u(l.place === "town" ? "whereTown" : "whereCamp"), ...l.steps.map((s) => "▪️ " + stepText(s))], opts: [{ label: u("go"), fn: () => {
       P.cur = l.id; P.cnt = {}; save(); track("ez_lesson_start", { game: GAME_ID, lesson: l.id }); return "close";
     } }] };
   });
@@ -514,6 +516,8 @@ spot(-34, -58.5, 2.6, () => u("i_lurdes"), () => openMenu(() => ({ title: "👵 
 const markTex = (() => { const cv = document.createElement("canvas"); cv.width = cv.height = 64; const c = cv.getContext("2d"); c.font = "52px sans-serif"; c.textAlign = "center"; c.fillText("❗", 32, 52); return new THREE.CanvasTexture(cv); })();
 SPOTS.filter((s) => s.mark).forEach((s) => { s.sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: markTex, depthTest: false })); s.sprite.scale.set(1.6, 1.6, 1); s.sprite.position.set(s.x, 4.4, s.z); s.sprite.visible = false; S.add(s.sprite); });
 
+const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 40, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide }));
+beacon.visible = false; S.add(beacon);
 // ---------------------------------------------------------------- pesca (minijogo)
 function fishGame() {
   menuOpen = true; input.setVisible(false);
@@ -536,14 +540,16 @@ function fishGame() {
 const progPill = h("div.ez-pill"), lessonEl = h("div.sv-goals"), prompt = h("div.sv-prompt.ez-hidden");
 lessonEl.addEventListener("click", () => lessonEl.classList.toggle("open"));
 const btn = (e, fn, title) => h("button.ez-rbtn", { title, onclick: fn }, e);
+const chatBtn = btn("💬", () => openQuickChat(sayChat));
 const topEl = h("div.ez-top", progPill, roomPill(room), h("div.ez-spacer"),
-    btn("🌳", () => openTree(), "T"), btn("🎒", () => openBag(), "I"), btn("💬", () => openQuickChat(sayChat)),
-    btn("👥", () => { pause(false); openRoomPanel(room, { onClose: resume }); }), btn("⏸", () => pause()), btn("❓", () => openHow()));
-const hud = h("div.ez-hud.ez-hidden", topEl, lessonEl, prompt);
+    btn("🌳", () => openTree(), "T"), btn("🎒", () => openBag(), "I"), chatBtn, btn("✕", () => pause(), t("closeT")));
+const guideEl = h("div.sv-guide.ez-hidden", h("span.arr", "⬆"), h("span.txt"));
+const hud = h("div.ez-hud.ez-hidden", topEl, lessonEl, prompt, guideEl);
 document.body.appendChild(hud);
 function openHow() { openMenu(() => ({ title: t("howTitle"), info: ["how1", "how2", "howL3", "howL4", "howL5"].map((k) => h("p", t(k))), closeLabel: t("gotIt") })); }
 function updHud() {
   progPill.textContent = u("title") + " · " + u("progress", { d: P.done.length, n: LESSONS.length });
+  chatBtn.style.display = room.connected ? "" : "none";
   lessonEl.style.top = topEl.getBoundingClientRect().bottom + 6 + "px";
   const l = P.cur && byId[P.cur];
   if (!l) { lessonEl.replaceChildren(h("b", "📚 " + u("noLesson"))); return; }
@@ -583,8 +589,10 @@ function pause(showMenu = true) {
   if (!showMenu) return;
   const scr = screen([h("h2", "⏸ " + t("paused")), h("div.ez-col",
     h("button.ez-btn.wide", { onclick: () => { scr.close(); resume(); } }, "▶ " + t("resume")),
+    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); resume(); openHow(); } }, t("howTitle")),
+    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); openRoomPanel(room, { onClose: resume }); } }, t("friends")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); openSettings({ world, onClose: () => pause() }); } }, "⚙️ " + t("settings")),
-    h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, "🏠 " + t("menu")))], { dim: true });
+    h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("exitMenu")))], { dim: true });
 }
 function resume() { start(); }
 input.onAction("pause", () => { if (playing && !menuOpen) pause(); });
@@ -633,6 +641,16 @@ world.onUpdate((dt) => {
   crowdBots.forEach((b) => b.update(dt));
   const dc = Math.hypot(me.x, me.z); const cpp = world.camera.position; tentRoof.visible = !(Math.abs(me.x) < 6.5 && Math.abs(me.z) < 6.5) && !(cpp.y < 6 && Math.abs(cpp.x) < 7 && Math.abs(cpp.z) < 7); campLabel.visible = dc > 14;
   for (const s of SPOTS) if (s.sprite) { s.sprite.visible = !!s.mark(); s.sprite.position.y = 4.4 + Math.sin(performance.now() / 300) * 0.2; }
+  let tg = null, td = 1e9;
+  if (playing && !menuOpen) for (const s of SPOTS) if (s.sprite && s.sprite.visible) { const d = Math.hypot(s.x - me.x, s.z - me.z); if (d < td) { td = d; tg = s; } }
+  const gOn = !!tg && td > tg.r;
+  guideEl.classList.toggle("ez-hidden", !gOn); beacon.visible = gOn && td > 6;
+  if (gOn) {
+    beacon.position.set(tg.x, 20, tg.z);
+    const b = cam.basis(), dx = tg.x - me.x, dz = tg.z - me.z;
+    guideEl.firstChild.style.transform = `rotate(${Math.atan2(dx * b.rx + dz * b.rz, dx * b.fx + dz * b.fz)}rad)`;
+    guideEl.lastChild.textContent = " " + tg.name() + " · " + Math.round(td) + " m";
+  }
   if (built.fire) { const k = 1 + Math.sin(performance.now() / 90) * 0.15; built.fire.fl.scale.y = 0.8 * k; built.fire.fl2.scale.y = 0.5 / k; }
   [teacher, leo, stranger, lurdes].forEach((c) => c.animate(dt, 0, true, c === leo ? "sit" : "walk"));
   remotes.update(dt);

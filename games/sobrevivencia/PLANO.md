@@ -11,6 +11,12 @@
 - **Ordem:** começar pelo **Apagão Real** (cidade, Dia 0 → 72 h); o Aprendizado vem depois.
 - **Ajustes pedidos no teste (13/11):** objetivo escrito com "onde achar" cada item; rádio sempre explica onde está e para que serve; mochila explica cada item ao tocar; barras sem cobrir o "Sozinho"; sem barra de ânimo e com saúde só quando cair; água da torneira depois do apagão = **não tratada** (alerta + ferver ou água sanitária); o jogador mora num **apartamento urbano** e o objetivo principal é o protocolo de **ficar em casa em segurança** (elevador para, bomba do prédio para).
 - **Clareza (13/11, 2º teste):** tela inicial com 2 botões explicados (Apagão Real / Aprendizado) e "Novo jogo" só do Apagão; cartão "Como jogar" na 1ª vez e botão ❓; no Aprendizado, material **úmido** (beira do rio e sombra da mata) não acende e pode ser seco perto do fogo; passos "pegar" contam o que já está na mochila.
+- **Rotina guiada (13/11, 3º teste) — regra geral: o jogador novo não sabe o que fazer; o jogo guia sempre.**
+  - Objetivo do Capítulo 1: **em 72 h, montar a mochila de emergência e deixar tudo pronto para partir para a zona rural.** 3 fases: Preparar (antes do apagão, 9 missões em ordem) → Aguentar em casa → Partir (liberado na hora 48; ir ao carro e "Partir" encerra o capítulo; na hora 72 sai às pressas).
+  - Painel mostra UMA missão por vez: o que fazer + por quê; seta amarela e facho de luz apontam o lugar. Todo personagem é apresentado (quem é, onde mora, o que fazer e por quê).
+  - Caixas de dica se chamam **"Instruções"** (não "Por quê?").
+  - Mochila = **9 quadradinhos** (3×3, 9 tipos de item); o galão vai na mão; em casa dá para guardar na despensa.
+  - Barra de cima enxuta: 🎒 · 📱 (celular + rádio juntos) · 🔦 · ✕. O ✕ substitui a pausa (mesmo funcionamento) e o submenu tem Instruções, Como jogar, Amigos, Configurações e **"Sair para o Menu"**.
 - **Depois do Apagão Real, o autor escolheu o Modo Aprendizado** (antes do Capítulo 2).
 - **Nome:** Apagão: Sobreviva. **Publicação:** direto no main, com card no portal.
 
