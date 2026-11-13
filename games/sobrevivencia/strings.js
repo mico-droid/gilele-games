@@ -383,6 +383,7 @@ const S = {
   nextP: ["Próximo ▶", "Next ▶", "Siguiente ▶"],
   howL3: ["📒 O manual de treinamento mostra as aulas. Cada aula: cartões → 2 perguntas → desafio. O painel da esquerda mostra os passos do desafio.", "📒 The training manual shows the lessons. Each lesson: cards → 2 questions → challenge. The left panel shows the challenge steps.", "📒 El manual de entrenamiento muestra las clases. Cada clase: tarjetas → 2 preguntas → desafío. El panel izquierdo muestra los pasos."],
   howL5: ["Botões de cima: 📒 manual de treinamento · 🎒 mochila (e 🔨 Construir) · ✕ fechar/pausar (lá ficam: amigos, ajuda e sair).", "Top buttons: 📒 training manual · 🎒 backpack (and 🔨 Build) · ✕ close/pause (inside: friends, help and exit).", "Botones de arriba: 📒 manual de entrenamiento · 🎒 mochila (y 🔨 Construir) · ✕ cerrar/pausar (dentro: amigos, ayuda y salir)."],
+  msShow: ["Ver missão", "Show mission", "Ver misión"],
   // Learn mode placeholder
   learnSoon: ["O Modo Aprendizado (aulas da Era 0 à Era 6) vem nas próximas versões.", "Learning Mode (lessons from Era 0 to Era 6) is coming in the next versions.", "El Modo Aprendizaje (clases de la Era 0 a la Era 6) llega en las próximas versiones."],
 };

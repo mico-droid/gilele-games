@@ -8,7 +8,7 @@ import {
 } from "../../engine/ez.js";
 import { tx, setKidMode } from "./strings.js";
 import { buildCity, HOME, BED, ZONES } from "./city.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge } from "./menu.js";
 
 const GAME_ID = "sobrevivencia";
 registerPWA("../../sw.js");
@@ -54,7 +54,7 @@ const dayOf = () => Math.floor((17 + st.T) / 24);
 const isDark = () => { const hh = hourOf(); return hh >= 18.4 || hh < 5.6; };
 const signal = () => (!after() ? 3 : st.T < B() + 4 ? 3 : st.T < B() + 8 ? 1 : 0);
 const bagKg = () => Object.entries(st.bag).reduce((a, [k, n]) => a + (IT[k] ? IT[k].kg * n : 0), 0);
-const add = (o, k, n = 1) => { o[k] = Math.round(((o[k] || 0) + n) * 100) / 100; if (o[k] <= 0.001) delete o[k]; };
+const add = (o, k, n = 1) => { o[k] = Math.round(((o[k] || 0) + n) * 100) / 100; if (o[k] <= 0.001) delete o[k]; if (st && o === st.bag && n > 0 && typeof badge !== "undefined" && badge) { badge.flash(); badge.set(Object.keys(st.bag).filter((x) => IT[x] && st.bag[x] > 0).length); } };
 const has = (o, k, n = 1) => (o[k] || 0) >= n - 1e-6;
 const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 const SLOTS = 9, stackMax = (k) => (k === "water" || k === "raw" ? 8 : k === "gascan" ? 1 : 9);
@@ -230,6 +230,7 @@ function openMenu(build) {
   }
   draw();
   scr = screen([card], { dim: true });
+  addX(h, scr, close);
   return { close, draw };
 }
 function takeOpts(o, onTake) {
@@ -544,12 +545,14 @@ const barEl = (k, e) => { const fill = h("i"); bars[k] = fill; return h("div.sv-
 const barsEl = h("div.sv-bars", barEl("food", "🍽️"), barEl("water", "💧"), barEl("energy", "⚡"), barEl("health", "❤️"));
 const clockPill = h("div.ez-pill"), powerPill = h("div.ez-pill"), cashPill = h("div.ez-pill");
 const prompt = h("div.sv-prompt.ez-hidden"), crowdPill = h("div.sv-alert.ez-hidden");
-const goalsEl = h("div.sv-goals", { onclick: () => goalsEl.classList.toggle("open") });
+const goalsEl = h("div.sv-goals", { onclick: () => { if (goalsEl.classList.contains("min")) goalsEl.classList.remove("min"); else goalsEl.classList.toggle("open"); } });
 const feedEl = h("div.sv-feed");
 const btn = (e, fn, title) => h("button.ez-rbtn", { title, onclick: fn }, e);
 const chatBtn = btn("💬", () => openQuickChat(sayChat));
+const bagBtn = btn("🎒", () => openBag(), "I");
+var badge = bagBadge(h, bagBtn);
 const topEl = h("div.ez-top", clockPill, powerPill, cashPill, roomPill(room), h("div.ez-spacer"),
-    btn("🎒", () => openBag(), "I"), btn("📱", () => openComm(), "Q"), btn("🔦", () => toggleFlash(), "F"), chatBtn, btn("✕", () => pause(), t("closeT")));
+    bagBtn, btn("📱", () => openComm(), "Q"), btn("🔦", () => toggleFlash(), "F"), chatBtn, btn("✕", () => pause(), t("closeT")));
 const guideEl = h("div.sv-guide.ez-hidden", h("span.arr", "⬆"), h("span.txt"));
 const hud = h("div.ez-hud.ez-hidden", topEl,
   barsEl,
@@ -600,15 +603,19 @@ function curMission() {
   return Object.assign({ phase: "phPost" }, m);
 }
 let mission = null, lastMission = "";
+const POST_DONE = { light: () => st.f.usedLight, valdir: () => st.f.warned, radio: () => st.f.heard, eat: () => st.s.food >= 40 && st.s.water >= 40, treat: () => (st.bag.raw || 0) + st.homeRaw <= 0,
+  ze: () => st.f.helpedZe, pack: () => !packMissing().length, sleep: () => st.s.energy >= 75 };
+function missionDone(id) { const p = MS_PRE.find((x) => x.id === id); return p ? !!p.done() : POST_DONE[id] ? !!POST_DONE[id]() : false; }
 function goals() {
   mission = curMission();
   const m = mission, spotKey = typeof m.spot === "function" ? m.spot() : m.spot;
   m.target = spotKey ? SPOTS.find((s) => s.key === spotKey) : null;
-  if (m.id !== lastMission) { if (lastMission && playing) Audio.play("cp"); lastMission = m.id; goalsEl.classList.remove("open"); }
+  if (m.id !== lastMission) { if (lastMission && playing && missionDone(lastMission)) { Audio.play("win"); confetti(); } lastMission = m.id; goalsEl.classList.remove("open", "min"); }
   const kids = [h("small.ph", t(m.phase)), h("b", "🚩 " + (m.i ? t("msN", { i: m.i, n: m.n }) : t("msNow"))),
     h("div.what", ...parts(t("ms_" + m.id, m.vars ? m.vars() : null)).map((x) => h("span.ln", x))), h("small.why", "💡 " + t("msWhy") + tx("mw_" + m.id))];
   if (!after()) kids.push(h("small.more", "▾ " + t("msList")), ...MS_PRE.map((x, i) => h("div.li" + (x.done() ? ".ok" : ""), (x.done() ? "✅ " : i + 1 === m.i ? "▶ " : "⬜ ") + t("ms_" + x.id).split(/[.(]/)[0])));
   kids.push(h("small.obj", t("objMain")));
+  kids.push(h("button.sv-x", { onclick: (e) => { e.stopPropagation(); goalsEl.classList.add("min"); } }, "✕"), h("span.chip", "🚩 " + t("msShow")));
   goalsEl.replaceChildren(...kids);
 }
 const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 40, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }));
@@ -635,6 +642,7 @@ function updHud() {
   barsEl.style.top = top + "px"; goalsEl.style.top = top + barsEl.offsetHeight + 8 + "px";
   bars.health.parentNode.parentNode.style.display = st.s.health < 95 ? "" : "none";
   chatBtn.style.display = room.connected ? "" : "none";
+  badge.set(Object.keys(st.bag).filter((x) => IT[x] && st.bag[x] > 0).length);
   for (const k in bars) { const v = st.s[k]; bars[k].style.width = v + "%"; bars[k].style.background = v < 20 ? "#ef4444" : v < 45 ? "#f59e0b" : "#22c55e"; }
   goals();
 }
@@ -722,6 +730,7 @@ function pause(showMenu = true) {
     h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); openRoomPanel(room, { onClose: resume }); } }, t("friends")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); openSettings({ world, onClose: () => pause() }); } }, "⚙️ " + t("settings")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("exitMenu")))], { dim: true });
+  addX(h, scr, () => { scr.close(); resume(); });
 }
 function resume() { start(); }
 function save() { if (st && !st.ended) { st.pos = { x: me.x, z: me.z }; store.setJSON("save", st); } }

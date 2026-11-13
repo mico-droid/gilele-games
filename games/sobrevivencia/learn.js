@@ -8,7 +8,7 @@ import {
 } from "../../engine/ez.js";
 import "./strings.js";
 import { ERAS, LESSONS, byId, ITEMS, itName, L } from "./lessons.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge } from "./menu.js";
 
 const GAME_ID = "sobrevivencia-aprender";
 registerPWA("../../sw.js");
@@ -115,7 +115,7 @@ let P = Object.assign(structuredClone(P0), store.getJSON("learn", {}));
 let cfg = store.getJSON("cfg", { age: "kid" });
 const kid = () => cfg.age !== "teen";
 const save = () => store.setJSON("learn", P);
-const add = (k, n = 1) => { P.bag[k] = (P.bag[k] || 0) + n; if (P.bag[k] <= 0) delete P.bag[k]; };
+const add = (k, n = 1) => { P.bag[k] = (P.bag[k] || 0) + n; if (P.bag[k] <= 0) delete P.bag[k]; if (n > 0 && typeof badge !== "undefined" && badge) { badge.flash(); badge.set(Object.keys(P.bag).filter((x) => ITEMS[x]).length); } };
 const has = (k, n = 1) => (P.bag[k] || 0) >= n;
 const isDone = (id) => P.done.includes(id);
 const avail = (l) => !isDone(l.id) && l.req.every(isDone) && !ERAS[l.era].soon;
@@ -309,6 +309,7 @@ function openMenu(build) {
         d.noClose ? null : h("button.ez-btn.gray.wide", { onclick: close }, d.closeLabel || u("leave"))));
   }
   draw(); scr = screen([card], { dim: true });
+  addX(h, scr, close);
   return { close, draw };
 }
 const shuffle = (a) => a.map((v) => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map((x) => x[1]);
@@ -364,7 +365,7 @@ function checkLesson() {
   const l = P.cur && byId[P.cur]; if (!l) return;
   if (!l.steps.every(stepDone)) return;
   P.done.push(l.id); P.cur = null; save();
-  Audio.play("win"); track("ez_lesson_done", { game: GAME_ID, lesson: l.id });
+  Audio.play("win"); confetti(); track("ez_lesson_done", { game: GAME_ID, lesson: l.id });
   const newly = LESSONS.filter((x) => avail(x) && x.req.includes(l.id));
   const allEra1 = LESSONS.filter((x) => x.era === 1).every((x) => isDone(x.id));
   openMenu(() => ({ title: u("done"), info: [h("p", { style: { fontSize: "20px", textAlign: "center" } }, `${l.icon} ${L(l.t)}`),
@@ -552,28 +553,35 @@ function fishGame() {
     if (ok) { run = false; add("peixe"); flag("fish_get", u("fishOk")); scr.el.remove(); menuOpen = false; if (playing) input.setVisible(true); }
     else { toast(u("fishMiss")); Audio.play("wrong"); zl = 20 + Math.random() * 55; zone.style.left = zl + "%"; v = (Math.random() < 0.5 ? -1 : 1) * (0.5 + Math.random() * 0.4); }
   } }, u("pull")), h("button.ez-btn.gray.wide", { onclick: () => { run = false; scr.el.remove(); menuOpen = false; if (playing) input.setVisible(true); } }, u("leave"))], { dim: true });
+  addX(h, scr, () => { run = false; scr.el.remove(); menuOpen = false; if (playing) input.setVisible(true); });
   let last = performance.now();
   (function loop(now) { if (!run) return; const dt = (now - last) / 1000; last = now; x += v * dt * 100; if (x > 92) { x = 92; v = -Math.abs(v); } if (x < 0) { x = 0; v = Math.abs(v); } fish.style.left = x + "%"; requestAnimationFrame(loop); })(last);
 }
 
 // ---------------------------------------------------------------- HUD
 const progPill = h("div.ez-pill"), lessonEl = h("div.sv-goals"), prompt = h("div.sv-prompt.ez-hidden");
-lessonEl.addEventListener("click", () => lessonEl.classList.toggle("open"));
+lessonEl.addEventListener("click", () => { if (lessonEl.classList.contains("min")) lessonEl.classList.remove("min"); else lessonEl.classList.toggle("open"); });
 const btn = (e, fn, title) => h("button.ez-rbtn", { title, onclick: fn }, e);
 const chatBtn = btn("💬", () => openQuickChat(sayChat));
+const bagBtn = btn("🎒", () => openBag(), "I");
+var badge = bagBadge(h, bagBtn);
 const topEl = h("div.ez-top", progPill, roomPill(room), h("div.ez-spacer"),
-    btn("📒", () => openTree(), "T"), btn("🎒", () => openBag(), "I"), chatBtn, btn("✕", () => pause(), t("closeT")));
+    btn("📒", () => openTree(), "T"), bagBtn, chatBtn, btn("✕", () => pause(), t("closeT")));
 const guideEl = h("div.sv-guide.ez-hidden", h("span.arr", "⬆"), h("span.txt"));
 const hud = h("div.ez-hud.ez-hidden", topEl, lessonEl, prompt, guideEl);
 document.body.appendChild(hud);
 function openHow() { const ps = ["how1", "how2", "howL3", "howL4", "howL5"].map((k) => t(k)); let i = 0; openMenu(() => ({ title: t("howTitle") + ` · ${i + 1}/${ps.length}`, info: [h("p", { style: { fontSize: "18px" } }, ps[i])], opts: i < ps.length - 1 ? [{ label: u("next"), fn: () => { i++; } }] : [], noClose: i < ps.length - 1, closeLabel: t("gotIt") })); }
+let stepsSeen = { id: null, n: 0 };
 function updHud() {
   progPill.textContent = u("title") + " · " + u("progress", { d: P.done.length, n: LESSONS.length });
   chatBtn.style.display = room.connected ? "" : "none";
+  badge.set(Object.keys(P.bag).filter((x) => ITEMS[x]).length);
   lessonEl.style.top = topEl.getBoundingClientRect().bottom + 6 + "px";
   const l = P.cur && byId[P.cur];
   if (!l) { lessonEl.replaceChildren(h("b", "📚 " + u("noLesson"))); return; }
-  lessonEl.replaceChildren(h("b", `${l.icon} ${L(l.t)}`), ...l.steps.map((s) => h("div.next" + (stepDone(s) ? ".ok" : ""), (stepDone(s) ? "✅ " : "⬜ ") + stepText(s) + stepProg(s))));
+  const nd = l.steps.filter(stepDone).length; if (stepsSeen.id === l.id && nd > stepsSeen.n && nd < l.steps.length) { confetti(18); Audio.play("cp"); } stepsSeen = { id: l.id, n: nd };
+  lessonEl.replaceChildren(h("b", `${l.icon} ${L(l.t)}`), ...l.steps.map((s) => h("div.next" + (stepDone(s) ? ".ok" : ""), (stepDone(s) ? "✅ " : "⬜ ") + stepText(s) + stepProg(s))),
+    h("button.sv-x", { onclick: (e) => { e.stopPropagation(); lessonEl.classList.add("min"); } }, "✕"), h("span.chip", "🚩 " + t("msShow")));
 }
 onLangChange(() => updHud());
 
@@ -613,6 +621,7 @@ function pause(showMenu = true) {
     h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); openRoomPanel(room, { onClose: resume }); } }, t("friends")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); openSettings({ world, onClose: () => pause() }); } }, "⚙️ " + t("settings")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("exitMenu")))], { dim: true });
+  addX(h, scr, () => { scr.close(); resume(); });
 }
 function resume() { start(); }
 input.onAction("pause", () => { if (playing && !menuOpen) pause(); });
