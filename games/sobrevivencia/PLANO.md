@@ -25,6 +25,7 @@
 - **13/11:** a mochila do Aprendizado é igual à do Apagão Real: 9 quadradinhos (3×3), toque abre o item (usar/largar). O equipamento do baú ocupa 1 quadradinho ("Kit da mochila"); balde e gerador vão na mão; mochila cheia não pega item novo.
 - **13/11:** no Aprendizado o botão 🔨 Construir fica na barra de cima (tecla B), fora da mochila; o boneco do jogador usa uma mochila desenhada nas costas nos dois modos (`wearPack` em `menu.js`).
 - **13/11 (jogar junto, `social.js`, vale nos dois modos):** mochila nas costas de todo jogador que tem itens (some com a mochila vazia); "Largar 1 no chão" deixa o item no mundo (caixinha com o ícone; chegue perto e E/✋ para pegar; no multijogador qualquer um pega); troca entre jogadores sem texto livre: chegar perto → "Trocar com X" → oferecer 1 item → o outro escolhe o que dá (ou aceita de presente, ou recusa) → quem ofereceu fecha ou recusa.
+- **14/11:** nova aula da Era 1, **"Conservar comida"** (`e1_preserve`, depois da Pesca): salgar e secar ao sol (carne de sol × charque), carne na lata coberta de banha, alerta de botulismo (nada cru em óleo fora da geladeira) e Plano B (defumar sem sal). Desafio: despensa → pescar → salgar e pendurar no varal → recolher o peixe seco → fritar a carne e guardar na lata. A Era 1 passa a ter 10 aulas (20 no total).
 - **Depois do Apagão Real, o autor escolheu o Modo Aprendizado** (antes do Capítulo 2).
 - **Nome:** Apagão: Sobreviva. **Publicação:** direto no main, com card no portal.
 

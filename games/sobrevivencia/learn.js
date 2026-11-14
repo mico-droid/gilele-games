@@ -56,6 +56,21 @@ const U = {
   trapWait: T("Ainda vazia. Armadilha pede paciência…", "Still empty. Traps take patience…", "Aún vacía. La trampa requiere paciencia…"),
   trapGot: T("🐹 Pegou um preá, vivo! Você observou de perto e soltou — era só treino. Numa emergência real, isso seria comida.", "🐹 You caught a cavy, alive! You looked closely and let it go — it was just training. In a real emergency, this would be food.", "🐹 ¡Atrapaste un cuy silvestre, vivo! Lo miraste de cerca y lo soltaste — era solo práctica. En una emergencia real, sería comida."),
   trapGot_k: T("🐹 Pegou um preá! Ele está bem. Você olhou de pertinho e soltou — era só um treino!", "🐹 You caught a cavy! It's fine. You took a close look and let it go — just training!", "🐹 ¡Atrapaste un cuy! Está bien. Lo miraste de cerca y lo soltaste — ¡solo práctica!"),
+  i_pantry: T("Despensa do acampamento", "Camp pantry", "Despensa del campamento"), i_rack: T("Varal de secagem", "Drying rack", "Tendedero de secado"),
+  pantryGet: T("Pegar sal grosso, carne e lata de banha", "Take coarse salt, meat and the tin of lard", "Tomar sal gruesa, carne y lata de manteca"), pantryHi: T("Aqui ficam o sal, a banha e a carne fresca do dia.", "The salt, the lard and today's fresh meat are kept here.", "Aquí están la sal, la manteca y la carne fresca del día."),
+  pantryNo: T("A despensa é usada na aula \"Conservar comida\".", "The pantry is used in the \"Preserving food\" lesson.", "La despensa se usa en la clase \"Conservar comida\"."),
+  rackSalt: T("Esfregar bastante sal e pendurar ao sol e ao vento", "Rub on plenty of salt and hang in sun and wind", "Frotar mucha sal y colgar al sol y al viento"),
+  rackNoSalt: T("Pendurar sem sal", "Hang without salt", "Colgar sin sal"), rackBag: T("Guardar o peixe fresco na mochila para amanhã", "Keep the fresh fish in the bag for tomorrow", "Guardar el pescado fresco en la mochila para mañana"),
+  rackNoSaltW: T("Sem sal, as moscas e os micróbios chegam antes de secar. Use bastante sal grosso.", "Without salt, flies and germs get there before it dries. Use plenty of coarse salt.", "Sin sal, las moscas y los microbios llegan antes de que se seque. Usa mucha sal gruesa."),
+  rackBagW: T("Peixe fresco no calor estraga em poucas horas. Conserve agora!", "Fresh fish in the heat spoils within hours. Preserve it now!", "El pescado fresco con calor se echa a perder en pocas horas. ¡Consérvalo ahora!"),
+  rackNeed: T("Você precisa de 1 peixe e de sal grosso.", "You need 1 fish and coarse salt.", "Necesitas 1 pescado y sal gruesa."), rackHung: T("🐟 Peixe salgado no varal. O sol e o vento fazem o resto: volte daqui a pouco.", "🐟 Salted fish on the rack. Sun and wind do the rest: come back in a bit.", "🐟 Pescado salado en el tendedero. El sol y el viento hacen el resto: vuelve en un rato."),
+  rackWait: T("Ainda úmido. Secar leva tempo…", "Still damp. Drying takes time…", "Aún húmedo. Secar lleva tiempo…"), rackTake: T("Recolher o peixe seco", "Collect the dried fish", "Recoger el pescado seco"),
+  rackDone: T("🐠 Peixe salgado e seco: dura semanas. Antes de comer, deixe de molho para tirar o sal e cozinhe.", "🐠 Salted dried fish: keeps for weeks. Before eating, soak it to remove the salt and cook it.", "🐠 Pescado salado y seco: dura semanas. Antes de comer, déjalo en remojo para quitar la sal y cocínalo."),
+  f_can: T("Fritar bem a carne e guardar na lata, coberta de banha", "Fry the meat well and store it in the tin, covered in lard", "Freír bien la carne y guardarla en la lata, cubierta de manteca"),
+  f_canRaw: T("Guardar a carne crua na lata, coberta de óleo", "Store the raw meat in the tin, covered in oil", "Guardar la carne cruda en la lata, cubierta de aceite"),
+  f_canRawW: T("Perigo! Carne crua sem ar e fora da geladeira pode criar a toxina do botulismo. Frite bem antes.", "Danger! Raw meat with no air and no fridge can form botulism toxin. Fry it well first.", "¡Peligro! La carne cruda sin aire y sin nevera puede formar la toxina del botulismo. Fríela bien antes."),
+  f_canRawW_k: T("Não! Carne crua guardada assim estraga e faz muito mal. Tem que fritar bem antes (com um adulto).", "No! Raw meat stored like that spoils and makes you very sick. Fry it well first (with an adult).", "¡No! La carne cruda guardada así se echa a perder y hace mucho daño. Hay que freírla bien antes (con un adulto)."),
+  canDone: T("🥫 Carne na lata pronta: toda coberta de banha. Guarde em lugar fresco e aqueça bem antes de comer.", "🥫 Potted meat ready: fully covered in lard. Keep it somewhere cool and heat it well before eating.", "🥫 Carne en lata lista: toda cubierta de manteca. Guárdala en un lugar fresco y caliéntala bien antes de comer."),
   i_teacher: T("Professora Iara", "Teacher Iara", "Profesora Iara"), i_chest: T("Baú da mochila", "Backpack chest", "Baúl de la mochila"),
   i_fire: T("Sua fogueira", "Your campfire", "Tu fogata"), i_river: T("Rio", "River", "Río"), i_leo: T("Léo (cortou a mão)", "Léo (cut his hand)", "Léo (se cortó la mano)"),
   i_trap: T("Sua arapuca", "Your trap", "Tu arapuca"), i_news: T("Banca de notícias", "Newsstand", "Quiosco de noticias"), i_shelf: T("Estante da casa-treino", "Training house shelf", "Estante de la casa de práctica"),
@@ -429,7 +444,7 @@ function openItem(k) {
   openMenu(() => {
     if (!has(k)) return { title: itName(k), info: [u("empty")], opts: [], closeLabel: u("bag"), onClose: openBag };
     const opts = [];
-    if (ITEMS[k].safe || k === "peixeAssado") opts.push({ label: u("eat"), fn: () => { add(k, -1); toast(u("yum")); Audio.play("coin"); } });
+    if (ITEMS[k].safe || k === "peixeAssado" || k === "peixeSeco" || k === "carneLata") opts.push({ label: u("eat"), fn: () => { add(k, -1); toast(u("yum")); Audio.play("coin"); } });
     else if (k === "aguaBoa") opts.push({ label: u("drink"), fn: () => { add(k, -1); toast(u("yum")); Audio.play("pop"); } });
     else if (k === "aguaSuja") opts.push({ label: "⚠️ " + u("drink"), cls: ".warn", fn: () => { toast(u("r_drinkBad"), 3500); Audio.play("wrong"); } });
     opts.push({ label: "⬇️ " + t("gr_drop"), cls: ".gray", fn: () => { social.drop(k); } });
@@ -496,6 +511,29 @@ BADS.forEach(([k, x, z]) => spot(x, z, 2.6, () => u(k === "bad" ? "i_bad" : "i_b
   { label: u("harvest"), cls: ".warn", fn: () => { toast(u(k === "bad" ? "badWarn" : "bravaWarn"), 3500); Audio.play("wrong"); return "close"; } },
   { label: u("leaveIt"), fn: () => { toast("👍"); return "close"; } },
 ] }))));
+// despensa e varal (aula Conservar comida)
+solid(4.2, 0.5, 0.6, 1.4, 1, 1, "#92400e"); deco(1.5, 0.12, 1.1, "#713f12", 4.2, 1.06, 0.6); deco(0.3, 0.4, 0.3, "#f8fafc", 3.9, 1.3, 0.6); deco(0.34, 0.44, 0.34, "#cbd5e1", 4.5, 1.32, 0.6);
+const RACK = { x: -11, z: -5 };
+deco(0.2, 2.6, 0.2, "#7c4a1e", RACK.x - 2, 1.3, RACK.z); deco(0.2, 2.6, 0.2, "#7c4a1e", RACK.x + 2, 1.3, RACK.z); deco(4.2, 0.08, 0.08, "#d6d3d1", RACK.x, 2.5, RACK.z);
+label("☀️ " + u("i_rack"), RACK.x, 3.6, RACK.z, "#fef3c7");
+const rackFish = new THREE.Group(); rackFish.position.set(RACK.x, 0, RACK.z); S.add(rackFish);
+[-1, 0, 1].forEach((i) => part(0.5, 0.9, 0.08, "#e8c9a0", i * 1.1, 2, 0, rackFish));
+const rackOn = () => !!P.built.rackT && !P.w.pres_take;
+rackFish.visible = rackOn();
+spot(4.2, 0.6, 2.2, () => u("i_pantry"), () => openMenu(() => ({ title: "🧺 " + u("i_pantry"), info: [P.cur === "e1_preserve" && !P.w.pres_kit ? u("pantryHi") : u("pantryNo")], opts: P.cur === "e1_preserve" && !P.w.pres_kit ? [
+  { label: u("pantryGet"), fn: () => { if (slotsUsed() + 3 > SLOTS) { toast(u("bagFull"), 3000); Audio.play("wrong"); return; } add("sal", 2); add("carne"); add("banha"); flag("pres_kit"); return "close"; } },
+] : [] })), { mark: () => P.cur === "e1_preserve" && !P.w.pres_kit });
+spot(RACK.x, RACK.z, 3, () => u("i_rack"), () => {
+  if (rackOn()) {
+    if (Date.now() - P.built.rackT < 30000) return toast(u("rackWait"), 2500);
+    return openMenu(() => ({ title: "☀️ " + u("i_rack"), info: [], opts: [{ label: u("rackTake"), fn: () => { if (!canTake("peixeSeco")) return; add("peixeSeco"); rackFish.visible = false; flag("pres_take", u("rackDone")); return "close"; } }] }));
+  }
+  openMenu(() => ({ title: "☀️ " + u("i_rack"), info: [has("peixe") && has("sal") ? null : u("rackNeed")], opts: has("peixe") ? shuffle([
+    { label: u("rackSalt"), dis: !has("sal"), fn: () => { add("peixe", -1); add("sal", -1); P.cnt.ok_peixe = 1; P.built.rackT = Date.now(); delete P.w.pres_take; rackFish.visible = true; flag("pres_hang", u("rackHung")); return "close"; } },
+    { label: u("rackNoSalt"), cls: ".warn", fn: () => { toast(u("rackNoSaltW"), 4000); Audio.play("wrong"); } },
+    { label: u("rackBag"), cls: ".warn", fn: () => { toast(u("rackBagW"), 4000); Audio.play("wrong"); } },
+  ]) : [] }));
+}, { mark: () => P.cur === "e1_preserve" && ((has("peixe") && has("sal") && !P.w.pres_hang) || (rackOn() && Date.now() - P.built.rackT >= 30000)) });
 // rio (zona) e fogueira (dinâmica)
 spot(0, RIVER_Z - 4.5, 0, () => u("i_river"), () => {
   const atRem = Math.abs(me.x - 30) < 12;
@@ -510,6 +548,8 @@ spot(0, 0, 3, () => u("i_fire"), () => openMenu(() => ({ title: "🔥 " + u("i_f
   { label: u("f_coal"), fn: () => { if (!canTake("carvao")) return; add("carvao"); flag("w_coal", "+1 " + itName("carvao")); } },
   { label: u("f_dry"), dis: !has("galhoUmido") && !has("capimUmido"), fn: () => { for (const k of ["galho", "capim"]) { const n = P.bag[k + "Umido"] || 0; if (n) { add(k + "Umido", -n); add(k, n); P.cnt[k] = (P.cnt[k] || 0) + n; } } toast(u("f_dried"), 2500); Audio.play("ok"); } },
   { label: u("f_boil"), dis: !has("aguaFiltrada"), fn: () => { add("aguaFiltrada", -1); add("aguaBoa"); flag("w_boil", u("boiled")); } },
+  has("carne") && has("banha") ? { label: "🥫 " + u("f_can"), fn: () => { add("carne", -1); add("banha", -1); add("carneLata"); flag("pres_can", u("canDone")); } } : null,
+  has("carne") ? { label: "⚠️ " + u("f_canRaw"), cls: ".warn", fn: () => { toast(ux("f_canRawW"), 4500); Audio.play("wrong"); } } : null,
   { label: u("f_cook"), dis: !has("peixe"), fn: () => { add("peixe", -1); add("peixeAssado"); flag("fish_cook", u("cooked")); } },
   { label: u("f_out"), cls: ".gray", fn: () => { S.remove(built.fire.g); built.fire = null; P.built.fire = null; toast(u("f_outOk"), 2500); Audio.play("ok"); return "close"; } },
 ] })), { dyn: () => built.fire && { x: built.fire.x, z: built.fire.z } });

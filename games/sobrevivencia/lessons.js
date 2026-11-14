@@ -28,6 +28,9 @@ export const ITEMS = {
   aguaSuja: { e: "🟤", n: T("Água do rio (suja)", "River water (dirty)", "Agua del río (sucia)") },
   aguaFiltrada: { e: "🫗", n: T("Água filtrada", "Filtered water", "Agua filtrada") },
   aguaBoa: { e: "💧", n: T("Água fervida (potável)", "Boiled water (safe)", "Agua hervida (potable)") },
+  sal: { e: "🧂", n: T("Sal grosso", "Coarse salt", "Sal gruesa") }, carne: { e: "🥩", n: T("Carne fresca", "Fresh meat", "Carne fresca") },
+  banha: { e: "🫙", n: T("Lata de banha", "Tin of lard", "Lata de manteca") }, peixeSeco: { e: "🐠", n: T("Peixe salgado e seco", "Salted dried fish", "Pescado salado y seco") },
+  carneLata: { e: "🥫", n: T("Carne na lata (na banha)", "Potted meat (in lard)", "Carne en lata (en manteca)") },
   peixe: { e: "🐟", n: T("Peixe", "Fish", "Pez") }, peixeAssado: { e: "🍢", n: T("Peixe assado", "Grilled fish", "Pez asado") },
   vara: { e: "🎣", n: T("Vara de pesca", "Fishing rod", "Caña de pescar") },
   // mochila da Era 1
@@ -403,6 +406,30 @@ export const LESSONS = [
       { k: "pick", it: "galho", n: 4 }, { k: "pick", it: "cipo", n: 1 },
       { k: "act", f: "trap_set", txt: T("Monte a arapuca na trilha com pegadas (🔨 Construir)", "Set the trap on the trail with tracks (🔨 Build)", "Arma la arapuca en el sendero con huellas (🔨 Construir)") },
       { k: "act", f: "trap_check", txt: T("Volte depois e confira a arapuca", "Come back later and check the trap", "Vuelve después y revisa la arapuca") },
+    ] },
+  { id: "e1_preserve", era: 1, req: ["e1_fish"], icon: "🧂", place: "camp",
+    t: T("Conservar comida", "Preserving food", "Conservar comida"),
+    c: [
+      T("Sem geladeira, carne e peixe estragam em horas. Quem estraga a comida são os micróbios, e eles precisam de água, de calor e de tempo. Tire a água, ponha sal, defume ou tire o ar: a comida dura muito mais.", "Without a fridge, meat and fish spoil in hours. Germs spoil food, and they need water, warmth and time. Remove the water, add salt, smoke it or keep the air out: the food lasts much longer.", "Sin nevera, la carne y el pescado se echan a perder en horas. Los microbios estropean la comida y necesitan agua, calor y tiempo. Quita el agua, pon sal, ahúma o quita el aire: la comida dura mucho más."),
+      T("Salgar e secar: corte em mantas finas e esfregue bastante sal grosso dos dois lados. Pendure no sol e no vento, longe do chão e protegido das moscas. Salga leve (carne de sol) dura poucos dias. Salga forte e bem seca (charque) dura meses.", "Salting and drying: cut thin slabs and rub plenty of coarse salt on both sides. Hang them in sun and wind, off the ground and protected from flies. Light salting lasts a few days. Heavy salting, fully dried (jerky style), lasts months.", "Salar y secar: corta en tiras finas y frota mucha sal gruesa por ambos lados. Cuélgalas al sol y al viento, lejos del suelo y protegidas de las moscas. Una salazón ligera dura pocos días. Una salazón fuerte y bien seca (charqui) dura meses."),
+      T("Carne na lata: frite bem a carne na banha, devagar, até ficar firme e cozida por dentro. Ponha numa lata limpa e seca. Cubra TODA a carne com a banha quente e tampe. Fria, a gordura endurece e barra o ar. Tire com colher limpa e aqueça bem antes de comer.", "Potted meat: fry the meat well in lard, slowly, until firm and cooked through. Put it in a clean, dry tin. Cover ALL the meat with the hot lard and close the lid. Once cold, the fat hardens and keeps air out. Take it out with a clean spoon and heat it well before eating.", "Carne en lata: fríe bien la carne en manteca, despacio, hasta que quede firme y cocida por dentro. Ponla en una lata limpia y seca. Cubre TODA la carne con la manteca caliente y tapa. Fría, la grasa se endurece y no deja pasar el aire. Sácala con cuchara limpia y caliéntala bien antes de comer."),
+      T("Cuidado: nunca guarde carne crua, alho ou legumes crus cobertos de óleo fora da geladeira. Sem ar e sem frio, pode surgir a toxina do botulismo, que não tem cheiro nem gosto. Lata estufada, bolhas ou cheiro estranho: jogue fora, sem provar.", "Careful: never keep raw meat, garlic or raw vegetables covered in oil outside a fridge. With no air and no cold, botulism toxin can form, and it has no smell or taste. Bulging tin, bubbles or an odd smell: throw it out without tasting.", "Cuidado: nunca guardes carne cruda, ajo o verduras crudas cubiertos de aceite fuera de la nevera. Sin aire y sin frío puede formarse la toxina del botulismo, que no tiene olor ni sabor. Lata hinchada, burbujas u olor raro: tírala sin probar."),
+    ],
+    crit: T("Sem sal e sem banha: corte a carne em tiras bem finas e seque no sol e na fumaça da fogueira (defumar), virando sempre. Dura menos do que a carne salgada, então coma essa primeiro. Mel e açúcar também conservam frutas (doce em calda grossa, fruta seca).", "No salt and no lard: cut the meat into very thin strips and dry it in the sun and in campfire smoke, turning often. It keeps for less time than salted meat, so eat it first. Honey and sugar also preserve fruit (thick syrup, dried fruit).", "Sin sal ni manteca: corta la carne en tiras muy finas y sécala al sol y al humo de la fogata (ahumar), dándole vuelta. Dura menos que la carne salada, así que cómela primero. La miel y el azúcar también conservan frutas (almíbar espeso, fruta seca)."),
+    q: [
+      T(["Por que o sal conserva a carne?", "Tira a água de que os micróbios precisam", "Porque esquenta a carne", "Porque deixa a carne vermelha", "O sal puxa a água para fora. Com pouca água, os micróbios não conseguem crescer."],
+        ["Why does salt preserve meat?", "It removes the water germs need", "Because it heats the meat", "Because it turns the meat red", "Salt draws water out. With little water, germs can't grow."],
+        ["¿Por qué la sal conserva la carne?", "Quita el agua que los microbios necesitan", "Porque calienta la carne", "Porque pone roja la carne", "La sal saca el agua. Con poca agua, los microbios no pueden crecer."]),
+      T(["Qual é o jeito certo de fazer carne na lata?", "Fritar bem e cobrir toda a carne com banha quente", "Pôr a carne crua na lata e cobrir com óleo", "Deixar metade da carne fora da gordura", "A carne tem que estar bem cozida e totalmente coberta. Carne crua no óleo, fora da geladeira, pode dar botulismo."],
+        ["What is the right way to make potted meat?", "Fry it well and cover all the meat with hot lard", "Put raw meat in the tin and cover it with oil", "Leave half the meat out of the fat", "The meat must be cooked through and fully covered. Raw meat in oil, outside a fridge, can cause botulism."],
+        ["¿Cuál es la forma correcta de hacer carne en lata?", "Freírla bien y cubrir toda la carne con manteca caliente", "Poner la carne cruda en la lata y cubrirla con aceite", "Dejar la mitad de la carne fuera de la grasa", "La carne debe estar bien cocida y totalmente cubierta. Carne cruda en aceite, fuera de la nevera, puede causar botulismo."]),
+    ],
+    steps: [
+      { k: "act", f: "pres_kit", txt: T("Pegue sal grosso, carne e a lata de banha na despensa do acampamento", "Get coarse salt, meat and the tin of lard at the camp pantry", "Toma sal gruesa, carne y la lata de manteca en la despensa del campamento") },
+      { k: "pick", it: "peixe", n: 1 },
+      { k: "act", f: "pres_hang", txt: T("No varal de secagem (ao lado do acampamento), salgue o peixe e pendure ao sol", "At the drying rack (beside camp), salt the fish and hang it in the sun", "En el tendedero de secado (junto al campamento), sala el pescado y cuélgalo al sol") },
+      { k: "act", f: "pres_take", txt: T("Espere secar e recolha o peixe seco do varal", "Wait for it to dry and collect the dried fish from the rack", "Espera a que seque y recoge el pescado seco") },
+      { k: "act", f: "pres_can", txt: T("Na sua fogueira, frite bem a carne e guarde na lata, coberta de banha", "At your campfire, fry the meat well and store it in the tin, covered in lard", "En tu fogata, fríe bien la carne y guárdala en la lata, cubierta de manteca") },
     ] },
 ];
 export const byId = Object.fromEntries(LESSONS.map((l) => [l.id, l]));
