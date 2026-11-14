@@ -15,7 +15,8 @@ icons/                Ícones do app
 engine/               Gilele Engine (módulos JS, sem build)
 games/demo/           Playground Testes: jogo-modelo (inclui pegar e arremessar objetos)
 games/auto-escola/    Auto Escola: simulado de direção (CTB + MBEDV)
-games/tabuada/        Batalha da Tabuada: jogo 2D de contas (HTML único, PWA própria)
+games/parkour-tabuada/ Parkour Tabuada: parkour 3D de contas (+ − × ÷), HTML único derivado do EZ Obby, PWA própria
+games/tabuada/        Tabuada Simples: jogo 2D de contas (HTML único, PWA própria)
 games/sobrevivencia/  Apagão: Sobreviva — sobrevivencialismo (Cap. 1: primeiras 72 h de um apagão)
 tests/                Ferramentas de teste (piloto automático da Auto Escola)
 ```
