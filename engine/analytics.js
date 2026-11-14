@@ -17,8 +17,11 @@ function context() {
 }
 
 /** Liga o GTM (uma vez por página). Sem id usa o container padrão do Jatobá Tec. */
+export const ANALYTICS_OFF_KEY = "ez:noanalytics"; // desligado pela página de Privacidade
+const analyticsOff = () => { try { return localStorage.getItem(ANALYTICS_OFF_KEY) === "1"; } catch (e) { return false; } };
 export function initGTM(id = GTM_ID) {
   if (window.__ezGtm) return; window.__ezGtm = 1;
+  if (analyticsOff()) return; // o jogador desligou as estatísticas neste aparelho
   window.dataLayer = window.dataLayer || [];
   gtag("consent", "default", { ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied", analytics_storage: "granted" });
   gtag("set", "ads_data_redaction", true);
@@ -34,6 +37,7 @@ export function initGTM(id = GTM_ID) {
  *  install_click · app_installed · share · lang_change {lang}
  */
 export function track(event, params) {
+  if (!window.__ezGtm || analyticsOff()) return;
   try {
     const p = Object.assign({}, params || {});
     delete p.game; // o jogo vem de game_id

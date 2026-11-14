@@ -168,6 +168,7 @@ export function gameLinks(gameName, { portal = "../../" } = {}) {
       h("a.ez-btn.gray.small", { href: portal, style: { textDecoration: "none" } }, "🏠 " + t("portal")),
       installed() && !canInstall() ? null : h("button.ez-btn.blue.small", { onclick: async () => { track("install_click", {}); if (canInstall()) { if (await promptInstall()) { mark(); draw(); } } else howTo(); } }, "📲 " + t("install")),
       h("button.ez-btn.blue.small", { onclick: share }, "📤 " + t("share")),
+      h("a.ez-btn.gray.small", { href: portal + "privacidade.html", style: { textDecoration: "none" } }, "🔒 " + t("privacy")),
     ].filter(Boolean));
   };
   draw(); onInstallable(draw);

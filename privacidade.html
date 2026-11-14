@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacidade e publicidade · gi-lele games</title>
+<meta name="description" content="Como os jogos tratam seus dados: sem cadastro, sem dados pessoais, estatísticas anônimas que você pode desligar.">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #0f172a; background: linear-gradient(160deg, #38bdf8, #22c55e); min-height: 100vh; }
+  main { max-width: 760px; margin: 0 auto; padding: 20px 16px 40px; }
+  .card { background: #fff; border-radius: 20px; padding: 22px 22px 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+  h1 { color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.15); margin: 6px 0 14px; font-size: 28px; }
+  h2 { font-size: 19px; margin: 22px 0 6px; }
+  p, li { margin: 6px 0; }
+  .top { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .top a, .langs button, .btn { font: inherit; font-weight: 700; border: 0; border-radius: 12px; padding: 8px 14px; cursor: pointer; text-decoration: none; }
+  .top a { background: #475569; color: #fff; }
+  .langs { display: flex; gap: 6px; }
+  .langs button { background: #e2e8f0; color: #0f172a; padding: 6px 10px; }
+  .langs button.on { background: #0284c7; color: #fff; }
+  .btn { background: #0284c7; color: #fff; margin: 6px 0 4px; }
+  .btn.off { background: #16a34a; }
+  .status { font-weight: 700; }
+  .small { font-size: 14px; color: #475569; }
+  [data-l] { display: none; } [data-l].show { display: block; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <a href="./">🏠 gi-lele games</a>
+    <div class="langs"><button data-set="pt">PT</button><button data-set="en">EN</button><button data-set="es">ES</button></div>
+  </div>
+
+  <!-- ===================== PORTUGUÊS ===================== -->
+  <section data-l="pt">
+    <h1>🔒 Privacidade e publicidade</h1>
+    <div class="card">
+      <p><b>Resumo:</b> nossos jogos não pedem cadastro, não pedem nome real, e-mail ou telefone, e não têm chat livre. Coletamos só estatísticas de uso, sem identificar ninguém, e você pode desligá-las.</p>
+
+      <h2>1. O que fica no seu aparelho</h2>
+      <p>O progresso, as configurações (idioma, som, faixa de idade) e a aparência do personagem ficam guardados <b>só no seu aparelho</b> (armazenamento local do navegador). Não enviamos isso para nenhum servidor. Para apagar, limpe os dados do site no navegador.</p>
+
+      <h2>2. Estatísticas de uso (Google Analytics)</h2>
+      <p>Usamos o Google Tag Manager e o Google Analytics para saber <b>quais jogos e partes dos jogos são mais usados</b> (por exemplo: começou uma partida, terminou uma fase, instalou o app). Isso usa um cookie de estatística do Google.</p>
+      <ul>
+        <li>Não enviamos nome, apelido do jogador, mensagens, código de sala nem qualquer dado pessoal.</li>
+        <li><b>Anúncios e personalização ficam sempre desligados.</b> Os dados não são usados para propaganda.</li>
+        <li>Os dados são tratados pelo Google conforme a <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">política de privacidade do Google</a>.</li>
+      </ul>
+      <p class="status" data-status></p>
+      <button class="btn" data-toggle></button>
+
+      <h2>3. Jogar com amigos (multijogador)</h2>
+      <p>As salas usam conexão direta entre os aparelhos (WebRTC), com ajuda de um servidor gratuito de conexão (PeerJS). Como em qualquer jogo on-line, o endereço de internet (IP) do aparelho fica visível para os aparelhos conectados na mesma sala. Só entre em salas com quem você conhece. Não há chat livre: só frases prontas.</p>
+
+      <h2>4. Publicidade</h2>
+      <p>Alguns jogos (como a Batalha da Tabuada) mostram botões de publicidade marcados com o selo <b>“publi”</b>. São links de afiliado da Shopee: se alguém comprar pelo link, recebemos uma comissão, sem custo extra para quem compra. Esses botões abrem o site da Shopee, que tem sua própria política de privacidade. Os botões não usam seus dados nem mostram propaganda personalizada.</p>
+
+      <h2>5. Crianças e adolescentes</h2>
+      <p>Os jogos foram pensados para todas as idades, seguindo a LGPD e o ECA Digital: sem cadastro, sem chat livre, sem perfil e sem propaganda direcionada. Pais e responsáveis podem desligar as estatísticas acima e devem acompanhar as compras feitas a partir dos links de publicidade.</p>
+
+      <h2>6. Seus direitos e contato</h2>
+      <p>Como não guardamos dados que identifiquem você, não há cadastro para consultar ou apagar. Para dúvidas, abra uma mensagem em <a href="https://github.com/mico-droid/gilele-games/issues" target="_blank" rel="noopener">github.com/mico-droid/gilele-games</a>.</p>
+      <p class="small">Atualizado em 14/11/2026.</p>
+    </div>
+  </section>
+
+  <!-- ===================== ENGLISH ===================== -->
+  <section data-l="en">
+    <h1>🔒 Privacy and advertising</h1>
+    <div class="card">
+      <p><b>Summary:</b> our games need no sign-up, never ask for your real name, e-mail or phone, and have no free chat. We only collect usage statistics that don't identify anyone, and you can turn them off.</p>
+
+      <h2>1. What stays on your device</h2>
+      <p>Progress, settings (language, sound, age range) and your character's look are stored <b>only on your device</b> (browser local storage). We don't send them to any server. To erase them, clear this site's data in your browser.</p>
+
+      <h2>2. Usage statistics (Google Analytics)</h2>
+      <p>We use Google Tag Manager and Google Analytics to learn <b>which games and parts of games are used most</b> (for example: a game started, a level was completed, the app was installed). This uses a Google statistics cookie.</p>
+      <ul>
+        <li>We never send names, player nicknames, messages, room codes or any personal data.</li>
+        <li><b>Ads and personalization are always turned off.</b> The data is not used for advertising.</li>
+        <li>The data is processed by Google under the <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google privacy policy</a>.</li>
+      </ul>
+      <p class="status" data-status></p>
+      <button class="btn" data-toggle></button>
+
+      <h2>3. Playing with friends (multiplayer)</h2>
+      <p>Rooms use a direct connection between devices (WebRTC), helped by a free connection server (PeerJS). As in any online game, the device's internet address (IP) is visible to the other devices in the same room. Only join rooms with people you know. There is no free chat: only ready-made phrases.</p>
+
+      <h2>4. Advertising</h2>
+      <p>Some games (such as Times Table Battle) show ad buttons marked with an <b>“ad”</b> badge. They are Shopee affiliate links: if someone buys through the link, we earn a commission at no extra cost to the buyer. These buttons open Shopee's website, which has its own privacy policy. The buttons don't use your data or show personalized ads.</p>
+
+      <h2>5. Children and teens</h2>
+      <p>The games are made for all ages: no sign-up, no free chat, no profiling and no targeted ads. Parents and guardians can turn off the statistics above and should supervise purchases made through ad links.</p>
+
+      <h2>6. Your rights and contact</h2>
+      <p>Since we keep no data that identifies you, there is no account to look up or delete. For questions, open a message at <a href="https://github.com/mico-droid/gilele-games/issues" target="_blank" rel="noopener">github.com/mico-droid/gilele-games</a>.</p>
+      <p class="small">Updated on Nov 14, 2026.</p>
+    </div>
+  </section>
+
+  <!-- ===================== ESPAÑOL ===================== -->
+  <section data-l="es">
+    <h1>🔒 Privacidad y publicidad</h1>
+    <div class="card">
+      <p><b>Resumen:</b> nuestros juegos no piden registro, nunca piden tu nombre real, correo ni teléfono, y no tienen chat libre. Solo recopilamos estadísticas de uso que no identifican a nadie, y puedes desactivarlas.</p>
+
+      <h2>1. Lo que queda en tu dispositivo</h2>
+      <p>El progreso, la configuración (idioma, sonido, rango de edad) y la apariencia del personaje se guardan <b>solo en tu dispositivo</b> (almacenamiento local del navegador). No los enviamos a ningún servidor. Para borrarlos, limpia los datos de este sitio en el navegador.</p>
+
+      <h2>2. Estadísticas de uso (Google Analytics)</h2>
+      <p>Usamos Google Tag Manager y Google Analytics para saber <b>qué juegos y partes de los juegos se usan más</b> (por ejemplo: empezó una partida, terminó un nivel, instaló la app). Esto usa una cookie de estadística de Google.</p>
+      <ul>
+        <li>Nunca enviamos nombres, apodos, mensajes, códigos de sala ni ningún dato personal.</li>
+        <li><b>Los anuncios y la personalización están siempre desactivados.</b> Los datos no se usan para publicidad.</li>
+        <li>Google trata los datos según la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">política de privacidad de Google</a>.</li>
+      </ul>
+      <p class="status" data-status></p>
+      <button class="btn" data-toggle></button>
+
+      <h2>3. Jugar con amigos (multijugador)</h2>
+      <p>Las salas usan una conexión directa entre dispositivos (WebRTC), con ayuda de un servidor de conexión gratuito (PeerJS). Como en cualquier juego en línea, la dirección de internet (IP) del dispositivo es visible para los demás dispositivos de la misma sala. Entra solo en salas con personas que conoces. No hay chat libre: solo frases listas.</p>
+
+      <h2>4. Publicidad</h2>
+      <p>Algunos juegos (como la Batalla de las Tablas) muestran botones de publicidad marcados con la etiqueta <b>“publi”</b>. Son enlaces de afiliado de Shopee: si alguien compra por el enlace, recibimos una comisión sin costo extra para quien compra. Estos botones abren el sitio de Shopee, que tiene su propia política de privacidad. Los botones no usan tus datos ni muestran publicidad personalizada.</p>
+
+      <h2>5. Niños y adolescentes</h2>
+      <p>Los juegos están pensados para todas las edades: sin registro, sin chat libre, sin perfiles y sin publicidad dirigida. Padres y tutores pueden desactivar las estadísticas de arriba y deben supervisar las compras hechas desde los enlaces de publicidad.</p>
+
+      <h2>6. Tus derechos y contacto</h2>
+      <p>Como no guardamos datos que te identifiquen, no hay cuenta que consultar ni borrar. Para dudas, abre un mensaje en <a href="https://github.com/mico-droid/gilele-games/issues" target="_blank" rel="noopener">github.com/mico-droid/gilele-games</a>.</p>
+      <p class="small">Actualizado el 14/11/2026.</p>
+    </div>
+  </section>
+</main>
+<script>
+  // idioma: o mesmo escolhido nos jogos (chave do motor) ou o do navegador
+  const KEY_OFF = "ez:noanalytics";
+  const TXT = {
+    pt: { on: "✅ Estatísticas ligadas neste aparelho.", off: "⛔ Estatísticas desligadas neste aparelho.", btnOff: "Desligar estatísticas", btnOn: "Religar estatísticas" },
+    en: { on: "✅ Statistics are on for this device.", off: "⛔ Statistics are off for this device.", btnOff: "Turn statistics off", btnOn: "Turn statistics back on" },
+    es: { on: "✅ Estadísticas activadas en este dispositivo.", off: "⛔ Estadísticas desactivadas en este dispositivo.", btnOff: "Desactivar estadísticas", btnOn: "Reactivar estadísticas" },
+  };
+  let lang = "pt";
+  try {
+    const saved = localStorage.getItem("gilele:lang");
+    const nav = (navigator.language || "pt").slice(0, 2);
+    lang = ["pt", "en", "es"].includes(saved) ? saved : (["pt", "en", "es"].includes(nav) ? nav : "pt");
+    const q = new URLSearchParams(location.search).get("lang"); if (["pt", "en", "es"].includes(q)) lang = q;
+  } catch (e) {}
+  const isOff = () => { try { return localStorage.getItem(KEY_OFF) === "1"; } catch (e) { return false; } };
+  function draw() {
+    document.querySelectorAll("[data-l]").forEach((s) => s.classList.toggle("show", s.dataset.l === lang));
+    document.querySelectorAll("[data-set]").forEach((b) => b.classList.toggle("on", b.dataset.set === lang));
+    document.documentElement.lang = lang === "pt" ? "pt-BR" : lang;
+    const T = TXT[lang], off = isOff();
+    document.querySelectorAll("[data-status]").forEach((p) => (p.textContent = off ? T.off : T.on));
+    document.querySelectorAll("[data-toggle]").forEach((b) => { b.textContent = off ? T.btnOn : T.btnOff; b.classList.toggle("off", off); });
+  }
+  document.querySelectorAll("[data-set]").forEach((b) => (b.onclick = () => { lang = b.dataset.set; draw(); }));
+  document.querySelectorAll("[data-toggle]").forEach((b) => (b.onclick = () => {
+    try { if (isOff()) localStorage.removeItem(KEY_OFF); else localStorage.setItem(KEY_OFF, "1"); } catch (e) {}
+    draw();
+  }));
+  draw();
+</script>
+</body>
+</html>
