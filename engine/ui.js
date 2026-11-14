@@ -5,6 +5,7 @@ import {
   KINDS, HAIRS, HAIRCOLS, PALETTE, SKINS, ACCS, FACES, KIND_SKIN, sanitizeLook, randomLook, saveLook, createAvatarPreview,
 } from "./avatar.js";
 import { canInstall, promptInstall, isIos, isStandalone, onInstallable } from "./pwa.js";
+import { track } from "./analytics.js";
 
 /** h("div.cls#id", {attrs, onclick}, ...children) */
 export function h(sel, attrs, ...kids) {
@@ -146,6 +147,7 @@ export function gameLinks(gameName, { portal = "../../" } = {}) {
   const shareUrl = location.origin + location.pathname;
   const share = async () => {
     const text = t("shareText", { g: gameName });
+    track("share", {});
     try { if (navigator.share) { await navigator.share({ title: gameName, text, url: shareUrl }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
     try { await navigator.clipboard.writeText(text + " " + shareUrl); toast(t("linkCopied"), 2600); }
     catch { prompt(t("mpShare"), shareUrl); }
@@ -157,14 +159,14 @@ export function gameLinks(gameName, { portal = "../../" } = {}) {
   const KEY = "ez:installed:" + location.pathname;
   const mark = () => { try { localStorage.setItem(KEY, "1"); } catch {} };
   if (isStandalone()) mark();
-  addEventListener("appinstalled", mark);
+  addEventListener("appinstalled", () => { mark(); track("app_installed", {}); });
   const installed = () => { try { return isStandalone() || localStorage.getItem(KEY) === "1"; } catch { return isStandalone(); } };
   const draw = () => {
     // o navegador só oferece instalar quando o app NÃO está instalado: se oferecer, a marca antiga é falsa (app removido)
     if (canInstall()) { try { localStorage.removeItem(KEY); } catch {} }
     row.replaceChildren(...[
       h("a.ez-btn.gray.small", { href: portal, style: { textDecoration: "none" } }, "🏠 " + t("portal")),
-      installed() && !canInstall() ? null : h("button.ez-btn.blue.small", { onclick: async () => { if (canInstall()) { if (await promptInstall()) { mark(); draw(); } } else howTo(); } }, "📲 " + t("install")),
+      installed() && !canInstall() ? null : h("button.ez-btn.blue.small", { onclick: async () => { track("install_click", {}); if (canInstall()) { if (await promptInstall()) { mark(); draw(); } } else howTo(); } }, "📲 " + t("install")),
       h("button.ez-btn.blue.small", { onclick: share }, "📤 " + t("share")),
     ].filter(Boolean));
   };

@@ -346,7 +346,7 @@ function startLesson(l) {
       } })) };
     }
     return { title: u("chal"), info: [u(l.place === "town" ? "whereTown" : "whereCamp"), ...l.steps.map((s) => "▪️ " + stepText(s))], opts: [{ label: u("go"), fn: () => {
-      P.cur = l.id; P.cnt = {}; save(); track("ez_lesson_start", { game: GAME_ID, lesson: l.id }); return "close";
+      P.cur = l.id; P.cnt = {}; save(); track("lesson_start", { lesson: l.id }); return "close";
     } }] };
   });
 }
@@ -369,7 +369,7 @@ function checkLesson() {
   const l = P.cur && byId[P.cur]; if (!l) return;
   if (!l.steps.every(stepDone)) return;
   P.done.push(l.id); P.cur = null; save();
-  Audio.play("win"); confetti(); track("ez_lesson_done", { game: GAME_ID, lesson: l.id });
+  Audio.play("win"); confetti(); track("lesson_complete", { lesson: l.id });
   const newly = LESSONS.filter((x) => avail(x) && x.req.includes(l.id));
   const allEra1 = LESSONS.filter((x) => x.era === 1).every((x) => isDone(x.id));
   openMenu(() => ({ title: u("done"), info: [h("p", { style: { fontSize: "20px", textAlign: "center" } }, `${l.icon} ${L(l.t)}`),
@@ -643,7 +643,7 @@ function showTitle() {
   ]);
 }
 function intro() { pagedScreen(h, screen, { title: "⛺ " + u("title"), text: u("intro"), nextLabel: u("next"), endLabel: "▶ " + t("play"), onEnd: start }); }
-function start() { playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false); Audio.init(); updHud(); track("ez_play", { game: GAME_ID, multiplayer: room.connected ? 1 : 0 }); if (!store.get("howSeenL")) { store.set("howSeenL", "1"); openHow(); } }
+function start() { playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false); Audio.init(); updHud(); track("game_start", { mode: "learn", multiplayer: room.connected ? 1 : 0 }); if (!store.get("howSeenL")) { store.set("howSeenL", "1"); openHow(); } }
 function pause(showMenu = true) {
   playing = false; world.setPaused(true); input.setVisible(false); save();
   if (!showMenu) return;

@@ -534,7 +534,7 @@ function endChapter(how = "forced") {
   st.ended = 1; playing = false; input.setVisible(false); Audio.play("win");
   const { total } = grade();
   const best = Math.max(total, +store.get("best", 0)); store.set("best", best); store.del("save");
-  track("ez_finish", { game: GAME_ID, score: total, diff: st.diff });
+  track("game_end", { mode: "real", score: total, difficulty: st.diff });
   const stars = total >= 80 ? "⭐⭐⭐" : total >= 55 ? "⭐⭐" : "⭐";
   screen([h("h1", stars), h("h2", { style: { textAlign: "center" } }, t(how === "car" ? "endCar" : how === "foot" ? "endFoot" : "endForced")), h("p", t("endSub")), debrief(), h("p", t("best", { v: best })), h("p.ez-msg", t("next")),
     h("button.ez-btn.wide", { onclick: () => location.reload() }, "🏠 " + t("menu"))], { dim: true });
@@ -719,7 +719,7 @@ function load(s) {
 }
 function start() {
   playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false);
-  Audio.init(); track("ez_play", { game: GAME_ID, multiplayer: room.connected ? 1 : 0, diff: st.diff, age: st.age });
+  Audio.init(); track("game_start", { mode: "real", multiplayer: room.connected ? 1 : 0, difficulty: st.diff, age_band: st.age });
   if (!store.get("howSeen")) { store.set("howSeen", "1"); openHow(); }
 }
 function pause(showMenu = true) {

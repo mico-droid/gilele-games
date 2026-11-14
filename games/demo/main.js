@@ -63,7 +63,7 @@ function buildLevel() {
     y += 1.6;
   }
   phys.addPlatform(12, y, -18, 6, 6, "#fde047", { scene: world.scene });
-  addCheckpoint(world, phys, 12, y, -18, () => { Audio.play("win"); toast(t("top"), 2500, true); track("ez_finish", { game: GAME_ID }); spawn = { x: 12, y: y + 0.05, z: -18 }; });
+  addCheckpoint(world, phys, 12, y, -18, () => { Audio.play("win"); toast(t("top"), 2500, true); track("level_complete", {}); spawn = { x: 12, y: y + 0.05, z: -18 }; });
   for (let i = 0; i < 4; i++) coins.add(10.5 + (i % 2) * 3, y + 1.2, -19.5 + Math.floor(i / 2) * 3);
 
   // stairs, trampoline, moving platform, ice
@@ -113,7 +113,7 @@ const throwables = createThrowables({
   },
   onHit: (tg, o, mine) => {
     if (tg.alvo) { tg.down = 4; Audio.play(mine ? "ok" : "pop"); if (mine) toast(t("bullseye")); }
-    if (mine && !tg.self) { hits++; updHits(); track("ez_hit", { game: GAME_ID }); }
+    if (mine && !tg.self) { hits++; updHits(); track("target_hit", {}); }
     // bots throw a snowball back at whoever hit them (local fun, not synced)
     if (tg.bot && mine) setTimeout(() => {
       const b = tg.bot.body, dx = me.x - b.x, dz = me.z - b.z, d = Math.hypot(dx, dz) || 1;
@@ -184,7 +184,7 @@ function showTitle() {
 }
 function start() {
   playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false);
-  Audio.init(); track("ez_play", { game: GAME_ID, multiplayer: room.connected ? 1 : 0 });
+  Audio.init(); track("game_start", { multiplayer: room.connected ? 1 : 0 });
 }
 let pauseScr = null;
 function pause(showMenu = true) {

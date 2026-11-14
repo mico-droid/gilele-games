@@ -1,5 +1,6 @@
 // Tiny i18n: PT / EN / ES. Games pass their own dictionaries; engine strings are merged in.
 import { shared } from "./storage.js";
+import { track } from "./analytics.js";
 
 export const LANGS = ["pt", "en", "es"];
 export const LANG_NAMES = { pt: "Português", en: "English", es: "Español" };
@@ -91,7 +92,7 @@ export function t(key, vars) {
 export function getLang() { return lang; }
 export function setLang(l) {
   if (!LANGS.includes(l) || l === lang) return;
-  lang = l; shared.set("lang", l);
+  lang = l; shared.set("lang", l); track("lang_change", { lang: l });
   document.documentElement.lang = l === "pt" ? "pt-BR" : l;
   listeners.forEach((fn) => { try { fn(l); } catch (e) {} });
 }

@@ -463,11 +463,11 @@ function startMode(factory, arg) {
   hud.classList.remove("ez-hidden"); tc.classList.remove("ez-hidden");
   updateGearUI(); updateButtons(); updatePts();
   car.enableSound(); Audio.init();
-  track("ae_start", { game: GAME_ID, mode: mode.id, gearbox: car.transmission });
+  track("game_start", { mode: mode.id, gearbox: car.transmission });
 }
 function endMode(result) {
   playing = false; world.setPaused(true); hud.classList.add("ez-hidden"); tc.classList.add("ez-hidden"); car.disableSound(); cockpit.setOverlay(false);
-  track("ae_end", { game: GAME_ID, mode: mode.id, ok: result && result.ok ? 1 : 0, pts: judge ? judge.points : 0 });
+  track("game_end", { mode: mode.id, result: result && result.ok ? "pass" : "fail", score: judge ? judge.points : 0 });
   showReport(result || {});
 }
 

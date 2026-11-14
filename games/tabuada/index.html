@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- Analytics (mesmo container GTM do Jatobá Tec). Sem dados pessoais; anúncios/personalização sempre negados. -->
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'granted'});
+gtag('set','ads_data_redaction',true);
+window.TRK_CTX={game_id:'tabuada',app_mode:(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)?'app':'browser'};
+window.TRK=function(ev,p){try{dataLayer.push(Object.assign({event:ev},TRK_CTX,p||{}))}catch(e){}};
+dataLayer.push(Object.assign({'gtm.start':Date.now(),event:'gtm.js'},TRK_CTX));
+(function(){var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtm.js?id=GTM-54JJ46D9';document.head.appendChild(s)})();
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#5b21b6">
@@ -442,7 +452,7 @@ function childLevel(){ // nível da criança = fases concluídas (todas as modal
 }
 let DEFERRED=null; // evento de instalação do navegador (Chrome/Android/desktop)
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();DEFERRED=e;try{localStorage.removeItem('ez:installed:'+location.pathname)}catch(_){}});
-addEventListener('appinstalled',()=>{try{localStorage.setItem('ez:installed:'+location.pathname,'1')}catch(_){}});
+addEventListener('appinstalled',()=>{TRK('app_installed',{});try{localStorage.setItem('ez:installed:'+location.pathname,'1')}catch(_){}});
 addEventListener('appinstalled',()=>{DEFERRED=null});
 const isStandalone=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 try{if(isStandalone())localStorage.setItem('ez:installed:'+location.pathname,'1')}catch(_){}
@@ -524,6 +534,7 @@ function trainMenu(op){
   <div class="card"><p class="sub" style="margin-top:0">${t('pickTable')}</p><div class="av">${R(2,9).map(n=>`<button class="avb" data-a="trainstart" data-op="${op}" data-n="${n}" style="font-size:30px">${n}<small style="display:block;font-size:13px;color:var(--mute)">${best[n]===10?t('best10'):best[n]?best[n]+'/10':'&nbsp;'}</small></button>`).join('')}</div></div>`;
 }
 function startTrain(op,N,skip){
+  TRK('game_start',{mode:'train',op:String(op),table:N});
   stopAll();Music.set('calm');
   G={train:true,intro:true,op,N,mode:{id:'train'},qs:trainQs(op,N),i:-1,ok:0,bad:0,combo:0,max:0,times:[],qid:0,locked:true,limit:0,base:0,n:TRAIN_PREP};
   const id=++G.qid;
@@ -545,6 +556,7 @@ function beginTrain(id){
   showQ();
 }
 function finishTrain(d){
+  TRK('game_end',{mode:'train',op:String(d.op),score:d.ok});
   clearInterval(d.iv);clearTimeout(d.nt);d.qid++;d.locked=true;
   const tr=SAVE.train||(SAVE.train={}),o=tr[d.op]||(tr[d.op]={});o[d.N]=Math.max(o[d.N]||0,d.ok);store.save(SAVE);
   if(d.ok>=8)SFX.win();
@@ -575,6 +587,7 @@ function levels(id,c){
 
 /* ---- BATALHA ---- */
 function startLevel(mid,L){ // abertura (texto + contagem) e depois begin()
+  TRK('game_start',{mode:mid,level:L+1});
   stopAll();Music.set('calm');
   const m=MODES.find(x=>x.id===mid);
   G={mode:m,lvl:L,qs:makeQuestions(m,L),i:-1,ok:0,bad:0,combo:0,max:0,times:[],qid:0,locked:true,base:limitFor(m,L),limit:limitFor(m,L),scene:makeScene(),intro:true};
@@ -653,7 +666,7 @@ function finish(){
   const d=G;if(d.train)return finishTrain(d);
   clearInterval(d.iv);clearTimeout(d.nt);d.qid++;d.locked=true;
   const stars=d.lost?0:starsFor(d.ok),avg=d.times.reduce((a,b)=>a+b,0)/d.times.length,p=prog(d.mode.id),L=d.lvl,won=!d.lost&&d.ok>=PASS;
-  d.stars=stars;d.won=won;
+  d.stars=stars;d.won=won;TRK('game_end',{mode:d.mode.id,level:L+1,result:won?'win':'lose',score:d.ok,stars});
   p.stars[L]=Math.max(p.stars[L]||0,stars);p.best[L]=Math.max(p.best[L]||0,d.ok);p.combo[L]=Math.max(p.combo[L]||0,d.max);
   if(won)p.unlocked=Math.max(p.unlocked,L+2);
   store.save(SAVE);Music.set(won?'win':'fast');document.body.classList.toggle('lost',!won); // fundo mais escuro ao perder
@@ -684,9 +697,9 @@ const ACTIONS={
   home,
   avatars:avatarsScreen,
   setav:d=>{cfg().av=cfg().av||{};cfg().av[age()]=d.e;store.save(SAVE);home()},
-  age:d=>{cfg().age=+d.v;store.save(SAVE);home()},
+  age:d=>{TRK('age_band',{age_band:String(d.v)});cfg().age=+d.v;store.save(SAVE);home()},
   speed:d=>{cfg().fast=d.v==='1';store.save(SAVE);home()},
-  lang:d=>{if(!LANGS.includes(d.v))return;cfg().lang=d.v;CUR=d.v;store.save(SAVE);setLangDom();home()}, // idioma escolhido fica salvo
+  lang:d=>{if(!LANGS.includes(d.v))return;TRK('lang_change',{lang:d.v});cfg().lang=d.v;CUR=d.v;store.save(SAVE);setLangDom();home()}, // idioma escolhido fica salvo
   mute:()=>{cfg().mute=!cfg().mute;store.save(SAVE);document.querySelectorAll('.snd').forEach(b=>b.textContent=sndIcon())},
   mode:d=>levels(d.id),
   cyc:d=>levels(d.m,+d.c),
@@ -706,9 +719,9 @@ const ACTIONS={
   cont:d=>nextQ(+d.id),
   again:()=>startLevel(G.mode.id,G.lvl),
   nextlvl:()=>startLevel(G.mode.id,G.lvl+1),
-  share,
-  shareapp:shareApp,
-  install:installApp
+  share:d=>{TRK('share',{what:'result'});share(d)},
+  shareapp:d=>{TRK('share',{what:'app'});shareApp(d)},
+  install:d=>{TRK('install_click',{});installApp(d)}
 };
 app.addEventListener('click',e=>{
   const el=e.target.closest('[data-a]');
