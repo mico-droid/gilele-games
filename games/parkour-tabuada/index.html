@@ -53,9 +53,14 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   #chatBtn{background:rgba(15,23,42,.62);color:#fff;border-radius:999px;padding:7px 14px;font-size:15px;font-weight:600}
   #hint{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);font-size:13px;opacity:.85;background:rgba(15,23,42,.5);padding:4px 10px;border-radius:999px;white-space:nowrap}
   #touch{position:absolute;inset:0}
-  #joy{position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.18);border:3px solid rgba(255,255,255,.5);transform:translate(-50%,-50%);display:none}
-  #joyKnob{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.85);transform:translate(-50%,-50%)}
-  #joyHint{position:absolute;left:18px;bottom:110px;width:110px;height:110px;border-radius:50%;border:3px dashed rgba(255,255,255,.45)}
+  /* joystick sempre visível: fica no canto (embaixo à esquerda); no toque vai para o dedo e volta ao soltar; no PC mostra w a s d */
+  #joy{position:absolute;left:calc(max(18px,env(safe-area-inset-left)) + 60px);top:calc(100% - 170px);width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.14);border:3px solid rgba(255,255,255,.45);transform:translate(-50%,-50%);pointer-events:auto;touch-action:none;cursor:grab;opacity:.75;transition:opacity .15s}
+  #joy.live,#joy:hover{opacity:1}#joy.live{background:rgba(255,255,255,.2);cursor:grabbing}
+  #joyKnob{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.8);transform:translate(-50%,-50%);transition:transform .06s;pointer-events:none}
+  #joy.live #joyKnob{transition:none}
+  #joy b{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;text-align:center;font:700 17px/22px system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;transition:color .08s,transform .08s}
+  #joy b.on{color:#facc15;transform:scale(1.25)}
+  #joy .k-w{left:50%;top:13px}#joy .k-s{left:50%;top:calc(100% - 13px)}#joy .k-a{left:13px;top:50%}#joy .k-d{left:calc(100% - 13px);top:50%}
   #jumpBtn{pointer-events:auto;position:absolute;right:22px;bottom:90px;width:92px;height:92px;border-radius:50%;background:rgba(34,197,94,.85);color:#fff;font-size:16px;font-weight:700;box-shadow:0 5px 0 rgba(0,0,0,.25)}
   #jumpBtn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
   #resetBtn{pointer-events:auto;position:absolute;right:128px;bottom:100px;width:54px;height:54px;border-radius:50%;background:rgba(15,23,42,.62);color:#fff;font-size:22px}
@@ -71,7 +76,8 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   #pwNote.show{opacity:1;transform:translate(0,-50%)}
   #actBtn{pointer-events:auto;position:absolute;right:34px;bottom:196px;width:66px;height:66px;border-radius:50%;background:rgba(168,85,247,.85);color:#fff;font-size:28px;box-shadow:0 4px 0 rgba(0,0,0,.25)}
   #actBtn.dim{opacity:.45}
-  body:not(.touch) #touch{display:none}
+  body:not(.touch) #touch>*:not(#joy){display:none}
+  body:not(.touch) #joy{top:calc(100% - 110px)}
   body.touch #hint{display:none}
   body.touch #chatWrap{left:auto;right:12px;transform:none;bottom:278px;align-items:flex-end}
   body.touch #chatRow{max-width:70vw}
@@ -182,8 +188,7 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
     <button id="chatBtn">💬 Chat</button>
   </div>
   <div id="touch">
-    <div id="joyHint"></div>
-    <div id="joy"><div id="joyKnob"></div></div>
+    <div id="joy"><div id="joyKnob"></div><b class="k-w">w</b><b class="k-a">a</b><b class="k-s">s</b><b class="k-d">d</b></div>
     <button id="resetBtn">↺</button>
     <button id="jumpBtn">PULAR</button>
     <button id="actBtn">⚡</button>
@@ -480,7 +485,7 @@ if(!T[lang]){const nl=(navigator.language||"pt").slice(0,2);lang=T[nl]?nl:"pt";}
 const t=k=>(T[lang][k]!==undefined?T[lang][k]:T.pt[k]);
 const chatText=i=>{const c=CHAT[i];return c?(c.e||t(c.k)):"";};
 const isTouch=(window.matchMedia&&matchMedia("(pointer: coarse)").matches)||("ontouchstart" in window);
-if(isTouch)document.body.classList.add("touch");
+if(isTouch){document.body.classList.add("touch");document.querySelectorAll("#joy b").forEach(b=>b.remove());}
 
 /* ================= audio (WebAudio, no files) ================= */
 const Snd=(function(){
@@ -1702,24 +1707,41 @@ addEventListener("keydown",e=>{
   if(e.code==="KeyR"){if(mode==="tab")tabRespawn();else spawnAt(me.cp);}
   const n=parseInt(e.key,10);if(n>=0&&n<=9){sendChat(n===0?9:n-1);$("chatRow").classList.add("hidden");}
 });
-addEventListener("keyup",e=>{keys[e.code]=false;});
-addEventListener("blur",()=>{for(const k in keys)keys[k]=false;touchJump=false;joyVec.x=joyVec.y=0;});
+addEventListener("keyup",e=>{keys[e.code]=false;drawJoy();});
+addEventListener("blur",()=>{for(const k in keys)keys[k]=false;touchJump=false;joyVec.x=joyVec.y=0;drawJoy();});
+addEventListener("keydown",()=>drawJoy());
 let yaw=Math.PI,pitch=0.38,dist=10;const camTarget=new THREE.Vector3(),tmpV=new THREE.Vector3();
 const joy=document.getElementById("joy"),knob=document.getElementById("joyKnob");
 let joyId=null,joyBase={x:0,y:0},joyVec={x:0,y:0},camId=null,camLast={x:0,y:0};
+const JR=50,joyKeys={w:["KeyW","ArrowUp"],a:["KeyA","ArrowLeft"],s:["KeyS","ArrowDown"],d:["KeyD","ArrowRight"]};
+function drawJoy(){ // no PC o pino segue as teclas e a letra apertada acende
+  if(joyId!==null)return;
+  const on=k=>joyKeys[k].some(c=>keys[c]);
+  let x=(on("d")?1:0)-(on("a")?1:0),y=(on("s")?1:0)-(on("w")?1:0);const l=Math.hypot(x,y)||1;
+  knob.style.transform=`translate(calc(-50% + ${x/l*JR}px),calc(-50% + ${y/l*JR}px))`;
+  joy.querySelectorAll("b").forEach(b=>b.classList.toggle("on",on(b.textContent)));
+}
+function joyMove(e){let dx=e.clientX-joyBase.x,dy=e.clientY-joyBase.y;const l=Math.hypot(dx,dy);if(l>JR){dx*=JR/l;dy*=JR/l;}
+  joyVec.x=dx/JR;joyVec.y=dy/JR;knob.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;}
+function joyEnd(){joyId=null;joyVec.x=joyVec.y=0;joy.classList.remove("live");joy.style.left=joy.style.top="";drawJoy();}
+// pegar o próprio círculo (mouse no PC ou dedo em cima dele)
+joy.addEventListener("pointerdown",e=>{if(!playing||joyId!==null)return;e.preventDefault();e.stopPropagation();
+  const r=joy.getBoundingClientRect();joyId=e.pointerId;joyBase={x:r.left+r.width/2,y:r.top+r.height/2};joy.classList.add("live");joyMove(e);
+  try{joy.setPointerCapture(e.pointerId);}catch(_){}});
+joy.addEventListener("pointermove",e=>{if(e.pointerId===joyId)joyMove(e);});
+["pointerup","pointercancel"].forEach(ev=>joy.addEventListener(ev,e=>{if(e.pointerId===joyId)joyEnd();}));
 function onDown(e){
   if(!playing)return;
   if(e.pointerType==="touch"&&e.clientX<innerWidth*0.45&&joyId===null){
-    joyId=e.pointerId;joyBase={x:e.clientX,y:e.clientY};joy.style.display="block";joy.style.left=e.clientX+"px";joy.style.top=e.clientY+"px";knob.style.transform="translate(-50%,-50%)";
+    joyId=e.pointerId;joyBase={x:e.clientX,y:e.clientY};joy.classList.add("live");joy.style.left=e.clientX+"px";joy.style.top=e.clientY+"px";knob.style.transform="translate(-50%,-50%)";
   }else if(camId===null){camId=e.pointerId;camLast={x:e.clientX,y:e.clientY};}
   try{canvas.setPointerCapture(e.pointerId);}catch(_){}
 }
 function onMove(e){
-  if(e.pointerId===joyId){let dx=e.clientX-joyBase.x,dy=e.clientY-joyBase.y;const l=Math.hypot(dx,dy),R=50;if(l>R){dx*=R/l;dy*=R/l;}
-    joyVec.x=dx/R;joyVec.y=dy/R;knob.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;}
+  if(e.pointerId===joyId)joyMove(e);
   else if(e.pointerId===camId){const s=e.pointerType==="touch"?0.0075:0.0055;yaw-=(e.clientX-camLast.x)*s;pitch+=(e.clientY-camLast.y)*s*0.8;pitch=Math.max(-0.15,Math.min(1.25,pitch));camLast={x:e.clientX,y:e.clientY};}
 }
-function onUp(e){if(e.pointerId===joyId){joyId=null;joyVec.x=joyVec.y=0;joy.style.display="none";}if(e.pointerId===camId)camId=null;}
+function onUp(e){if(e.pointerId===joyId)joyEnd();if(e.pointerId===camId)camId=null;}
 canvas.addEventListener("pointerdown",onDown);canvas.addEventListener("pointermove",onMove);
 canvas.addEventListener("pointerup",onUp);canvas.addEventListener("pointercancel",onUp);
 canvas.addEventListener("wheel",e=>{e.preventDefault();dist=Math.max(5,Math.min(18,dist+e.deltaY*0.01));},{passive:false});

@@ -381,6 +381,7 @@ const S = {
   inHand: ["na mão (não ocupa espaço)", "in hand (takes no slot)", "en la mano (no ocupa espacio)"],
   a_leave: ["Fechar", "Close", "Cerrar"],
   nextP: ["Próximo ▶", "Next ▶", "Siguiente ▶"],
+  backP: ["◀ Voltar", "◀ Back", "◀ Atrás"],
   howL3: ["📒 O manual de treinamento mostra as aulas. Cada aula: cartões → 2 perguntas → desafio. O painel da esquerda mostra os passos do desafio.", "📒 The training manual shows the lessons. Each lesson: cards → 2 questions → challenge. The left panel shows the challenge steps.", "📒 El manual de entrenamiento muestra las clases. Cada clase: tarjetas → 2 preguntas → desafío. El panel izquierdo muestra los pasos."],
   howL5: ["Botões de cima: 📒 manual de treinamento · 🎒 mochila (e 🔨 Construir) · ✕ fechar/pausar (lá ficam: amigos, ajuda e sair).", "Top buttons: 📒 training manual · 🎒 backpack (and 🔨 Build) · ✕ close/pause (inside: friends, help and exit).", "Botones de arriba: 📒 manual de entrenamiento · 🎒 mochila (y 🔨 Construir) · ✕ cerrar/pausar (dentro: amigos, ayuda y salir)."],
   msShow: ["Ver missão", "Show mission", "Ver misión"],

@@ -24,6 +24,7 @@ export function createInput(opt = {}) {
   function fire(a, isDown) {
     if (isDown) { if (!held[a]) { edge[a] = true; (handlers[a] || []).forEach((f) => f()); } held[a] = true; }
     else held[a] = false;
+    if (a === "up" || a === "down" || a === "left" || a === "right") drawJoy();
   }
   addEventListener("keydown", (e) => {
     const tag = document.activeElement && document.activeElement.tagName;
@@ -35,38 +36,66 @@ export function createInput(opt = {}) {
     acts.forEach((a) => fire(a, true));
   });
   addEventListener("keyup", (e) => { (codeToAct[e.code] || []).forEach((a) => fire(a, false)); });
-  addEventListener("blur", () => { for (const a in held) held[a] = false; joy.x = joy.y = 0; });
+  addEventListener("blur", () => { for (const a in held) held[a] = false; joy.x = joy.y = 0; drawJoy(); });
 
   // ---- touch joystick + look
-  const joyEl = document.createElement("div"); joyEl.className = "ez-joy"; joyEl.innerHTML = '<div class="ez-knob"></div>';
+  // The joystick ring is ALWAYS visible while playing (rest spot: bottom-left). On touch it jumps to
+  // the finger and goes back home on release; on PC it shows w/a/s/d and the knob follows the keys
+  // (it can also be dragged with the mouse).
+  const joyEl = document.createElement("div"); joyEl.className = "ez-joy ez-hidden" + (isTouch ? "" : " pc");
+  joyEl.innerHTML = '<div class="ez-knob"></div>' + (isTouch ? "" : '<b class="k-w">w</b><b class="k-a">a</b><b class="k-s">s</b><b class="k-d">d</b>');
   document.body.appendChild(joyEl);
   const knob = joyEl.firstChild;
+  const keyEl = { up: joyEl.querySelector(".k-w"), left: joyEl.querySelector(".k-a"), down: joyEl.querySelector(".k-s"), right: joyEl.querySelector(".k-d") };
+  function drawJoy() {
+    if (joyId !== null) return;
+    let x = 0, y = 0;
+    if (held.right) x += 1; if (held.left) x -= 1; if (held.down) y += 1; if (held.up) y -= 1;
+    const l = Math.hypot(x, y) || 1;
+    knob.style.transform = `translate(calc(-50% + ${(x / l) * R}px),calc(-50% + ${(y / l) * R}px))`;
+    for (const a in keyEl) if (keyEl[a]) keyEl[a].classList.toggle("on", !!held[a]);
+  }
+  const joyHome = () => { joyEl.style.left = joyEl.style.top = ""; joyEl.classList.remove("live"); drawJoy(); };
   let joyId = null, joyBase = { x: 0, y: 0 }, lookId = null, lookLast = { x: 0, y: 0 };
   const joy = { x: 0, y: 0 };
   const R = 52;
+  const joyStart = (e, float) => {
+    joyId = e.pointerId; joyEl.classList.add("live");
+    if (float) { joyEl.style.left = e.clientX + "px"; joyEl.style.top = e.clientY + "px"; joyBase = { x: e.clientX, y: e.clientY }; }
+    else { const r = joyEl.getBoundingClientRect(); joyBase = { x: r.left + r.width / 2, y: r.top + r.height / 2 }; joyMove(e); }
+  };
+  function joyMove(e) {
+    let dx = e.clientX - joyBase.x, dy = e.clientY - joyBase.y; const l = Math.hypot(dx, dy);
+    if (l > R) { dx *= R / l; dy *= R / l; }
+    joy.x = dx / R; joy.y = dy / R;
+    knob.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
+  }
+  const joyEnd = () => { joyId = null; joy.x = joy.y = 0; joyHome(); };
+  // Grab the ring itself (mouse on PC, or a finger right on it).
+  joyEl.addEventListener("pointerdown", (e) => {
+    if (!enabled() || joyId !== null) return;
+    e.preventDefault(); e.stopPropagation(); joyStart(e, false);
+    try { joyEl.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  joyEl.addEventListener("pointermove", (e) => { if (e.pointerId === joyId) joyMove(e); });
+  ["pointerup", "pointercancel"].forEach((ev) => joyEl.addEventListener(ev, (e) => { if (e.pointerId === joyId) joyEnd(); }));
   if (canvas) {
     canvas.addEventListener("pointerdown", (e) => {
       if (!enabled()) return;
       if (e.pointerType === "touch" && e.clientX < innerWidth * 0.45 && joyId === null) {
-        joyId = e.pointerId; joyBase = { x: e.clientX, y: e.clientY };
-        joyEl.style.display = "block"; joyEl.style.left = e.clientX + "px"; joyEl.style.top = e.clientY + "px";
-        knob.style.transform = "translate(-50%,-50%)";
+        joyStart(e, true); knob.style.transform = "translate(-50%,-50%)";
       } else if (lookId === null) { lookId = e.pointerId; lookLast = { x: e.clientX, y: e.clientY }; }
       try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
     });
     canvas.addEventListener("pointermove", (e) => {
-      if (e.pointerId === joyId) {
-        let dx = e.clientX - joyBase.x, dy = e.clientY - joyBase.y; const l = Math.hypot(dx, dy);
-        if (l > R) { dx *= R / l; dy *= R / l; }
-        joy.x = dx / R; joy.y = dy / R;
-        knob.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
-      } else if (e.pointerId === lookId) {
+      if (e.pointerId === joyId) joyMove(e);
+      else if (e.pointerId === lookId) {
         if (opt.onLook) opt.onLook(e.clientX - lookLast.x, e.clientY - lookLast.y, e.pointerType === "touch");
         lookLast = { x: e.clientX, y: e.clientY };
       }
     });
     const up = (e) => {
-      if (e.pointerId === joyId) { joyId = null; joy.x = joy.y = 0; joyEl.style.display = "none"; }
+      if (e.pointerId === joyId) joyEnd();
       if (e.pointerId === lookId) lookId = null;
     };
     canvas.addEventListener("pointerup", up); canvas.addEventListener("pointercancel", up);
@@ -114,6 +143,7 @@ export function createInput(opt = {}) {
     pad,
     /** Call at the end of each frame to clear edge-triggered presses. */
     endFrame() { for (const a in edge) edge[a] = false; },
-    setVisible(v) { pad.classList.toggle("ez-hidden", !v || !isTouch); },
+    setVisible(v) { pad.classList.toggle("ez-hidden", !v || !isTouch); joyEl.classList.toggle("ez-hidden", !v); if (!v && joyId !== null) joyEnd(); },
+    joy: joyEl,
   };
 }

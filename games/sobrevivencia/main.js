@@ -114,7 +114,7 @@ function showNextTip() {
 function pagedMenu(title, ps) {
   let i = 0;
   openMenu(() => ({ title: title + (ps.length > 1 ? ` · ${i + 1}/${ps.length}` : ""), info: [h("p", { style: { fontSize: "18px" } }, ps[i])],
-    opts: i < ps.length - 1 ? [{ label: t("nextP"), fn: () => { i++; } }] : [], noClose: i < ps.length - 1, closeLabel: t("gotIt") }));
+    opts: [i < ps.length - 1 ? { label: t("nextP"), fn: () => { i++; } } : null, i > 0 ? { label: t("backP"), cls: ".gray", fn: () => { i--; } } : null], noClose: i < ps.length - 1, closeLabel: t("gotIt") }));
 }
 
 // ---------------------------------------------------------------- notícias e eventos
@@ -707,7 +707,7 @@ function showSetup() {
   scr = screen([h("h2", t("m_real") + " · " + t("newGame")), body]);
 }
 function showIntro() {
-  pagedScreen(h, screen, { title: "🌆 " + t("sub"), text: t("intro"), nextLabel: t("nextP"), endLabel: "▶ " + t("play"), onEnd: start });
+  pagedScreen(h, screen, { title: "🌆 " + t("sub"), text: t("intro"), nextLabel: t("nextP"), backLabel: t("backP"), endLabel: "▶ " + t("play"), onEnd: start });
 }
 function load(s) {
   setTimeout(() => social.loadGround((s && s.ground) || []), 0);

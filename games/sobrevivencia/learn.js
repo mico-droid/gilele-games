@@ -350,7 +350,7 @@ function startLesson(l) {
   let i = 0, qi = 0, order = null;
   const cards = cardsOf(l);
   openMenu((close) => {
-    if (i < cards.length) return { title: `${l.icon} ${L(l.t)} · ${i + 1}/${cards.length}`, info: [cardInfo(cards[i])], opts: [{ label: u("next"), fn: () => { i++; } }] };
+    if (i < cards.length) return { title: `${l.icon} ${L(l.t)} · ${i + 1}/${cards.length}`, info: [cardInfo(cards[i])], opts: [{ label: u("next"), fn: () => { i++; } }, i > 0 ? { label: t("backP"), cls: ".gray", fn: () => { i--; } } : null] };
     if (qi < 2) {
       const [q, ok, w1, w2] = L(l.q[qi]);
       if (!order) order = shuffle([ok, w1, w2]);
@@ -368,7 +368,7 @@ function startLesson(l) {
 function reviewLesson(l) {
   let i = 0;
   const cards = cardsOf(l);
-  openMenu(() => (i < cards.length ? { title: `${l.icon} ${L(l.t)} · ${i + 1}/${cards.length}`, info: [cardInfo(cards[i])], opts: [{ label: u("next"), fn: () => { i++; } }] } : { title: `${l.icon} ${L(l.t)}`, info: ["✅"], opts: [] }));
+  openMenu(() => (i < cards.length ? { title: `${l.icon} ${L(l.t)} · ${i + 1}/${cards.length}`, info: [cardInfo(cards[i])], opts: [{ label: u("next"), fn: () => { i++; } }, i > 0 ? { label: t("backP"), cls: ".gray", fn: () => { i--; } } : null] } : { title: `${l.icon} ${L(l.t)}`, info: ["✅"], opts: [] }));
 }
 function stepText(s) {
   if (s.k === "pick") return `${s.n}× ${itName(s.it)}`;
@@ -642,7 +642,7 @@ const topEl = h("div.ez-top", progPill, roomPill(room), h("div.ez-spacer"),
 const guideEl = h("div.sv-guide.ez-hidden", h("span.arr", "⬆"), h("span.txt"));
 const hud = h("div.ez-hud.ez-hidden", topEl, lessonEl, prompt, guideEl);
 document.body.appendChild(hud);
-function openHow() { const ps = ["how1", "how2", "howL3", "howL4", "howL5"].map((k) => t(k)); let i = 0; openMenu(() => ({ title: t("howTitle") + ` · ${i + 1}/${ps.length}`, info: [h("p", { style: { fontSize: "18px" } }, ps[i])], opts: i < ps.length - 1 ? [{ label: u("next"), fn: () => { i++; } }] : [], noClose: i < ps.length - 1, closeLabel: t("gotIt") })); }
+function openHow() { const ps = ["how1", "how2", "howL3", "howL4", "howL5"].map((k) => t(k)); let i = 0; openMenu(() => ({ title: t("howTitle") + ` · ${i + 1}/${ps.length}`, info: [h("p", { style: { fontSize: "18px" } }, ps[i])], opts: [i < ps.length - 1 ? { label: u("next"), fn: () => { i++; } } : null, i > 0 ? { label: t("backP"), cls: ".gray", fn: () => { i--; } } : null], noClose: i < ps.length - 1, closeLabel: t("gotIt") })); }
 let stepsSeen = { id: null, n: 0 };
 function updHud() {
   progPill.textContent = u("title") + " · " + u("progress", { d: P.done.length, n: LESSONS.length });
@@ -682,7 +682,7 @@ function showTitle() {
       isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · E: interagir · I: mochila · T: manual · B: construir · Arraste: câmera", "WASD/arrows: move · E: interact · I: backpack · T: manual · B: build · Drag: camera", "WASD/flechas: mover · E: interactuar · I: mochila · T: manual · B: construir · Arrastra: cámara")))),
   ]);
 }
-function intro() { pagedScreen(h, screen, { title: "⛺ " + u("title"), text: u("intro"), nextLabel: u("next"), endLabel: "▶ " + t("play"), onEnd: start }); }
+function intro() { pagedScreen(h, screen, { title: "⛺ " + u("title"), text: u("intro"), nextLabel: u("next"), backLabel: t("backP"), endLabel: "▶ " + t("play"), onEnd: start }); }
 function start() { playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false); Audio.init(); updHud(); track("game_start", { mode: "learn", multiplayer: room.connected ? 1 : 0 }); if (!store.get("howSeenL")) { store.set("howSeenL", "1"); openHow(); } }
 function pause(showMenu = true) {
   playing = false; world.setPaused(true); input.setVisible(false); save();

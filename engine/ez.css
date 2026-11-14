@@ -67,8 +67,16 @@ input { font-family: inherit; }
 @media (max-width: 520px) { .ez-editor { grid-template-columns: 1fr; } .ez-editor canvas { width: 100%; height: 200px; } }
 
 /* Touch controls */
-.ez-joy { position: fixed; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; background: rgba(255, 255, 255, 0.18); border: 3px solid rgba(255, 255, 255, 0.5); display: none; z-index: 6; pointer-events: none; }
-.ez-knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; border-radius: 50%; background: rgba(255, 255, 255, 0.75); transform: translate(-50%, -50%); }
+.ez-joy { position: fixed; left: calc(max(14px, env(safe-area-inset-left)) + 64px); top: calc(100% - max(18px, env(safe-area-inset-bottom)) - 64px); width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); border: 3px solid rgba(255, 255, 255, 0.45); z-index: 6; touch-action: none; cursor: grab; opacity: 0.75; transition: opacity 0.15s; }
+.ez-joy.live, .ez-joy.pc:hover { opacity: 1; }
+.ez-joy.live { background: rgba(255, 255, 255, 0.2); cursor: grabbing; }
+.ez-joy.ez-hidden { display: none; }
+.ez-knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; border-radius: 50%; background: rgba(255, 255, 255, 0.75); transform: translate(-50%, -50%); transition: transform 0.06s; pointer-events: none; }
+.ez-joy.live .ez-knob { transition: none; }
+.ez-joy b { position: absolute; width: 24px; height: 24px; margin: -12px 0 0 -12px; line-height: 22px; text-align: center; font: 700 17px/22px system-ui, sans-serif; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); pointer-events: none; transition: color 0.08s, transform 0.08s; }
+.ez-joy b.on { color: #facc15; transform: scale(1.25); }
+.ez-joy .k-w { left: 50%; top: 13px; } .ez-joy .k-s { left: 50%; top: calc(100% - 13px); }
+.ez-joy .k-a { left: 13px; top: 50%; } .ez-joy .k-d { left: calc(100% - 13px); top: 50%; }
 .ez-pad { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap-reverse; flex-direction: row-reverse; gap: 10px; width: 190px; justify-content: flex-start; z-index: 6; }
 .ez-tbtn { width: 64px; height: 64px; border-radius: 50%; background: rgba(15, 23, 42, 0.55); color: #fff; font-size: 24px; font-weight: 700; border: 3px solid rgba(255, 255, 255, 0.5); }
 .ez-tbtn.big { width: 86px; height: 86px; font-size: 30px; background: rgba(34, 197, 94, 0.7); }

@@ -46,13 +46,15 @@ export function parts(text) {
   for (const r of raw) { if (out.length && out[out.length - 1].length < 45) out[out.length - 1] += " " + r; else out.push(r); }
   return out;
 }
-/** Tela com o texto em partes: "Próximo ▶" até a última, depois o botão final. */
-export function pagedScreen(h, screen, { title, text, nextLabel, endLabel, onEnd }) {
+/** Tela com o texto em partes: "Próximo ▶" até a última, depois o botão final; "◀ Voltar" relê a parte anterior. */
+export function pagedScreen(h, screen, { title, text, nextLabel, endLabel, backLabel = "◀", onEnd }) {
   const ps = Array.isArray(text) ? text : parts(text); let i = 0;
   const body = h("div"), scr = screen([h("h2", title), body]);
   addX(h, scr, () => { scr.close(); onEnd(); });
   const draw = () => body.replaceChildren(h("p", { style: { fontSize: "18px", minHeight: "70px" } }, ps[i]), h("p.ez-msg", { style: { textAlign: "center" } }, `${i + 1}/${ps.length}`),
-    h("button.ez-btn.wide", { onclick: () => { if (i < ps.length - 1) { i++; draw(); } else { scr.close(); onEnd(); } } }, i < ps.length - 1 ? nextLabel : endLabel));
+    h("div.ez-row", { style: { gap: "8px" } },
+      i > 0 ? h("button.ez-btn.gray", { onclick: () => { i--; draw(); } }, backLabel) : null,
+      h("button.ez-btn", { style: { flex: "1" }, onclick: () => { if (i < ps.length - 1) { i++; draw(); } else { scr.close(); onEnd(); } } }, i < ps.length - 1 ? nextLabel : endLabel)));
   draw();
 }
 
