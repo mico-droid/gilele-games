@@ -395,9 +395,11 @@ spot(hx + 2.2, z0 + 1.9, 1.5, "i_stove", () => openMenu(() => {
 }, { onTry: () => { if (after() && !has(st.bag, "matches")) tip("tip_matches"); } }));
 spot(BED.x, BED.z, 2.2, "i_bed", () => openMenu(() => {
   const mp = room.connected && !room.isHost;
-  return { title: "🛏️ " + t("i_bed"), info: [mp ? t("sleepMp") : null], opts: [
-    { label: t("sleep"), dis: mp, fn: () => { const hh = hourOf(); let n = hh >= 6 ? 30 - hh : 6 - hh; n = Math.min(n, 11); sleep(n); return "close"; } },
-    { label: t("nap"), dis: mp, fn: () => { sleep(3); return "close"; } },
+  const open = after() && !st.locked;
+  return { title: "🛏️ " + t("i_bed"), info: [mp ? t("sleepMp") : null, open ? "⚠️ " + t("bedOpen") : null], opts: [
+    open ? { label: "🔒 " + t("lockFirst"), cls: ".blue", fn: () => { setLock(true); } } : null,
+    { label: t("sleep") + (open ? " · " + t("doorOpenTag") : ""), cls: open ? ".warn" : "", dis: mp, fn: () => { const hh = hourOf(); let n = hh >= 6 ? 30 - hh : 6 - hh; n = Math.min(n, 11); sleep(n); return "close"; } },
+    { label: t("nap") + (open ? " · " + t("doorOpenTag") : ""), cls: open ? ".warn" : "", dis: mp, fn: () => { sleep(3); return "close"; } },
   ] };
 }));
 spot(x0 + 1.2, hz + 1, 1.9, "i_shelf", () => openMenu(() => {
@@ -481,15 +483,31 @@ spot(-5, -17.4, 2.8, "i_valdir", () => openMenu(() => {
 }), { mark: () => st.f.gen && !st.f.warned });
 
 spot(x0 - 1.5, z1 + 1, 2, "i_elev", () => openMenu(() => ({ title: "🛗 " + t("i_elev"), info: [after() ? t("elevOff") : t("elevOn")] })));
+spot(hx, z1, 1.9, "i_door", () => openMenu(() => ({ title: "🚪 " + t("i_door"), info: [t(st.locked ? "doorLocked" : "doorOpen")], opts: [
+  st.locked ? { label: "🔓 " + t("unlock"), fn: () => { setLock(false); return "close"; } } : { label: "🔒 " + t("lock"), fn: () => { setLock(true); return "close"; } },
+] })));
 // marcadores ❗ sobre quem precisa de você
 const markTex = (() => { const cv = document.createElement("canvas"); cv.width = cv.height = 64; const c = cv.getContext("2d"); c.font = "52px sans-serif"; c.textAlign = "center"; c.fillText("❗", 32, 52); const tt = new THREE.CanvasTexture(cv); return tt; })();
 SPOTS.filter((s) => s.mark).forEach((s) => { s.sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: markTex, depthTest: false })); s.sprite.scale.set(1.4, 1.4, 1); s.sprite.position.set(s.x, 4.6, s.z); s.sprite.visible = false; world.scene.add(s.sprite); });
 
 // ---------------------------------------------------------------- dormir, desmaiar, fim
+function setLock(v) {
+  st.locked = !!v; city.setDoor(st.locked); Audio.play("click");
+  if (v) { st.f.lockedOnce = 1; toast("🔒 " + t("locked"), 2200); tip("tip_lock"); } else toast("🔓 " + t("unlocked"), 1600);
+}
+/** Dormiu com a porta destrancada durante o apagão: alguém entra e leva parte do estoque. */
+function robbery() {
+  st.f.robbed = (st.f.robbed || 0) + 1;
+  for (const k of ["can", "biscuit", "rice", "candle", "batt"]) if (st.cupboard[k]) add(st.cupboard, k, -Math.ceil(st.cupboard[k] / 2));
+  st.homeWater = Math.max(0, st.homeWater - 6); st.homeRaw = Math.max(0, st.homeRaw - 6);
+  st.s.mood = clamp(st.s.mood - 15); Audio.play("wrong"); news("nRob"); tip("tip_lock");
+}
 function sleep(n) {
+  const openDoor = after() && !st.locked;
   const steps = Math.ceil(n * 4);
   for (let i = 0; i < steps; i++) { advance(n / steps, true); runEvents(); if (st.ended) return; }
   st.s.mood = clamp(st.s.mood + 5); Audio.play("ok"); toast(fmtT(), 2200, true);
+  if (openDoor && !st.ended) robbery();
 }
 function faint() {
   playing = false; input.setVisible(false); Audio.play("die");
@@ -517,9 +535,10 @@ function grade() {
     ["e_crowd", f.crowdMin < 30 ? 10 : f.crowdMin < 90 ? 5 : 0, "tip_crowd"],
     ["e_co", (f.warned ? 5 : 0) + (f.coInside ? 0 : 5), "tip_co"],
     ["e_help", f.helpedZe ? 10 : 0, "tip_elder"],
+    ["e_lock", f.robbed ? 0 : f.lockedOnce ? 10 : 5, "tip_lock"],
   ];
   if (f.ateSpoiled) rows.push(["e_spoiled", -5, "tip_spoiled"]);
-  return { rows, total: Math.max(0, Math.round(rows.reduce((a, r) => a + r[1], 0) / 110 * 100)) };
+  return { rows, total: Math.max(0, Math.round(rows.reduce((a, r) => a + r[1], 0) / 120 * 100)) };
 }
 function debrief() {
   const { rows, total } = grade();
@@ -591,6 +610,7 @@ const MS_POST = [
   { id: "ze", when: () => st.T > B() + 12 && !st.f.helpedZe && (st.bag.water || 0) + st.homeWater >= 3, spot: "i_ze" },
   { id: "pack", when: () => st.T >= B() + 48 && packMissing().length, vars: () => ({ x: packMissing().map((k) => t(k)).join(", ") }), phase: "phLeave" },
   { id: "leave", when: () => st.T >= B() + 48, spot: "i_parking", phase: "phLeave" },
+  { id: "lock", when: () => isDark() && !st.locked && city.insideHome(me.x, me.z), spot: "i_door" },
   { id: "sleep", when: () => isDark() && st.s.energy < 75, spot: "i_bed" },
   { id: "wait", when: () => true, vars: () => ({ h: Math.max(0, Math.ceil(B() + 48 - st.T)) }) },
 ];
@@ -605,7 +625,7 @@ function curMission() {
 }
 let mission = null, lastMission = "";
 const POST_DONE = { light: () => st.f.usedLight, valdir: () => st.f.warned, radio: () => st.f.heard, eat: () => st.s.food >= 40 && st.s.water >= 40, treat: () => (st.bag.raw || 0) + st.homeRaw <= 0,
-  ze: () => st.f.helpedZe, pack: () => !packMissing().length, sleep: () => st.s.energy >= 75 };
+  lock: () => st.locked, ze: () => st.f.helpedZe, pack: () => !packMissing().length, sleep: () => st.s.energy >= 75 };
 function missionDone(id) { const p = MS_PRE.find((x) => x.id === id); return p ? !!p.done() : POST_DONE[id] ? !!POST_DONE[id]() : false; }
 function goals() {
   mission = curMission();
@@ -715,7 +735,7 @@ function load(s) {
   setTimeout(() => social.loadGround((s && s.ground) || []), 0);
   st = s; setKidMode(st.age === "kid");
   allowRespawn = true; me.respawn({ x: st.pos.x, y: 0.05, z: st.pos.z }); allowRespawn = false;
-  city.setPower(!after()); city.setTowerLight(st.T < B() + 8);
+  city.setPower(!after()); city.setTowerLight(st.T < B() + 8); city.setDoor(!!st.locked);
   city.gen.visible = !!st.f.gen || !!st.f.warned; if (st.f.warned) city.gen.position.set(-8, 0, -18.5);
   feedEl.replaceChildren(); updHud();
 }

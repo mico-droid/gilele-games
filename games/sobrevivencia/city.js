@@ -58,6 +58,11 @@ export function buildCity(world, phys) {
   wall(x0 + (H.w / 2 - 1.3) / 2, z1, H.w / 2 - 1.3, T); wall(x1 - (H.w / 2 - 1.3) / 2, z1, H.w / 2 - 1.3, T); // frente com porta
   part(2.6, 0.6, T, "#fef3c7", H.x, WH - 0.3, z1, S);                           // verga da porta
   // andares de cima do prédio (somem quando você está dentro do apartamento)
+  // porta (gira na dobradiça esquerda) + tranca
+  const doorMesh = new THREE.Group(); doorMesh.position.set(H.x - 1.3, 0, z1); S.add(doorMesh);
+  part(2.6, 2.4, 0.14, "#7c2d12", 1.3, 1.2, 0, doorMesh); part(0.16, 0.16, 0.24, "#facc15", 2.3, 1.15, 0, doorMesh);
+  const bar = part(2.2, 0.16, 0.1, "#57534e", 1.3, 1.5, -0.14, doorMesh); bar.visible = false;
+  let doorBox = null; doorMesh.rotation.y = -1.35;
   const roof = new THREE.Group(); S.add(roof);
   const FL = 3;
   for (let f = 1; f <= FL; f++) {
@@ -167,6 +172,12 @@ export function buildCity(world, phys) {
   let power = true;
   return {
     roof, npcs, gen, tower, towerLight: tl, homeLabel,
+    /** Porta do apartamento: trancada = fechada e sólida; destrancada = aberta. */
+    setDoor(locked) {
+      doorMesh.rotation.y = locked ? 0 : -1.35; bar.visible = locked;
+      if (locked && !doorBox) doorBox = phys.addBox({ x: H.x, y: 1.2, z: z1, w: 2.6, h: 2.4, d: 0.3, mesh: false });
+      else if (!locked && doorBox) { phys.removeBox(doorBox); doorBox = null; }
+    },
     setPower(on) { power = on; for (const l of lit) l.m.material = on ? l.on : l.off; },
     get power() { return power; },
     setTowerLight(on) { tl.visible = on; },
