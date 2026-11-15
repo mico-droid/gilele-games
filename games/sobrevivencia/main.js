@@ -9,7 +9,7 @@ import {
 import { tx, setKidMode } from "./strings.js";
 import { setupSocial } from "./social.js";
 import { buildCity, HOME, BED, ZONES } from "./city.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom, installMusic } from "./menu.js";
 
 const GAME_ID = "sobrevivencia";
 registerPWA("../../sw.js");
@@ -29,6 +29,7 @@ const itName = (k) => IT[k].e + " " + t("it_" + k);
 const MAXKG = 18;
 const MARKET = { water: [12, 5, 6], can: [7, 1, 10], biscuit: [4, 1, 8], rice: [6, 3, 6], bread: [6, 1, 6], batt: [15, 1, 4], candle: [4, 1, 8], matches: [3, 1, 6] }; // preço, quantidade, estoque
 const PHARMA = { kit: [30, 1, 2], ors: [5, 1, 6] };
+const NEWS = { map: [15, 1, 4] };
 
 // ---------------------------------------------------------------- estado
 const CAUSES = ["solar", "cyber", "grid"];
@@ -39,9 +40,9 @@ function newState(cfg) {
     s: { food: 75, water: 70, energy: 72, health: 100, mood: 70 },
     bag: { water: 0.5 }, cash: 20, bankBal: 800, withdrawn: 0,
     fridge: { meat: 2, milk: 1, fruit: 3, bread: 1 }, cupboard: { can: 1, rice: 1, matches: 1, bottle: 4, bleach: 1 },
-    shelf: { map: 1, flash: 1, radio: 1, candle: 2, docs: 1, pbank: 1 },
+    shelf: { flash: 1, radio: 1, candle: 2, docs: 1, pbank: 1 },
     homeWater: 0, homeRaw: 0, tankWater: hard ? 20 : 35, phone: 35, pbankPct: 30, flashH: 0, radioH: 0, flashOn: false, phoneLight: false, candleUntil: -1, carFuel: 15,
-    stock: { ...Object.fromEntries(Object.entries(MARKET).map(([k, v]) => [k, v[2]])), ...Object.fromEntries(Object.entries(PHARMA).map(([k, v]) => [k, v[2]])) },
+    stock: { ...Object.fromEntries(Object.entries(MARKET).map(([k, v]) => [k, v[2]])), ...Object.fromEntries(Object.entries(PHARMA).map(([k, v]) => [k, v[2]])), map: NEWS.map[2] },
     f: { meet: 0, warned: 0, coInside: 0, helpedZe: 0, ateSpoiled: 0, radio: 0, cashB: null, foodB: null, lightB: null, fuelB: null, waterMax: 0.5, crowdMin: 0, gen: 0 },
     fired: {}, tips: [], news: [], pos: { x: HOME.x, z: HOME.z + 2 }, ended: 0,
   };
@@ -322,7 +323,7 @@ function openPhone() {
 // ---------------------------------------------------------------- mapa do bairro (celular ou papel)
 let dest = null;
 const MAP_PLACES = [
-  ["i_door", "🏢", "l_home"], ["i_market", "🛒"], ["i_pharma", "💊"], ["i_atm", "🏧"], ["i_gas", "⛽"], ["i_parking", "🚗"],
+  ["i_door", "🏢", "l_home"], ["i_market", "🛒"], ["i_newsstand", "📰"], ["i_pharma", "💊"], ["i_atm", "🏧"], ["i_gas", "⛽"], ["i_parking", "🚗"],
   ["i_ze", "👴"], ["i_cida", "👩"], ["i_valdir", "👨"],
 ];
 const MAP_EXTRA = [[-52, 6, "🏥", "i_hospital"], [-48, 48, "🌳", "l_square"], [48, -50, "📡", "i_tower"]];
@@ -475,10 +476,11 @@ function pay(price, card) {
 function shopOpts(list) {
   const mul = after() ? (kid() ? 1.5 : 2) : 1, card = !after();
   return Object.entries(list).map(([k, [p, q]]) => {
+    if (st.stock[k] == null) st.stock[k] = (MARKET[k] || PHARMA[k] || NEWS[k])[2];
     const price = Math.round(p * mul), left = st.stock[k];
     return { label: `${itName(k)}${q > 1 ? " ×" + q : ""} · R$ ${price}` + (left <= 0 ? " · " + t("soldOut") : ""), dis: left <= 0, fn: () => {
       if (!canCarry(k, q)) return;
-      const doBuy = (c) => { if (!pay(price, c)) return; st.stock[k]--; add(st.bag, k, q); Audio.play("coin"); };
+      const doBuy = (c) => { if (!pay(price, c)) return; st.stock[k]--; add(st.bag, k, q); Audio.play("coin"); if (k === "map") tip("tip_map"); };
       if (card) openMenu(() => ({ title: itName(k), opts: [{ label: t("payCard"), fn: () => { doBuy(true); return "close"; } }, { label: t("payCash") + ` (R$ ${st.cash})`, fn: () => { doBuy(false); return "close"; } }] }));
       else doBuy(false);
     } };
@@ -492,6 +494,10 @@ spot(0, 36.5, 3.2, "i_market", () => {
 spot(40, 32.5, 2.6, "i_pharma", () => {
   if (after() && st.T > B() + 3) { toast(t("closed")); return; }
   openMenu(() => ({ title: "💊 " + t("i_pharma"), info: [after() ? t("cardOff") : null], opts: shopOpts(PHARMA) }));
+});
+spot(20, 31.5, 2.6, "i_newsstand", () => {
+  if (after() && st.T > B() + 20) { toast(t("closed")); return; }
+  openMenu(() => ({ title: "📰 " + t("i_newsstand"), who: t("i_newsstand"), info: [t("newsHi"), after() ? t("cardOff") : null], opts: shopOpts(NEWS) }));
 });
 spot(0, -29.6, 2.4, "i_atm", () => {
   if (after()) { toast(t("atmOff"), 3000); tip("tip_cash"); Audio.play("wrong"); return; }
@@ -786,7 +792,7 @@ function load(s) {
 }
 function start() {
   playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false);
-  Audio.init(); track("game_start", { mode: "real", multiplayer: room.connected ? 1 : 0, difficulty: st.diff, age_band: st.age });
+  Audio.init(); music = music || installMusic(Audio); track("game_start", { mode: "real", multiplayer: room.connected ? 1 : 0, difficulty: st.diff, age_band: st.age });
   if (!store.get("howSeen")) { store.set("howSeen", "1"); openHow(); }
 }
 function pause(showMenu = true) {
@@ -825,7 +831,7 @@ const social = setupSocial({ world, room, remotes, me, openMenu, busy: () => men
   } });
 
 // ---------------------------------------------------------------- loop
-let near = null, crowdTick = 0, inCrowdPrev = false, saveT = 0;
+let music = null, near = null, crowdTick = 0, inCrowdPrev = false, saveT = 0;
 function nearestSpot() {
   let best = null, bd = 1e9;
   for (const s of SPOTS) { const d = Math.hypot(s.x - me.x, s.z - me.z); if (d < s.r && d < bd) { bd = d; best = s; } }
@@ -852,6 +858,12 @@ world.onUpdate((dt) => {
     else if (near) { prompt.textContent = (isTouch ? "✋ " : "E · ") + t(near.key); if (input.pressed("act")) { if (near.onTry) near.onTry(); near.open(); } }
     // aglomeração
     const inCrowd = Object.entries(ZONES).some(([k, z]) => crowdOn(k) && Math.hypot(me.x - z.x, me.z - z.z) < z.r);
+    if (music) {
+      const nearCrowd = Object.entries(ZONES).some(([k, z]) => crowdOn(k) && Math.hypot(me.x - z.x, me.z - z.z) < z.r + 8);
+      const danger = nearCrowd || st.s.health < 30 || st.s.water < 15 || (st.f.gen && !st.f.warned && Math.hypot(me.x + 8, me.z + 12) < 14) || (after() && isDark() && !lightOn() && !city.insideHome(me.x, me.z));
+      const tg = dest || (mission && mission.target), closeTg = tg && Math.hypot(tg.x - me.x, tg.z - me.z) < 14;
+      music.update(dt, danger ? 2 : closeTg ? 1 : 0);
+    }
     crowdPill.classList.toggle("ez-hidden", !inCrowd);
     if (inCrowd) {
       crowdPill.textContent = t("inCrowd");

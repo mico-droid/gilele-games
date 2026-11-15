@@ -144,3 +144,38 @@ export function makeSign(scene, text, x, y, z, bg = "#334155", scale = 1) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
   sp.scale.set(9 * scale, 2.25 * scale, 1); sp.position.set(x, y, z); scene.add(sp); return sp;
 }
+
+// ------------------------------------------------------------ trilha sonora (os dois modos)
+// Uma música só, em lá menor, sombria e com batida. O nível muda o arranjo e o andamento sem cortar a música:
+// 0 = explorando · 1 = perto da missão (mais animada) · 2 = perigo (tensa e rápida).
+let musicLevel = 0;
+export function installMusic(Audio) {
+  const BASS = [45, 41, 38, 40], CH = [[0, 3, 7], [0, 4, 7], [0, 3, 7], [0, 4, 8]];
+  Audio.addSong("apagao", {
+    get bpm() { return [104, 118, 132][musicLevel]; }, len: 64,
+    play(s, tm, k) {
+      const L = musicLevel, bar = Math.floor(s / 16), st = s % 16, r = BASS[bar], m = k.music, f = k.mtof;
+      // batida
+      if (st % (L ? 4 : 8) === 0) k.tone("sine", 140, tm, 0.18, 0.55, m, 40);
+      if (L >= 1 && (st === 4 || st === 12)) k.noise(tm, 0.1, 0.2, m, 1800);
+      if (st % 2 === 1 || (L === 2 && st % 2 === 0)) k.noise(tm, 0.025, L === 2 ? 0.07 : 0.05, m, 9000);
+      // baixo pulsante (colcheias; semicolcheias no perigo)
+      if (st % (L === 2 ? 1 : 2) === 0) k.tone("sawtooth", f(r + (st % 4 === 2 ? 12 : 0)), tm, 0.1, L ? 0.11 : 0.08, m);
+      // fundo sombrio: quinta e trítono, longo
+      if (st === 0) { k.tone("sine", f(r + 12), tm, 1.9, 0.07, m); k.tone("sine", f(r + 18), tm + 0.02, 1.9, bar === 3 ? 0.05 : 0.03, m); }
+      // arpejo (missão perto)
+      if (L >= 1 && st % 2 === 0) { const c = CH[bar]; k.tone("square", f(r + 24 + c[(st >> 1) % 3]), tm, 0.09, 0.045, m); }
+      // sino de alerta / melodia tensa (perigo)
+      if (L === 2) {
+        if (st === 0 || st === 6 || st === 10) k.tone("triangle", f(r + 36 + (st === 6 ? 1 : 0)), tm, 0.22, 0.06, m);
+        if (bar === 3 && st >= 12) k.tone("sine", 220 - (st - 12) * 30, tm, 0.12, 0.3, m, 70);
+      } else if (st === 8 && (bar === 1 || bar === 3)) k.tone("triangle", f(r + 31), tm, 0.5, 0.04, m);
+    },
+  });
+  Audio.setSong("apagao");
+  let want = 0, hold = 0;
+  return {
+    /** Chamar todo quadro com o nível desejado (0, 1, 2); só troca depois de ~1 s firme (sem pisca-pisca). */
+    update(dt, level) { if (level !== want) { want = level; hold = 0; } hold += dt; if (want !== musicLevel && (hold > (want > musicLevel ? 0.4 : 1.6))) musicLevel = want; },
+  };
+}

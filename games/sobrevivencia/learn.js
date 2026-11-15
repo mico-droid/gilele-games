@@ -9,7 +9,7 @@ import {
 import "./strings.js";
 import { setupSocial } from "./social.js";
 import { ERAS, LESSONS, byId, ITEMS, itName, L } from "./lessons.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom, makeSign } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom, makeSign, installMusic } from "./menu.js";
 
 const GAME_ID = "sobrevivencia-aprender";
 registerPWA("../../sw.js");
@@ -713,7 +713,8 @@ function showTitle() {
 }
 function enterGame() { if (!P.done.length && !P.cur) intro(); else start(); }
 function intro() { pagedScreen(h, screen, { title: "⛺ " + u("title"), text: u("intro"), nextLabel: u("next"), backLabel: t("backP"), endLabel: "▶ " + t("play"), onEnd: start }); }
-function start() { playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false); Audio.init(); updHud(); track("game_start", { mode: "learn", multiplayer: room.connected ? 1 : 0 }); if (!store.get("howSeenL")) { store.set("howSeenL", "1"); openHow(); } }
+let music = null;
+function start() { playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false); Audio.init(); music = music || installMusic(Audio); updHud(); track("game_start", { mode: "learn", multiplayer: room.connected ? 1 : 0 }); if (!store.get("howSeenL")) { store.set("howSeenL", "1"); openHow(); } }
 function pause(showMenu = true) {
   playing = false; world.setPaused(true); input.setVisible(false); save();
   if (!showMenu) return;
@@ -787,6 +788,10 @@ world.onUpdate((dt) => {
   for (const s of SPOTS) if (s.sprite) { s.sprite.visible = !!s.mark(); s.sprite.position.y = 4.4 + Math.sin(performance.now() / 300) * 0.2; }
   let tg = null, td = 1e9;
   if (playing && !menuOpen) for (const s of SPOTS) if (s.sprite && s.sprite.visible) { const d = Math.hypot(s.x - me.x, s.z - me.z); if (d < td) { td = d; tg = s; } }
+  if (music && playing) {
+    const danger = Math.hypot(CROWD.x - me.x, CROWD.z - me.z) < CROWD.r + 7 || (P.cur === "e0_co" && !P.w.co_ok && Math.hypot(GEN_IN.x - me.x, GEN_IN.z - me.z) < 9);
+    music.update(dt, danger ? 2 : tg && td < 14 ? 1 : 0);
+  }
   const gOn = !!tg && td > tg.r;
   guideEl.classList.toggle("ez-hidden", !gOn); beacon.visible = gOn && td > 6;
   if (gOn) {

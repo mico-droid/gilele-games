@@ -159,11 +159,14 @@ export function buildCity(world, phys) {
   fill.forEach(([x, z, c], i) => building(x, z, 10, 9, i % 4 === 0 ? 9 : 3.4, c, { roof: i % 2 ? "#7c2d12" : "#475569" }));
   [[-18, 21], [18, 21], [-18, -21], [18, -21], [-30, 30], [30, 30], [-30, -30], [30, -30], [6, -30], [-6, 30], [36, -18], [-36, 18]].forEach(([x, z]) => addTree(world, phys, x, z, 0.9));
 
+  // banca de jornais (vende o mapa de papel)
+  phys.addBox({ x: 20, y: 1.2, z: 33, w: 4, h: 2.4, d: 2.4, color: "#1d4ed8", scene: S }); part(4.6, 0.3, 3, "#facc15", 20, 2.55, 32.8, S);
+  part(3, 1, 0.1, "#f8fafc", 20, 1.5, 31.75, S); part(0.9, 0.7, 0.1, "#fca5a5", 19, 1.6, 31.7, S); part(0.9, 0.7, 0.1, "#bfdbfe", 21, 1.6, 31.7, S);
   // placas grandes no topo dos lugares importantes (sempre viradas para a câmera)
   const signs = [
     ["🛒 " + t("l_market"), 0, 9.4, 46, "#15803d"], ["💊 " + t("l_pharma"), 40, 6.8, 38, "#0f766e"], ["🏧 " + t("l_bank"), 0, 5.6, -32, "#1d4ed8"],
     ["⛽ " + t("l_gas"), -46, 7.8, -40, "#b91c1c"], ["🏥 " + t("i_hospital"), -52, 11.8, 6, "#1d4ed8"], ["🌳 " + t("l_square"), -48, 5.2, 48, "#166534"],
-    ["📡 " + t("i_tower"), 48, 31.5, -50, "#475569"], ["🚌 " + t("i_bus"), 30.5, 4.4, -4, "#a16207"],
+    ["📡 " + t("i_tower"), 48, 31.5, -50, "#475569"], ["📰 " + t("i_newsstand"), 20, 4.6, 33, "#1d4ed8"], ["🚌 " + t("i_bus"), 30.5, 4.4, -4, "#a16207"],
     ["👴 " + t("l_ze"), -15, 11.6, 10, "#4d7c0f"], ["👩 " + t("l_cida"), 14, 5.6, -2, "#be185d"], ["👨 " + t("l_valdir"), -8, 5.6, -12, "#7e22ce"],
   ];
   signs.forEach(([txt, x, y, z, bg]) => roofSign(txt, x, y, z, bg));
