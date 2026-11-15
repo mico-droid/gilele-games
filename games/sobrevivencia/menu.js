@@ -130,3 +130,17 @@ export function bootRoom(room, store) {
   if (follow) { let tries = 0; room.onStatus((k) => { if (k === "room") tries = 9; else if ((k === "notFound" || k === "fail") && tries < 4) { tries++; setTimeout(() => room.join(c), 2500); } }); }
   room.join(c); return true;
 }
+
+/** Placa com nome em cima de um lugar (quadro colorido, virado para a câmera). */
+export function makeSign(scene, text, x, y, z, bg = "#334155", scale = 1) {
+  const cv = document.createElement("canvas"); cv.width = 512; cv.height = 128; const c = cv.getContext("2d");
+  let fs = 64; const F = () => `700 ${fs}px Fredoka, system-ui, sans-serif`; c.font = F();
+  while (c.measureText(text).width > 450 && fs > 28) { fs -= 4; c.font = F(); }
+  const w = Math.min(500, c.measureText(text).width + 56), x0 = (512 - w) / 2;
+  c.fillStyle = bg; c.strokeStyle = "#ffffff"; c.lineWidth = 8;
+  c.beginPath(); if (c.roundRect) c.roundRect(x0, 10, w, 108, 24); else c.rect(x0, 10, w, 108); c.fill(); c.stroke();
+  c.fillStyle = "#ffffff"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(text, 256, 66);
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+  sp.scale.set(9 * scale, 2.25 * scale, 1); sp.position.set(x, y, z); scene.add(sp); return sp;
+}

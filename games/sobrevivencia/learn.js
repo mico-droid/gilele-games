@@ -9,7 +9,7 @@ import {
 import "./strings.js";
 import { setupSocial } from "./social.js";
 import { ERAS, LESSONS, byId, ITEMS, itName, L } from "./lessons.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom, makeSign } from "./menu.js";
 
 const GAME_ID = "sobrevivencia-aprender";
 registerPWA("../../sw.js");
@@ -277,6 +277,13 @@ crowdBots.forEach((b) => { b.ch.showLabel = false; b.ch.makeLabel(); });
 const stranger = new Character(S, Object.assign(randomLook("?"), { a: "cap" }), { kind: "remote" }); stranger.root.position.set(-26, 0, -46); stranger.root.rotation.y = Math.PI / 2;
 const lurdes = new Character(S, Object.assign(randomLook("Dona Lurdes"), { g: "f", h: "bob", hc: "#e5e7eb" }), { kind: "remote" }); lurdes.root.position.set(-34, 0, -60);
 solid(-40, 1.6, -62, 8, 3.2, 6, "#fbcfe8");
+
+// placas com o nome dos lugares (cidade-treino e acampamento)
+[["🏠 " + L(T("Casa-treino", "Training house", "Casa de práctica")), 0, 6.4, -55, "#b45309"], ["🚗 " + L(T("Garagem", "Garage", "Garaje")), 11, 5, -55, "#475569"],
+ ["📰 " + u("i_news"), -16, 4.4, -36, "#1d4ed8"], ["🚰 " + u("i_tap"), -10, 2.8, -46, "#0369a1"], ["🏧 " + u("i_atm"), 16, 4.6, -36, "#1e3a8a"],
+ ["⛽ " + u("i_gas"), 32, 6, -42, "#b91c1c"], ["📌 " + u("i_board"), 0, 3.6, -32, "#166534"], ["👵 " + L(T("Casa da Dona Lurdes", "Ms. Lurdes's house", "Casa de Doña Lurdes")), -40, 4.8, -62, "#be185d"],
+].forEach(([txt, x, y, z, bg]) => makeSign(S, txt, x, y, z, bg));
+[["🧰 " + u("i_chest"), -3.6, 2, 0.5, "#7c2d12"], ["🧺 " + u("i_pantry"), 4.2, 2.2, 0.6, "#92400e"]].forEach(([txt, x, y, z, bg]) => makeSign(S, txt, x, y, z, bg, 0.55));
 
 // ---------------------------------------------------------------- construções do jogador
 const built = { fire: null, shelter: null, trap: null };

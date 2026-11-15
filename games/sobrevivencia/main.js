@@ -23,7 +23,7 @@ const IT = {
   bread: { e: "🍞", kg: 0.3, food: 20, spoil: 48 }, meat: { e: "🥩", kg: 0.5, cook: 1, spoil: 24 }, milk: { e: "🥛", kg: 1, food: 12, drink: 10, spoil: 24 },
   fruit: { e: "🍌", kg: 0.15, food: 12, drink: 4 }, cooked: { e: "🍲", kg: 0.4, food: 45, mood: 8 }, spoiled: { e: "🤢", kg: 0.3, bad: 1 },
   flash: { e: "🔦", kg: 0.3 }, batt: { e: "🔋", kg: 0.1 }, candle: { e: "🕯️", kg: 0.1 }, matches: { e: "🔥", kg: 0.05 }, radio: { e: "📻", kg: 0.6 },
-  pbank: { e: "🔌", kg: 0.25 }, raw: { e: "🫗", kg: 1 }, bleach: { e: "🧴", kg: 0.5 }, docs: { e: "📄", kg: 0.1 }, kit: { e: "🩹", kg: 0.5, heal: 30 }, ors: { e: "🧂", kg: 0.05 }, gascan: { e: "⛽", kg: 4.5 },
+  pbank: { e: "🔌", kg: 0.25 }, map: { e: "🗺️", kg: 0.05 }, raw: { e: "🫗", kg: 1 }, bleach: { e: "🧴", kg: 0.5 }, docs: { e: "📄", kg: 0.1 }, kit: { e: "🩹", kg: 0.5, heal: 30 }, ors: { e: "🧂", kg: 0.05 }, gascan: { e: "⛽", kg: 4.5 },
 };
 const itName = (k) => IT[k].e + " " + t("it_" + k);
 const MAXKG = 18;
@@ -39,7 +39,7 @@ function newState(cfg) {
     s: { food: 75, water: 70, energy: 72, health: 100, mood: 70 },
     bag: { water: 0.5 }, cash: 20, bankBal: 800, withdrawn: 0,
     fridge: { meat: 2, milk: 1, fruit: 3, bread: 1 }, cupboard: { can: 1, rice: 1, matches: 1, bottle: 4, bleach: 1 },
-    shelf: { flash: 1, radio: 1, candle: 2, docs: 1, pbank: 1 },
+    shelf: { map: 1, flash: 1, radio: 1, candle: 2, docs: 1, pbank: 1 },
     homeWater: 0, homeRaw: 0, tankWater: hard ? 20 : 35, phone: 35, pbankPct: 30, flashH: 0, radioH: 0, flashOn: false, phoneLight: false, candleUntil: -1, carFuel: 15,
     stock: { ...Object.fromEntries(Object.entries(MARKET).map(([k, v]) => [k, v[2]])), ...Object.fromEntries(Object.entries(PHARMA).map(([k, v]) => [k, v[2]])) },
     f: { meet: 0, warned: 0, coInside: 0, helpedZe: 0, ateSpoiled: 0, radio: 0, cashB: null, foodB: null, lightB: null, fuelB: null, waterMax: 0.5, crowdMin: 0, gen: 0 },
@@ -274,6 +274,7 @@ function openItem(k) {
     else if (k === "ors") opts.push({ label: t("a_use"), dis: !has(st.bag, "water", 0.5), fn: () => { add(st.bag, k, -1); add(st.bag, "water", -0.5); st.s.water = clamp(st.s.water + 30); st.s.health = clamp(st.s.health + 8); Audio.play("ok"); } });
     else if (k === "pbank") opts.push({ label: t("usePbank") + ` (${Math.round(st.pbankPct)}%)`, dis: st.pbankPct < 5 || st.phone >= 99, fn: () => usePbank() });
     else if (k === "flash") opts.push({ label: "🔦 " + (st.flashOn ? "OFF" : "ON"), fn: () => toggleFlash() });
+    else if (k === "map") opts.push({ label: "🗺️ " + t("mapOpen"), fn: () => { setTimeout(openMap, 0); return "close"; } });
     else if (k === "radio") opts.push({ label: t("radio"), fn: () => { setTimeout(openRadio, 0); return "close"; } });
     if (home && k !== "water" && k !== "raw") opts.push({ label: t("storePantry"), cls: ".blue", fn: () => { add(st.bag, k, -1); add(st.cupboard, k, 1); } });
     opts.push({ label: "⬇️ " + t("gr_drop"), cls: ".gray", fn: () => { social.drop(k); } });
@@ -318,8 +319,51 @@ function openPhone() {
     return { title: t("phone"), info, opts };
   });
 }
+// ---------------------------------------------------------------- mapa do bairro (celular ou papel)
+let dest = null;
+const MAP_PLACES = [
+  ["i_door", "🏢", "l_home"], ["i_market", "🛒"], ["i_pharma", "💊"], ["i_atm", "🏧"], ["i_gas", "⛽"], ["i_parking", "🚗"],
+  ["i_ze", "👴"], ["i_cida", "👩"], ["i_valdir", "👨"],
+];
+const MAP_EXTRA = [[-52, 6, "🏥", "i_hospital"], [-48, 48, "🌳", "l_square"], [48, -50, "📡", "i_tower"]];
+function openMap() {
+  const paper = has(st.bag, "map");
+  if (!paper && st.phone <= 0) { openMenu(() => ({ title: t("mapT"), info: [t("mapNoBatt")] })); return; }
+  if (!paper) st.phone = clamp(st.phone - 1);
+  const W = 300, R = 90, k = W / (2 * R), P = (x) => (x + R) * k;
+  const cv = h("canvas", { width: W * 2, height: W * 2, style: { width: "min(300px, 72vw)", aspectRatio: "1", display: "block", margin: "6px auto", borderRadius: "14px", touchAction: "none" } });
+  const c = cv.getContext("2d"); c.scale(2, 2);
+  const places = MAP_PLACES.map(([key, e, lab]) => { const s = SPOTS.find((x) => x.key === key); return s && { s, e, name: t(lab || key) }; }).filter(Boolean);
+  function draw() {
+    c.fillStyle = "#9bbf63"; c.fillRect(0, 0, W, W);
+    c.fillStyle = "#52525b"; [-24, 24, -72, 72].forEach((v) => { c.fillRect(0, P(v) - 4 * k, W, 8 * k); c.fillRect(P(v) - 4 * k, 0, 8 * k, W); });
+    c.fillStyle = "#86efac"; c.fillRect(P(-61), P(35), 26 * k, 26 * k);
+    c.fillStyle = "#e2e8f0"; [[0, 10, 16, 13], [0, 46, 26, 16], [40, 38, 10, 8], [-52, 6, 16, 20], [-46, -40, 14, 14], [0, -32, 4, 3]].forEach(([x, z, w, d]) => c.fillRect(P(x - w / 2), P(z - d / 2), w * k, d * k));
+    c.font = "16px sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
+    const tg = dest || (mission && mission.target);
+    if (tg) { c.strokeStyle = "#facc15"; c.lineWidth = 3; c.beginPath(); c.arc(P(tg.x), P(tg.z), 13, 0, Math.PI * 2); c.stroke(); }
+    MAP_EXTRA.forEach(([x, z, e]) => c.fillText(e, P(x), P(z)));
+    places.forEach((p) => c.fillText(p.e, P(p.s.x), P(p.s.z)));
+    // você: seta na direção em que o boneco olha
+    const px = P(me.x), pz = P(me.z), dx = Math.sin(me.rot), dz = Math.cos(me.rot);
+    c.fillStyle = "#ef4444"; c.strokeStyle = "#fff"; c.lineWidth = 2; c.beginPath();
+    c.moveTo(px + dx * 10, pz + dz * 10); c.lineTo(px - dz * 6 - dx * 6, pz + dx * 6 - dz * 6); c.lineTo(px + dz * 6 - dx * 6, pz - dx * 6 - dz * 6); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = "#0f172a"; c.font = "bold 11px sans-serif"; c.fillText("N ▲", W - 20, 12);
+  }
+  draw();
+  let m = null;
+  const go = (p) => { dest = p.s; toast("🧭 " + t("mapDest", { x: p.name }), 2600); Audio.play("ok"); m.close(); };
+  cv.addEventListener("pointerdown", (e) => {
+    const r = cv.getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * W / k - R, z = ((e.clientY - r.top) / r.height) * W / k - R;
+    let best = null, bd = 9; for (const p of places) { const d = Math.hypot(p.s.x - x, p.s.z - z); if (d < bd) { bd = d; best = p; } }
+    if (best) go(best);
+  });
+  m = openMenu(() => ({ title: t("mapT") + (paper ? " · " + t("mapPaper") : ""), info: [h("p.ez-msg", { style: { textAlign: "center" } }, t("mapHelp")), cv],
+    opts: places.map((p) => ({ label: p.e + " " + p.name + " · " + t("guideM", { m: Math.max(1, Math.round(Math.hypot(p.s.x - me.x, p.s.z - me.z) * M_PER_UNIT)) }), cls: dest === p.s ? "" : ".blue", fn: () => { go(p); } })) }));
+}
 function openComm() {
   openMenu(() => ({ title: t("comm"), info: [], opts: [
+    { label: t("commMap") + (has(st.bag, "map") ? " · " + t("mapPaper") : ""), fn: () => { setTimeout(openMap, 0); return "close"; } },
     { label: t("commPhone") + " · " + Math.round(st.phone) + "%", fn: () => { setTimeout(openPhone, 0); return "close"; } },
     { label: t("commRadio"), cls: ".blue", fn: () => { setTimeout(openRadio, 0); return "close"; } },
   ] }));
@@ -642,7 +686,8 @@ function goals() {
 const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 40, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }));
 beacon.visible = false; world.scene.add(beacon);
 function updGuide() {
-  const tg = mission && mission.target, d = tg ? Math.hypot(tg.x - me.x, tg.z - me.z) : 0;
+  if (dest && Math.hypot(dest.x - me.x, dest.z - me.z) < dest.r) { dest = null; toast("📍 " + t("destReached"), 1800); Audio.play("cp"); }
+  const tg = dest || (mission && mission.target), d = tg ? Math.hypot(tg.x - me.x, tg.z - me.z) : 0;
   const on = !!tg && playing && !menuOpen && d > tg.r * 0.8;
   guideEl.classList.toggle("ez-hidden", !on); beacon.visible = on && d > 5;
   if (!on) return;
@@ -765,7 +810,7 @@ input.onAction("pause", () => { if (playing && !menuOpen) pause(); });
 input.onAction("chat", () => { if (playing && !menuOpen) openQuickChat(sayChat); });
 addEventListener("keydown", (e) => {
   if (!playing || menuOpen) return;
-  if (e.code === "KeyI") openBag(); else if (e.code === "KeyF") toggleFlash(); else if (e.code === "KeyQ") openComm();
+  if (e.code === "KeyI") openBag(); else if (e.code === "KeyF") toggleFlash(); else if (e.code === "KeyQ") openComm(); else if (e.code === "KeyM") openMap();
   else { const n = parseInt(e.key, 10); if (n >= 0 && n <= 9) sayChat(n === 0 ? 9 : n - 1); }
 });
 

@@ -33,6 +33,19 @@ export function buildCity(world, phys) {
     const head = part(0.9, 0.3, 0.5, "#64748b", x, 5.1, z, S); head.material = lampOn; lit.push({ m: head, on: lampOn, off: lampOff });
   });
 
+  /** Placa de loja: quadro colorido com o nome, em cima do prédio. */
+  function roofSign(text, x, y, z, bg) {
+    const cv = document.createElement("canvas"); cv.width = 512; cv.height = 128; const c = cv.getContext("2d");
+    let fs = 64; c.font = `700 ${fs}px Fredoka, system-ui, sans-serif`;
+    while (c.measureText(text).width > 450 && fs > 28) { fs -= 4; c.font = `700 ${fs}px Fredoka, system-ui, sans-serif`; }
+    const w = Math.min(500, c.measureText(text).width + 56), x0 = (512 - w) / 2;
+    c.fillStyle = bg; c.strokeStyle = "#ffffff"; c.lineWidth = 8;
+    c.beginPath(); c.roundRect ? c.roundRect(x0, 10, w, 108, 24) : c.rect(x0, 10, w, 108); c.fill(); c.stroke();
+    c.fillStyle = "#ffffff"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(text, 256, 66);
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+    sp.scale.set(9, 2.25, 1); sp.position.set(x, y, z); S.add(sp); return sp;
+  }
   /** Prédio/casa fechada com janelas que acendem. */
   function building(x, z, w, d, h, color, { roof = "#9a3412", face = "+z", windows = true } = {}) {
     h = Math.max(h, 5); // pé-direito realista: o boneco tem ~2,7 de altura
@@ -109,7 +122,7 @@ export function buildCity(world, phys) {
   building(-8, -12, 10, 8, 3.2, "#e9d5ff");      // Seu Valdir
   part(4, 2.6, 0.2, "#6b7280", -8, 1.3, -16.1, S); // portão da garagem do Valdir
   building(10, -14, 8, 8, 3.2, "#fed7aa");
-  const homeLabel = addLabel(world, "🏢 " + t("l_building"), H.x, WH + 14, H.z, { color: "#fde047" });
+  const homeLabel = roofSign("🏢 " + t("l_building"), H.x - 1.5, WH + 11.2, H.z, "#b45309");
 
   // ---------------------------------------------------------------- comércio e serviços
   building(0, 46, 26, 16, 6, "#f1f5f9", { roof: "#16a34a" });                     // mercado
@@ -146,14 +159,14 @@ export function buildCity(world, phys) {
   fill.forEach(([x, z, c], i) => building(x, z, 10, 9, i % 4 === 0 ? 9 : 3.4, c, { roof: i % 2 ? "#7c2d12" : "#475569" }));
   [[-18, 21], [18, 21], [-18, -21], [18, -21], [-30, 30], [30, 30], [-30, -30], [30, -30], [6, -30], [-6, 30], [36, -18], [-36, 18]].forEach(([x, z]) => addTree(world, phys, x, z, 0.9));
 
-  // placas
-  addLabel(world, t("l_market"), 0, 7.4, 37.6, { color: "#bbf7d0" });
-  addLabel(world, t("l_pharma"), 40, 5.4, 33.6, { color: "#99f6e4" });
-  addLabel(world, t("l_bank"), 0, 4, -30.4, { color: "#bfdbfe" });
-  addLabel(world, t("l_gas"), -46, 6.4, -33, { color: "#fecaca" });
-  addLabel(world, "🏥 " + t("i_hospital"), -43, 10.5, 6, { color: "#fecaca" });
-
-  addLabel(world, "🌳 " + t("l_square"), -48, 5, 48, { color: "#bbf7d0" });
+  // placas grandes no topo dos lugares importantes (sempre viradas para a câmera)
+  const signs = [
+    ["🛒 " + t("l_market"), 0, 9.4, 46, "#15803d"], ["💊 " + t("l_pharma"), 40, 6.8, 38, "#0f766e"], ["🏧 " + t("l_bank"), 0, 5.6, -32, "#1d4ed8"],
+    ["⛽ " + t("l_gas"), -46, 7.8, -40, "#b91c1c"], ["🏥 " + t("i_hospital"), -52, 11.8, 6, "#1d4ed8"], ["🌳 " + t("l_square"), -48, 5.2, 48, "#166534"],
+    ["📡 " + t("i_tower"), 48, 31.5, -50, "#475569"], ["🚌 " + t("i_bus"), 30.5, 4.4, -4, "#a16207"],
+    ["👴 " + t("l_ze"), -15, 11.6, 10, "#4d7c0f"], ["👩 " + t("l_cida"), 14, 5.6, -2, "#be185d"], ["👨 " + t("l_valdir"), -8, 5.6, -12, "#7e22ce"],
+  ];
+  signs.forEach(([txt, x, y, z, bg]) => roofSign(txt, x, y, z, bg));
 
   // ---------------------------------------------------------------- vizinhos (NPCs parados)
   const npc = (name, x, z, rot, look) => {
