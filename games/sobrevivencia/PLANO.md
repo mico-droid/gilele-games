@@ -215,3 +215,24 @@ games/sobrevivencia/
 - Embrapa — Sisteminha: https://embrapa.br/sisteminha
 - Embrapa Instrumentação — Fossa Séptica Biodigestora e Clorador (Documentos 72, 2021): https://www.infoteca.cnptia.embrapa.br/infoteca/handle/doc/1138679
 - Sebrae — Cartilha PAIS
+
+---
+
+## 🏙️ Jogar na minha cidade (EM TESTES — prova de conceito, 15/11/2026)
+
+Decisões do dono:
+- Dados só do **OpenStreetMap** (Overpass para ruas/prédios/locais, Nominatim para busca). O link do Google Maps (ou de outro app) é só para ler as coordenadas. Tudo **grátis** para o dono e para o jogador (sem servidor pago); monetização só no futuro (itens).
+- **Faixa infantil sem GPS** (só busca por nome/link).
+- Visível no menu na seção "🧪 Em testes". O desenvolvimento do resto do Sobrevivência fica pausado até este modo ficar pronto.
+- Endereço de teste: Escola Hugo de Carvalho Ramos, Goiânia (botão de exemplo).
+- Prioridade: locais estratégicos (mercado, farmácia, posto, delegacia, hospital…) e, principalmente, a **rodovia de saída mais próxima**.
+
+Arquivos: `boot.js` (`?modo=cidade`) → `cidade.js` (telas, HUD, minimapa, lista de locais) · `geo.js` (entrada, Overpass/Nominatim, "pacote do mapa" v1, cache local dos 4 últimos blocos) · `osmcity.js` (mundo 3D em poucas malhas, colisão por faixas de caixas, casas genéricas onde o OSM não tem prédios, placas, farol verde da saída, `drawMap`).
+
+Regras técnicas:
+- Bloco = centro encaixado numa grade de 0,001° (~110 m) + raio (150 ou 250 m) → o mesmo lugar gera sempre o mesmo mundo (base do multijogador: o anfitrião manda só `{id do bloco, versão, seed}`; nunca geometria).
+- Nominatim: só por clique, ≤ 1 pedido/s, sem autocompletar. Overpass: 2 pedidos por lugar novo, com 3 servidores reserva. Sempre mostrar "© OpenStreetMap contributors".
+- Cada local guarda ID do OSM + categoria (`CATS` em `geo.js`): gancho para loot, loja, afiliados e mapas premium.
+- Delegacia = ponto de segurança/ajuda; itens de defesa seguem a regra da Era 5 (só itens de jogo que espantam).
+
+Próximas etapas (depois de validar a PoC): loot/perigos por categoria + roteiro de sobrevivência no mapa real; multijogador por ID do bloco; resolver links curtos (maps.app.goo.gl) se surgir solução grátis; nascer em ponto aleatório no multijogador.

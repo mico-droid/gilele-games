@@ -34,6 +34,8 @@ export function modeMenu(store, on) {
     sec("secNew"),
     h("button.ez-btn.blue.wide", { onclick: newLearn }, t("m_learn")), desc("learnDesc"),
     h("button.ez-btn.blue.wide", { onclick: newReal }, t("m_real")), desc("realDesc"),
+    sec("secTest"),
+    h("button.ez-btn.gray.wide", { onclick: () => { location.href = "?modo=cidade"; } }, t("m_city")), desc("cityDescM"),
   ];
 }
 
