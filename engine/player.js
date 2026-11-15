@@ -5,16 +5,20 @@ import { createBody } from "./physics.js";
 import { Character } from "./avatar.js";
 import { Audio } from "./audio.js";
 
-export function createPlayer({ world, phys, input, cam, look, spawn = { x: 0, y: 0.05, z: 0 }, room = null, body: bodyCfg, onDie, onEvents }) {
+// Correr: segurar Shift (ou L3 no controle); no toque, o botão 🏃 liga/desliga. `run` = multiplicador (false desliga).
+export function createPlayer({ world, phys, input, cam, look, spawn = { x: 0, y: 0.05, z: 0 }, room = null, body: bodyCfg, onDie, onEvents, run = 1.6 }) {
   const body = createBody(phys, spawn.x, spawn.y, spawn.z, bodyCfg);
   const ch = new Character(world.scene, look, { kind: "me" });
-  let rot = 0, jumpBuf = 0, lastSafe = { ...spawn }, frozen = false, pose = "walk", netT = 0;
+  let rot = 0, jumpBuf = 0, lastSafe = { ...spawn }, frozen = false, pose = "walk", netT = 0, runOn = false;
+  const runBtn = run && input.addButton ? input.addButton({ label: "🏃", action: "runT", hold: false }) : null;
   const me = {
     body, ch, spawn: { ...spawn },
     get x() { return body.x; }, get y() { return body.y; }, get z() { return body.z; },
     get rot() { return rot; }, set rot(v) { rot = v; },
     set pose(p) { pose = p; }, get pose() { return pose; },
     freeze(v) { frozen = !!v; },
+    /** true enquanto o jogador está correndo. */
+    get running() { return !!run && (runOn || input.down("run")); },
     setLook(lk) { ch.setLook(lk); if (room) room.presence({ look: ch.look }); },
     respawn(p = me.spawn) { body.teleport(p.x, p.y, p.z); rot = p.r || 0; cam && cam.snap && cam.snap(); },
     update(dt) {
@@ -22,7 +26,8 @@ export function createPlayer({ world, phys, input, cam, look, spawn = { x: 0, y:
       jumpBuf -= dt;
       const ax = frozen ? { x: 0, y: 0 } : input.axis();
       const w = cam ? cam.toWorld(ax) : { x: ax.x, z: -ax.y };
-      const ev = body.step(dt, w.x, w.z, !frozen && jumpBuf > 0, input.down("jump"));
+      if (run && input.pressed("runT")) { runOn = !runOn; if (runBtn) runBtn.classList.toggle("on", runOn); }
+      const ev = body.step(dt, w.x, w.z, !frozen && jumpBuf > 0, input.down("jump"), me.running ? run : 1);
       if (ev.jumped) { jumpBuf = 0; Audio.play("jump"); }
       if (ev.bounced) Audio.play("boing");
       if (ev.landed && ev.impact < -14) Audio.play("land");

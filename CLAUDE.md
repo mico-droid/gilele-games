@@ -23,3 +23,4 @@
 - Instruções com várias etapas (cartões, "Como jogar", intros): além de "Próximo ▶" sempre ter "◀ Voltar" para reler a anterior (`pagedScreen` em `sobrevivencia/menu.js` já faz; string `backP`).
 
 - Motor v0.3.2: `openRoomPanel(room, { actions })` aceita botões extras quando já há sala; `room.create("ABCD")` recria a sala com um código pedido. No Apagão, `roomActions`/`bootRoom` (`menu.js`) põem "Jogar Aprendizado / Jogar Apagão Real" na tela de amigos e levam a sala (mesmo código) e os convidados quando o dono troca de modo (`?sala=…&host=1` / `&segue=1`, mensagem `goto`).
+- Motor v0.3.3: correr em todo jogo 3D. `createPlayer({ run })` (padrão 1,6×; `false` desliga): Shift segurado no teclado, botão 🏃 (liga/desliga) no toque, `me.running`. No Parkour Tabuada (HTML avulso) é `RUN=1.3` com Shift e `#runBtn`. Jogo 3D novo deve ter correr (pedido do dono).

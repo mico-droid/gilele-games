@@ -410,6 +410,8 @@ const S = {
   mpGuestTip: ["Quem criou a sala escolhe o modo. Se ele trocar, você vai junto.", "Whoever created the room picks the mode. If they switch, you go along.", "Quien creó la sala elige el modo. Si cambia, vas con él."],
   mpMoving: ["Levando a sala para {m}…", "Taking the room to {m}…", "Llevando la sala a {m}…"],
   mpFollow: ["O dono da sala foi para {m}. Indo junto…", "The room owner went to {m}. Following…", "El dueño de la sala fue a {m}. Vamos con él…"],
+  how1: ["🚶 Ande com WASD/setas (no celular, arraste o dedo no lado esquerdo). 🏃 Para correr, segure Shift (no celular, toque no botão 🏃). Arraste a tela para girar a câmera.", "🚶 Move with WASD/arrows (on a phone, drag on the left side). 🏃 To run, hold Shift (on a phone, tap the 🏃 button). Drag the screen to turn the camera.", "🚶 Muévete con WASD/flechas (en el celular, arrastra en el lado izquierdo). 🏃 Para correr, mantén Shift (en el celular, toca el botón 🏃). Arrastra la pantalla para girar la cámara."],
+  help: ["WASD/setas: andar · Shift: correr · E: interagir · I: mochila · F: lanterna · Q: celular e rádio · Arraste: câmera", "WASD/arrows: move · Shift: run · E: interact · I: backpack · F: flashlight · Q: phone and radio · Drag: camera", "WASD/flechas: mover · Shift: correr · E: interactuar · I: mochila · F: linterna · Q: celular y radio · Arrastra: cámara"],
   // Learn mode placeholder
   learnSoon: ["O Modo Aprendizado (aulas da Era 0 à Era 6) vem nas próximas versões.", "Learning Mode (lessons from Era 0 to Era 6) is coming in the next versions.", "El Modo Aprendizaje (clases de la Era 0 a la Era 6) llega en las próximas versiones."],
 };

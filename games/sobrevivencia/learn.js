@@ -679,7 +679,7 @@ function showTitle() {
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle, actions: roomActions(room, store, enterGame) }); } }, "👥 " + t("mp")),
         h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
       gameLinks(t("title")),
-      isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · E: interagir · I: mochila · T: manual · B: construir · Arraste: câmera", "WASD/arrows: move · E: interact · I: backpack · T: manual · B: build · Drag: camera", "WASD/flechas: mover · E: interactuar · I: mochila · T: manual · B: construir · Arrastra: cámara")))),
+      isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · Shift: correr · E: interagir · I: mochila · T: manual · B: construir · Arraste: câmera", "WASD/arrows: move · Shift: run · E: interact · I: backpack · T: manual · B: build · Drag: camera", "WASD/flechas: mover · Shift: correr · E: interactuar · I: mochila · T: manual · B: construir · Arrastra: cámara")))),
   ]);
 }
 function enterGame() { if (!P.done.length && !P.cur) intro(); else start(); }

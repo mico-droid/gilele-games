@@ -64,6 +64,8 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   #jumpBtn{pointer-events:auto;position:absolute;right:22px;bottom:90px;width:92px;height:92px;border-radius:50%;background:rgba(34,197,94,.85);color:#fff;font-size:16px;font-weight:700;box-shadow:0 5px 0 rgba(0,0,0,.25)}
   #jumpBtn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
   #resetBtn{pointer-events:auto;position:absolute;right:128px;bottom:100px;width:54px;height:54px;border-radius:50%;background:rgba(15,23,42,.62);color:#fff;font-size:22px}
+  #runBtn{pointer-events:auto;position:absolute;right:128px;bottom:164px;width:54px;height:54px;border-radius:50%;background:rgba(15,23,42,.62);color:#fff;font-size:22px;border:2px solid transparent}
+  #runBtn.on{background:rgba(245,158,11,.92);border-color:#fff}
   #powers{position:absolute;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:6px}
   #slots{display:flex;flex-direction:column;gap:6px}
   .slot{pointer-events:auto;width:46px;height:46px;border-radius:14px;background:rgba(15,23,42,.62);font-size:25px;color:#fff;border:2px solid transparent;padding:0}
@@ -190,6 +192,7 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   <div id="touch">
     <div id="joy"><div id="joyKnob"></div><b class="k-w">w</b><b class="k-a">a</b><b class="k-s">s</b><b class="k-d">d</b></div>
     <button id="resetBtn">↺</button>
+    <button id="runBtn">🏃</button>
     <button id="jumpBtn">PULAR</button>
     <button id="actBtn">⚡</button>
   </div>
@@ -340,7 +343,7 @@ const T = {
       share:"📋 Copiar link", copied:"✅ Link copiado!", waText:"Bora jogar Parkour Tabuada comigo! 🧮",
       players:"Jogadores", you:"você", online:"Online", offline:"Solo", connecting:"Conectando...",
       cp:"✅ Checkpoint!", win:"Você venceu!", again:"Jogar de novo", stay:"Continuar passeando", skip:"⏭ Pular tutorial",
-      time:"Tempo", jump:"PULAR", pushed:"💥 Empurrado!", push:"💥 Empurrão!", botPushed:"🤖 Um bot te empurrou!", hint:"Arraste o mouse para girar · Espaço pula · T = chat · P = pausa",
+      time:"Tempo", jump:"PULAR", pushed:"💥 Empurrado!", push:"💥 Empurrão!", botPushed:"🤖 Um bot te empurrou!", hint:"Arraste o mouse para girar · Espaço pula · Shift corre · T = chat · P = pausa",
       c_hi:"Oi!", c_wait:"Me espera!", c_gg:"GG!", c_go:"Bora!", c_help:"Socorro!", c_pass:"Vou te passar!", c_close:"Quase!", c_thx:"Valeu!", pwLead:"🏃 Você está na frente: pegue outro quadrado só 3 plataformas depois", chat:"💬 Chat", fell:"😭 Ops!", squash:"🪨 Esmagado!",
       ok:"🎉 Acertou!", wrong:"❌ Errou! Tente outra conta", resumed:"▶ Fase {n}",
       s_move:"Use WASD ou as setas para andar\nArraste o mouse para olhar", s_moveT:"Use o joystick para andar\nArraste a direita para olhar",
@@ -360,7 +363,7 @@ const T = {
       share:"📋 Copy link", copied:"✅ Link copied!", waText:"Come play Times Table Parkour with me! 🧮",
       players:"Players", you:"you", online:"Online", offline:"Solo", connecting:"Connecting...",
       cp:"✅ Checkpoint!", win:"You won!", again:"Play again", stay:"Keep exploring", skip:"⏭ Skip tutorial",
-      time:"Time", jump:"JUMP", pushed:"💥 Pushed!", push:"💥 Push!", botPushed:"🤖 A bot pushed you!", hint:"Drag the mouse to look · Space jumps · T = chat · P = pause",
+      time:"Time", jump:"JUMP", pushed:"💥 Pushed!", push:"💥 Push!", botPushed:"🤖 A bot pushed you!", hint:"Drag the mouse to look · Space jumps · Shift runs · T = chat · P = pause",
       c_hi:"Hi!", c_wait:"Wait for me!", c_gg:"GG!", c_go:"Let's go!", c_help:"Help!", c_pass:"I'm passing you!", c_close:"So close!", c_thx:"Thanks!", pwLead:"🏃 You're in the lead: next box only 3 platforms later", chat:"💬 Chat", fell:"😭 Oops!", squash:"🪨 Squashed!",
       ok:"🎉 Correct!", wrong:"❌ Wrong! Try another one", resumed:"▶ Stage {n}",
       s_move:"Use WASD or arrows to walk\nDrag the mouse to look", s_moveT:"Use the joystick to walk\nDrag the right side to look",
@@ -380,7 +383,7 @@ const T = {
       share:"📋 Copiar enlace", copied:"✅ ¡Enlace copiado!", waText:"¡Ven a jugar Parkour de las Tablas conmigo! 🧮",
       players:"Jugadores", you:"tú", online:"En línea", offline:"Solo", connecting:"Conectando...",
       cp:"✅ ¡Checkpoint!", win:"¡Ganaste!", again:"Jugar otra vez", stay:"Seguir paseando", skip:"⏭ Saltar tutorial",
-      time:"Tiempo", jump:"SALTAR", pushed:"💥 ¡Te empujaron!", push:"💥 ¡Empujón!", botPushed:"🤖 ¡Un bot te empujó!", hint:"Arrastra el ratón para mirar · Espacio salta · T = chat · P = pausa",
+      time:"Tiempo", jump:"SALTAR", pushed:"💥 ¡Te empujaron!", push:"💥 ¡Empujón!", botPushed:"🤖 ¡Un bot te empujó!", hint:"Arrastra el ratón para mirar · Espacio salta · Shift corre · T = chat · P = pausa",
       c_hi:"¡Hola!", c_wait:"¡Espérame!", c_gg:"¡GG!", c_go:"¡Vamos!", c_help:"¡Socorro!", c_pass:"¡Te voy a pasar!", c_close:"¡Casi!", c_thx:"¡Gracias!", pwLead:"🏃 Vas primero: otro cuadro solo 3 plataformas después", chat:"💬 Chat", fell:"😭 ¡Ups!", squash:"🪨 ¡Aplastado!",
       ok:"🎉 ¡Correcto!", wrong:"❌ ¡Error! Prueba otra cuenta", resumed:"▶ Fase {n}",
       s_move:"Usa WASD o las flechas para andar\nArrastra el ratón para mirar", s_moveT:"Usa el joystick para andar\nArrastra la derecha para mirar",
@@ -1746,6 +1749,9 @@ canvas.addEventListener("pointerdown",onDown);canvas.addEventListener("pointermo
 canvas.addEventListener("pointerup",onUp);canvas.addEventListener("pointercancel",onUp);
 canvas.addEventListener("wheel",e=>{e.preventDefault();dist=Math.max(5,Math.min(18,dist+e.deltaY*0.01));},{passive:false});
 canvas.addEventListener("contextmenu",e=>e.preventDefault());
+// correr: Shift no teclado; no toque, o botão 🏃 liga/desliga
+const RUN=1.3;let runOn=false;
+document.getElementById("runBtn").addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();runOn=!runOn;e.currentTarget.classList.toggle("on",runOn);});
 const jumpBtn=document.getElementById("jumpBtn");
 jumpBtn.addEventListener("pointerdown",e=>{e.preventDefault();touchJump=true;jumpBuf=0.14;});
 ["pointerup","pointercancel","pointerleave"].forEach(ev=>jumpBtn.addEventListener(ev,()=>{touchJump=false;}));
@@ -2639,7 +2645,7 @@ function frame(now){
   if(!riding){
     const steps=Math.ceil(dt/(1/120));const sdt=dt/steps;
     for(let i=0;i<steps;i++){
-      const r=bodyStep(me,sdt,iv.x,iv.z,playing&&jumpBuf>0,jumpHeld(),isTouch?SPEED*1.1:SPEED);
+      const r=bodyStep(me,sdt,iv.x,iv.z,playing&&jumpBuf>0,jumpHeld(),(isTouch?SPEED*1.1:SPEED)*((runOn||keys.ShiftLeft||keys.ShiftRight)?RUN:1));
       if(r.jumped){jumpBuf=0;Snd.play("jump");}
       if(r.die){die();died=true;break;}
       if(r.landed&&r.impact<-14)Snd.play("land");

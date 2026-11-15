@@ -5,8 +5,9 @@ import { isTouch } from "./core.js";
 const DEFAULT_KEYS = {
   up: ["KeyW", "ArrowUp"], down: ["KeyS", "ArrowDown"], left: ["KeyA", "ArrowLeft"], right: ["KeyD", "ArrowRight"],
   jump: ["Space"], act: ["KeyE", "KeyJ"], reset: ["KeyR"], chat: ["KeyT", "Enter"], pause: ["KeyP", "Escape"],
+  run: ["ShiftLeft", "ShiftRight"],
 };
-const PAD = { jump: 0, act: 2, reset: 3, pause: 9 }; // standard gamepad button indexes
+const PAD = { jump: 0, act: 2, reset: 3, pause: 9, run: 10 }; // standard gamepad button indexes
 
 /**
  * createInput({ canvas, keys, onLook(dx,dy,isTouch), onZoom(delta), enabled:()=>bool })

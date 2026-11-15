@@ -94,3 +94,5 @@ input { font-family: inherit; }
 .ez-x { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: #e2e8f0; color: #0f172a; font-size: 16px; font-weight: 700; cursor: pointer; line-height: 1; z-index: 2; }
 .ez-x:hover { background: #cbd5e1; }
 .ez-chat .ez-chat-x { background: #e2e8f0; color: #0f172a; font-weight: 700; }
+
+.ez-tbtn.on { background: rgba(245, 158, 11, 0.9); border-color: #fff; }
