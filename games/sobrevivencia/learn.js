@@ -34,7 +34,7 @@ const U = {
   done: T("🏅 Aula concluída!", "🏅 Lesson complete!", "🏅 ¡Clase terminada!"), unlocked: T("Desbloqueou:", "Unlocked:", "Desbloqueaste:"),
   eraDone: T("Você terminou a Era 1! As Eras 2 a 6 (pedra, metais, vila, segurança e energia) chegam nas próximas versões.", "You finished Era 1! Eras 2–6 (stone, metals, village, security and energy) are coming in the next versions.", "¡Terminaste la Era 1! Las Eras 2 a 6 (piedra, metales, aldea, seguridad y energía) llegan en próximas versiones."),
   pick: T("Pegar", "Take", "Tomar"), progress: T("✅ {d}/{n} aulas", "✅ {d}/{n} lessons", "✅ {d}/{n} clases"),
-  noLesson: T("Sem aula ativa. Toque em 🌳 ou fale com a professora.", "No active lesson. Tap 🌳 or talk to the teacher.", "Sin clase activa. Toca 🌳 o habla con la profesora."),
+  noLesson: T("Sem aula ativa. Toque em 📒 ou fale com a professora.", "No active lesson. Tap 📒 or talk to the teacher.", "Sin clase activa. Toca 📒 o habla con la profesora."),
   bagFull: T("Mochila cheia: só cabem 9 tipos de item. Abra a 🎒 e largue ou use alguma coisa.", "Backpack full: it only holds 9 kinds of item. Open 🎒 and drop or use something.", "Mochila llena: solo caben 9 tipos de objeto. Abre 🎒 y suelta o usa algo."),
   kitSlot: T("Kit da mochila", "Backpack kit", "Kit de la mochila"), kitInfo: T("Seu equipamento, montado no baú do acampamento. Ocupa um quadradinho só.", "Your gear, packed at the camp chest. It takes just one slot.", "Tu equipo, armado en el baúl del campamento. Ocupa un solo espacio."),
   drop1: T("Largar 1", "Drop 1", "Soltar 1"),
