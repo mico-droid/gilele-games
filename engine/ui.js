@@ -178,7 +178,9 @@ export function gameLinks(gameName, { portal = "../../" } = {}) {
 }
 
 // ------------------------------------------------------------------ multiplayer panel
-export function openRoomPanel(room, { onClose } = {}) {
+/** actions(api) → nós extras mostrados quando já há sala (ex.: botões "Jogar"); api.close() fecha sem chamar onClose. */
+export function openRoomPanel(room, { onClose, actions } = {}) {
+  let scr = null, silent = false;
   const msg = h("div.ez-msg");
   const code = h("input.ez-input.ez-code", { maxlength: 4, placeholder: t("mpCodePh") });
   const body = h("div.ez-col");
@@ -192,6 +194,7 @@ export function openRoomPanel(room, { onClose } = {}) {
           h("button.ez-btn.blue.small", { onclick: async () => { try { if (navigator.share) await navigator.share({ url }); else { await navigator.clipboard.writeText(url); toast(t("copied")); } } catch (e) {} } }, "🔗 " + t("copy")),
           h("button.ez-btn.gray.small", { onclick: () => room.leave() }, t("mpLeave"))),
       );
+      if (actions) (actions({ close: () => { silent = true; scr.close(); } }) || []).forEach((n) => n && body.appendChild(n));
     } else {
       body.replaceChildren(
         h("button.ez-btn.wide", { onclick: () => room.create() }, "➕ " + t("mpCreate")),
@@ -206,7 +209,7 @@ export function openRoomPanel(room, { onClose } = {}) {
   };
   const unsub = room.onStatus(L);
   draw();
-  const scr = screen([h("h2", "👥 " + t("mp")), body, h("button.ez-btn.gray.wide", { style: { marginTop: "14px" }, onclick: () => scr.close() }, t("close"))], { dim: true, x: true, onClose: () => { unsub(); onClose && onClose(); } });
+  scr = screen([h("h2", "👥 " + t("mp")), body, h("button.ez-btn.gray.wide", { style: { marginTop: "14px" }, onclick: () => scr.close() }, t("close"))], { dim: true, x: true, onClose: () => { unsub(); if (!silent && onClose) onClose(); } });
   return scr;
 }
 /** Status pill for the HUD that follows the room state. */

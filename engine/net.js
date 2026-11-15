@@ -77,9 +77,12 @@ export function createRoom(opt = {}) {
 
   const info = () => ({ code, n: !code ? 0 : isHost ? 1 + conns.size : Math.max(1, Object.keys(pres).length), max: MAX, isHost });
 
-  async function create() {
+  /** create("ABCD") recria a sala com um código pedido (ex.: o dono mudando de modo de jogo). */
+  async function create(wanted) {
+    wanted = typeof wanted === "string" ? wanted.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4) : "";
+    if (wanted.length !== 4) wanted = "";
     let Peer; try { Peer = await loadPeer(); } catch (e) { status("fail"); return; }
-    reset(); const c = opt.code || code4(); isHost = true; status("connecting");
+    reset(); const c = wanted || opt.code || code4(); isHost = true; status("connecting");
     const pr = new Peer(PREFIX + c, popts); peer = pr;
     pr.on("open", (id) => { if (peer !== pr) return; myId = id; code = c; pres = {}; emit(); status("room", info()); });
     pr.on("connection", (cn) => {
@@ -98,7 +101,7 @@ export function createRoom(opt = {}) {
       });
       cn.on("close", () => { conns.delete(cn.peer); delete pres[cn.peer]; delete seen[cn.peer]; dispatch("leave", null, cn.peer); emit(); status("room", info()); });
     });
-    pr.on("error", (e) => { if (peer !== pr) return; if (e.type === "unavailable-id" && !opt.code) create(); else if (!code) reset("fail"); });
+    pr.on("error", (e) => { if (peer !== pr) return; if (e.type === "unavailable-id" && !opt.code && !wanted) create(); else if (!code) reset("fail"); });
   }
 
   async function join(c) {

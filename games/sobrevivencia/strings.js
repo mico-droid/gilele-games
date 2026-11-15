@@ -403,6 +403,13 @@ const S = {
   tr_accept: ["Fechar a troca", "Make the trade", "Cerrar el trato"], tr_done: ["Troca feita com {n}!", "Trade done with {n}!", "¡Trato hecho con {n}!"],
   tr_cancel: ["{n} recusou a troca.", "{n} refused the trade.", "{n} rechazó el trato."], tr_busy: ["{n} está ocupado agora. Tente de novo.", "{n} is busy right now. Try again.", "{n} está ocupado ahora. Inténtalo de nuevo."],
   tr_timeout: ["A troca expirou.", "The trade expired.", "El trato expiró."],
+  // sala de amigos: entrar no jogo
+  mpEnter: ["Entrar no jogo com esta sala", "Enter the game with this room", "Entrar al juego con esta sala"],
+  mpPlay: ["Jogar {m}", "Play {m}", "Jugar {m}"],
+  mpHostTip: ["A sala é sua: ao escolher o outro modo (↪), a sala vai junto com o mesmo código e seus amigos são levados para lá.", "It's your room: if you pick the other mode (↪), the room goes along with the same code and your friends are taken there.", "La sala es tuya: si eliges el otro modo (↪), la sala va contigo con el mismo código y tus amigos son llevados allí."],
+  mpGuestTip: ["Quem criou a sala escolhe o modo. Se ele trocar, você vai junto.", "Whoever created the room picks the mode. If they switch, you go along.", "Quien creó la sala elige el modo. Si cambia, vas con él."],
+  mpMoving: ["Levando a sala para {m}…", "Taking the room to {m}…", "Llevando la sala a {m}…"],
+  mpFollow: ["O dono da sala foi para {m}. Indo junto…", "The room owner went to {m}. Following…", "El dueño de la sala fue a {m}. Vamos con él…"],
   // Learn mode placeholder
   learnSoon: ["O Modo Aprendizado (aulas da Era 0 à Era 6) vem nas próximas versões.", "Learning Mode (lessons from Era 0 to Era 6) is coming in the next versions.", "El Modo Aprendizaje (clases de la Era 0 a la Era 6) llega en las próximas versiones."],
 };

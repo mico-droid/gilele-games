@@ -9,7 +9,7 @@ import {
 import "./strings.js";
 import { setupSocial } from "./social.js";
 import { ERAS, LESSONS, byId, ITEMS, itName, L } from "./lessons.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom } from "./menu.js";
 
 const GAME_ID = "sobrevivencia-aprender";
 registerPWA("../../sw.js");
@@ -676,12 +676,13 @@ function showTitle() {
       ...modeMenu(store, { contLearn: () => { close(); start(); }, newLearn: () => { close(); P = structuredClone(P0); save(); location.href = "?modo=aprender&acao=novo"; } }),
       h("div.ez-row", { style: { justifyContent: "center" } },
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
-        h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
+        h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle, actions: roomActions(room, store, enterGame) }); } }, "👥 " + t("mp")),
         h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
       gameLinks(t("title")),
       isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · E: interagir · I: mochila · T: manual · B: construir · Arraste: câmera", "WASD/arrows: move · E: interact · I: backpack · T: manual · B: build · Drag: camera", "WASD/flechas: mover · E: interactuar · I: mochila · T: manual · B: construir · Arrastra: cámara")))),
   ]);
 }
+function enterGame() { if (!P.done.length && !P.cur) intro(); else start(); }
 function intro() { pagedScreen(h, screen, { title: "⛺ " + u("title"), text: u("intro"), nextLabel: u("next"), backLabel: t("backP"), endLabel: "▶ " + t("play"), onEnd: start }); }
 function start() { playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false); Audio.init(); updHud(); track("game_start", { mode: "learn", multiplayer: room.connected ? 1 : 0 }); if (!store.get("howSeenL")) { store.set("howSeenL", "1"); openHow(); } }
 function pause(showMenu = true) {
@@ -690,7 +691,7 @@ function pause(showMenu = true) {
   const scr = screen([h("h2", "⏸ " + t("paused")), h("div.ez-col",
     h("button.ez-btn.wide", { onclick: () => { scr.close(); resume(); } }, "▶ " + t("resume")),
     h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); resume(); openHow(); } }, t("howTitle")),
-    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); openRoomPanel(room, { onClose: resume }); } }, t("friends")),
+    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); openRoomPanel(room, { onClose: resume, actions: roomActions(room, store, resume) }); } }, t("friends")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); openSettings({ world, onClose: () => pause() }); } }, "⚙️ " + t("settings")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("exitMenu")))], { dim: true });
   addX(h, scr, () => { scr.close(); resume(); });
@@ -775,6 +776,6 @@ world.onUpdate((dt) => {
 world.start();
 me.respawn(spawn);
 cam.update(0.016, me.body);
-if (room.autoJoin()) toast(t("mpConnecting"));
+if (bootRoom(room, store)) toast(t("mpConnecting"));
 showTitle();
 window.GAME = { world, phys, me, room, cam, input, get P() { return P; }, SPOTS, startLesson, byId, checkLesson, openBuild, reset() { P = structuredClone(P0); save(); } };

@@ -9,7 +9,7 @@ import {
 import { tx, setKidMode } from "./strings.js";
 import { setupSocial } from "./social.js";
 import { buildCity, HOME, BED, ZONES } from "./city.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack } from "./menu.js";
+import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom } from "./menu.js";
 
 const GAME_ID = "sobrevivencia";
 registerPWA("../../sw.js");
@@ -682,13 +682,15 @@ function showTitle() {
       ...modeMenu(store, { contReal: () => { close(); load(saved); start(); }, newReal: () => { close(); showSetup(); } }),
       h("div.ez-row", { style: { justifyContent: "center" } },
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
-        h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
+        h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle, actions: roomActions(room, store, enterGame) }); } }, "👥 " + t("mp")),
         h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
       gameLinks(t("title")),
       isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, t("help")),
     ),
   ]);
 }
+/** Entra no jogo a partir da tela de amigos: continua o jogo salvo ou abre o "novo jogo". */
+function enterGame() { const sv = store.getJSON("save", null); if (sv && !sv.ended) { load(sv); start(); } else showSetup(); }
 function showSetup() {
   const body = h("div.ez-col");
   const chip = (group, val, label, dis) => h("button.ez-chip" + (cfg[group] === val ? ".sel" : ""), { disabled: dis ? true : null, style: dis ? { opacity: 0.45 } : null, onclick: () => { if (dis) return; cfg[group] = val; Audio.play("click"); draw(); } }, label + (dis ? " (" + t("soon") + ")" : ""));
@@ -729,7 +731,7 @@ function pause(showMenu = true) {
     h("button.ez-btn.wide", { onclick: () => { scr.close(); resume(); } }, "▶ " + t("resume")),
     h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); resume(); openTips(); } }, t("tipsBook")),
     h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); resume(); openHow(); } }, t("howTitle")),
-    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); openRoomPanel(room, { onClose: resume }); } }, t("friends")),
+    h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); openRoomPanel(room, { onClose: resume, actions: roomActions(room, store, resume) }); } }, t("friends")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); openSettings({ world, onClose: () => pause() }); } }, "⚙️ " + t("settings")),
     h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("exitMenu")))], { dim: true });
   addX(h, scr, () => { scr.close(); resume(); });
@@ -816,6 +818,6 @@ world.onUpdate((dt) => {
 world.start();
 allowRespawn = true; me.respawn(spawn); allowRespawn = false;
 cam.update(0.016, me.body);
-if (room.autoJoin()) toast(t("mpConnecting"));
+if (bootRoom(room, store)) toast(t("mpConnecting"));
 showTitle();
 window.GAME = { world, phys, me, room, city, cam, input, get st() { return st; }, advance: (hh) => { advance(hh); runEvents(); }, newState, load, start, SPOTS };

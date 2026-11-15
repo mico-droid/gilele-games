@@ -2,7 +2,7 @@
 //   ▶ Continuar jogo anterior  → só aparece se houver jogo salvo (Aulas e/ou Apagão Real)
 //   🆕 Novo jogo               → 📚 Aprendizado (primeiro) e 🌑 Apagão Real
 // Trocar de modo recarrega a página com ?modo=…&acao=cont|novo; consumeAction() lê a ação pedida.
-import { h, t, THREE, part } from "../../engine/ez.js";
+import { h, t, THREE, part, toast } from "../../engine/ez.js";
 import { LESSONS } from "./lessons.js";
 
 const here = new URLSearchParams(location.search).get("modo") === "aprender" ? "learn" : "real";
@@ -91,4 +91,42 @@ export function wearPack(ch, color = "#b45309") {
   part(0.44, 0.3, 0.1, "#92400e", 0, 1.34, -0.63, g);           // bolso de trás
   part(0.5, 0.14, 0.3, "#3f6212", 0, 2.02, -0.43, g);           // rolo do saco de dormir
   [-0.3, 0.3].forEach((x) => { part(0.12, 0.86, 0.04, "#451a03", x, 1.55, 0.27, g, false); part(0.12, 0.05, 0.56, "#451a03", x, 1.98, 0, g, false); }); // alças
+}
+
+// ------------------------------------------------------------ sala de amigos × modos de jogo
+// Cada modo tem a sua página; a sala acompanha o dono quando ele troca de modo (mesmo código).
+const modeUrl = (mode) => (mode === "learn" ? "?modo=aprender&" : "?");
+const hasSave = (store, mode) => { const v = store.getJSON(mode === "learn" ? "learn" : "save", null); return mode === "learn" ? !!(v && ((v.done && v.done.length) || v.cur)) : !!(v && !v.ended); };
+const travel = (store, mode, code, extra) => { location.href = modeUrl(mode) + "sala=" + code + extra + "&acao=" + (hasSave(store, mode) ? "cont" : "novo"); };
+/** Botões "Jogar Aprendizado / Jogar Apagão Real" para a tela de amigos (opção `actions` do openRoomPanel). */
+export function roomActions(room, store, enterHere) {
+  return ({ close }) => {
+    const btn = (mode) => {
+      const mine = mode === here, dis = !mine && !room.isHost;
+      return h("button.ez-btn.wide" + (mine ? "" : ".blue"), { disabled: dis ? true : null, style: dis ? { opacity: 0.45 } : null, onclick: () => {
+        if (dis) return;
+        if (mine) { close(); enterHere(); return; }
+        const code = room.code; room.send("goto", { m: mode, c: code });
+        toast(t("mpMoving", { m: t(mode === "learn" ? "m_learn" : "m_real") }));
+        setTimeout(() => travel(store, mode, code, "&host=1"), 500);
+      } }, "▶ " + t("mpPlay", { m: t(mode === "learn" ? "m_learn" : "m_real") }) + (mine ? "" : " ↪"));
+    };
+    return [h("h3", { style: { margin: "12px 0 2px", textAlign: "center" } }, t("mpEnter")), h("div.ez-col", btn("learn"), btn("real")),
+      h("p.ez-msg", { style: { textAlign: "center" } }, t(room.isHost ? "mpHostTip" : "mpGuestTip"))];
+  };
+}
+/** No carregamento: entra na sala da URL (ou recria como dono, se veio de uma troca de modo) e segue o dono quando ele troca. */
+export function bootRoom(room, store) {
+  room.on("goto", (d) => {
+    if (!d || (d.m !== "learn" && d.m !== "real") || d.m === here || room.isHost) return;
+    const code = String(d.c || room.code || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4); if (code.length !== 4) return;
+    toast(t("mpFollow", { m: t(d.m === "learn" ? "m_learn" : "m_real") }), 3500);
+    setTimeout(() => travel(store, d.m, code, "&segue=1"), 3500);
+  });
+  const u = new URL(location.href), c = u.searchParams.get("sala"); if (!c) return false;
+  const asHost = u.searchParams.get("host") === "1", follow = u.searchParams.get("segue") === "1";
+  u.searchParams.delete("host"); u.searchParams.delete("segue"); history.replaceState(null, "", u.pathname + u.search);
+  if (asHost) { room.create(c); return true; }
+  if (follow) { let tries = 0; room.onStatus((k) => { if (k === "room") tries = 9; else if ((k === "notFound" || k === "fail") && tries < 4) { tries++; setTimeout(() => room.join(c), 2500); } }); }
+  room.join(c); return true;
 }
