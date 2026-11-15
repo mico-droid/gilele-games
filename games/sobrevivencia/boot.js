@@ -1,4 +1,5 @@
-// Escolhe o modo: ?modo=aprender → Aprendizado (learn.js); ?modo=cidade → Jogar na minha cidade (cidade.js, em testes);
-// senão → Apagão Real (main.js).
+// Escolhe o modo: ?modo=aprender → Aprendizado (learn.js); ?modo=cidade → Explorar minha cidade (cidade.js, testes);
+// senão → Apagão Real (main.js; o mapa pode ser o padrão de Goiânia ou o "📍 Minha cidade").
 const modo = new URLSearchParams(location.search).get("modo");
-import(modo === "aprender" ? "./learn.js" : modo === "cidade" ? "./cidade.js" : "./main.js");
+if (modo === "cidade") import("./cidade.js").then((m) => m.runExplorer());
+else import(modo === "aprender" ? "./learn.js" : "./main.js");

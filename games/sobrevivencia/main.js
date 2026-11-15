@@ -10,6 +10,9 @@ import { tx, setKidMode } from "./strings.js";
 import { setupSocial } from "./social.js";
 import { buildCity, HOME, BED, ZONES } from "./city.js";
 import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom, installMusic } from "./menu.js";
+import { openPicker, exitText, shortLabel } from "./cidade.js";
+import { pinPack, pinnedPack, fitHome } from "./geo.js";
+import { buildOsmCity, drawMap } from "./osmcity.js";
 
 const GAME_ID = "sobrevivencia";
 registerPWA("../../sw.js");
@@ -45,6 +48,7 @@ function newState(cfg) {
     stock: { ...Object.fromEntries(Object.entries(MARKET).map(([k, v]) => [k, v[2]])), ...Object.fromEntries(Object.entries(PHARMA).map(([k, v]) => [k, v[2]])), map: NEWS.map[2] },
     f: { meet: 0, warned: 0, coInside: 0, helpedZe: 0, ateSpoiled: 0, radio: 0, cashB: null, foodB: null, lightB: null, fuelB: null, waterMax: 0.5, crowdMin: 0, gen: 0 },
     fired: {}, tips: [], news: [], pos: { x: HOME.x, z: HOME.z + 2 }, ended: 0,
+    map: MAP_NOW, place: osmPack ? osmPack.label || "" : "", ground: OSM ? osmLoot() : [],
   };
 }
 let st = null;
@@ -69,9 +73,41 @@ function canCarry(k, n = 1) {
 const fmtT = () => { const hh = hourOf(), m = Math.floor((hh % 1) * 60); return t("day", { d: dayOf() }) + " · " + String(Math.floor(hh)).padStart(2, "0") + ":" + String(m).padStart(2, "0"); };
 
 // ---------------------------------------------------------------- mundo
-const world = createWorld({ canvas: document.getElementById("c"), sky: 0xbfe3ff, fog: [60, 200], shadowRange: 36 });
+// Mapa: padrão (bairro genérico de Goiânia) ou "📍 Minha cidade" (bairro real do OpenStreetMap + o quarteirão de casa).
+// Trocar de mapa recarrega a página (?acao=novo:osm | novo:gyn | cont).
+const BOOT_ACT = new URLSearchParams(location.search).get("acao") || "";
+const bootSave = store.getJSON("save", null);
+const wantOsm = BOOT_ACT === "novo:osm" || (!BOOT_ACT.startsWith("novo") && bootSave && !bootSave.ended && bootSave.map === "osm");
+let osmPack = null;
+if (wantOsm) { const pk = pinnedPack("game"); if (pk) osmPack = fitHome(pk); }
+const MAP_NOW = osmPack ? "osm" : "gyn";
+const world = createWorld({ canvas: document.getElementById("c"), sky: 0xbfe3ff, fog: osmPack ? [80, 380] : [60, 200], far: osmPack ? 650 : undefined, shadowRange: 36 });
 const phys = createPhysics();
-const city = buildCity(world, phys);
+const city = buildCity(world, phys, { homeOnly: !!osmPack });
+const OSM = osmPack ? buildOsmCity(world, phys, osmPack, { seed: "apagao" }) : null;
+const OSMP = OSM ? osmPlaces() : null;
+/** Lugares do roteiro no mapa real: o mais perto de casa de cada tipo (ou uma loja genérica, se faltar no bloco). */
+function osmPlaces() {
+  const home = { x: HOME.x, z: HOME.z };
+  const has = (k) => osmPack.pois.some((o) => o.k === k && o.in);
+  const P = { market: OSM.place("market", home), pharma: OSM.place("pharmacy", home), atm: OSM.place(has("atm") || !has("bank") ? "atm" : "bank", home), gas: OSM.place("fuel", home) };
+  P.news = OSM.place("news", P.market || home);
+  P.hospital = osmPack.pois.find((o) => o.k === "hospital") || null;
+  // praça: área verde dentro do bloco mais perto de casa; senão, um ponto de rua longe do mercado
+  let sq = null;
+  for (const a of osmPack.areas) { if (a.k !== "green") continue; let x = 0, z = 0; const n = a.p.length / 2; for (let i = 0; i < a.p.length; i += 2) { x += a.p[i]; z += a.p[i + 1]; } x /= n; z /= n;
+    const d = Math.hypot(x, z); if (d > 30 && d < osmPack.r * 2 * 0.85 && (!sq || d < sq.d)) sq = { x, z, d }; }
+  if (!sq && OSM.botPoints.length) { const far = OSM.botPoints.filter((q) => !P.market || Math.hypot(q.x - P.market.x, q.z - P.market.z) > 60); const q = (far.length ? far : OSM.botPoints)[Math.floor(OSM.rand() * (far.length || OSM.botPoints.length))]; sq = { x: q.x, z: q.z }; }
+  if (P.market) Object.assign(ZONES.market, { x: P.market.x, z: P.market.z });
+  if (sq) Object.assign(ZONES.square, { x: sq.x, z: sq.z });
+  return P;
+}
+/** Itens espalhados no mapa real: 30% das casas abertas/com porta + muitos nas lojas do tipo certo (até 70). */
+function osmLoot() {
+  const L = { house: ["water", "can", "biscuit", "kit", "candle", "batt", "matches", "bottle", "bread"], market: ["water", "can", "biscuit", "rice", "water"], bakery: ["bread", "biscuit"], pharmacy: ["kit", "ors", "kit", "bleach"], hospital: ["kit", "ors"], fuel: ["gascan", "water"], hardware: ["flash", "batt", "candle", "matches", "bleach"], water: ["water"], school: ["water", "biscuit"] };
+  const slots = OSM.lootSlots.slice().sort((a, b) => (a.kind === b.kind ? 0 : a.kind === "poi" ? -1 : 1)).slice(0, 70);
+  return slots.map((s, i) => { const A = L[s.kind === "house" ? "house" : s.cat] || L.house, k = A[Math.floor(OSM.rand() * A.length)]; return { id: "L" + i, k: IT[k] ? k : "water", n: 1, x: Math.round(s.x * 10) / 10, z: Math.round(s.z * 10) / 10 }; });
+}
 let playing = false, menuOpen = false;
 const cam = createFollowCamera(world.camera, { phys, dist: 9, maxDist: 16 });
 const input = createInput({ canvas: world.renderer.domElement, enabled: () => playing, onLook: (dx, dy, tc) => cam.look(dx, dy, tc), onZoom: (d) => cam.zoom(d) });
@@ -93,9 +129,15 @@ const candle = new THREE.PointLight(0xffb347, 0, 12, 1.2); candle.position.set(H
 // multidões (bots só aparecem depois do apagão)
 const nCrowd = isMobile ? 6 : 10;
 const crowds = {
-  market: Array.from({ length: nCrowd }, (_, i) => createBot({ world, phys, look: randomLook(""), area: { x0: -8, z0: 28, x1: 8, z1: 36 }, speed: 0.35 })),
-  square: Array.from({ length: nCrowd }, (_, i) => createBot({ world, phys, look: randomLook(""), area: { x0: -56, z0: 40, x1: -40, z1: 56 }, speed: 0.3 })),
+  market: Array.from({ length: nCrowd }, (_, i) => createBot({ world, phys, look: randomLook(""), area: { x0: ZONES.market.x - 8, z0: ZONES.market.z - 5, x1: ZONES.market.x + 8, z1: ZONES.market.z + 3 }, speed: 0.35 })),
+  square: Array.from({ length: nCrowd }, (_, i) => createBot({ world, phys, look: randomLook(""), area: { x0: ZONES.square.x - 8, z0: ZONES.square.z - 8, x1: ZONES.square.x + 8, z1: ZONES.square.z + 8 }, speed: 0.3 })),
 };
+// mapa real: pessoas andando pelas ruas o tempo todo
+const people = OSM ? Array.from({ length: Math.min(OSM.botPoints.length, isMobile ? 5 : 8) }, () => {
+  const q = OSM.botPoints[Math.floor(OSM.rand() * OSM.botPoints.length)];
+  const b = createBot({ world, phys, look: randomLook(""), area: { x0: q.x - 14, z0: q.z - 14, x1: q.x + 14, z1: q.z + 14 }, speed: 0.3 + OSM.rand() * 0.2 });
+  b.ch.showLabel = false; b.ch.makeLabel(); return b;
+}) : [];
 Object.values(crowds).flat().forEach((b) => { b.ch.root.visible = false; b.ch.showLabel = false; b.ch.makeLabel(); });
 const crowdOn = (z) => after() && (z === "market" ? st.T > B() + 0.8 && st.T < B() + 14 : st.T > B() + 2 && st.T < B() + 40);
 
@@ -326,20 +368,25 @@ const MAP_PLACES = [
   ["i_door", "🏢", "l_home"], ["i_market", "🛒"], ["i_newsstand", "📰"], ["i_pharma", "💊"], ["i_atm", "🏧"], ["i_gas", "⛽"], ["i_parking", "🚗"],
   ["i_ze", "👴"], ["i_cida", "👩"], ["i_valdir", "👨"],
 ];
-const MAP_EXTRA = [[-52, 6, "🏥", "i_hospital"], [-48, 48, "🌳", "l_square"], [48, -50, "📡", "i_tower"]];
+const MAP_EXTRA = OSMP ? [OSMP.hospital && [OSMP.hospital.x, OSMP.hospital.z, "🏥", "i_hospital"], [ZONES.square.x, ZONES.square.z, "🌳", "l_square"], [city.towerPos.x, city.towerPos.z, "📡", "i_tower"]].filter(Boolean)
+  : [[-52, 6, "🏥", "i_hospital"], [-48, 48, "🌳", "l_square"], [48, -50, "📡", "i_tower"]];
 function openMap() {
   const paper = has(st.bag, "map");
   if (!paper && st.phone <= 0) { openMenu(() => ({ title: t("mapT"), info: [t("mapNoBatt")] })); return; }
   if (!paper) st.phone = clamp(st.phone - 1);
-  const W = 300, R = 90, k = W / (2 * R), P = (x) => (x + R) * k;
+  const W = 300, R = OSM ? Math.min(osmPack.r * 2, 320) : 90, k = W / (2 * R), P = (x) => (x + R) * k;
   const cv = h("canvas", { width: W * 2, height: W * 2, style: { width: "min(300px, 72vw)", aspectRatio: "1", display: "block", margin: "6px auto", borderRadius: "14px", touchAction: "none" } });
   const c = cv.getContext("2d"); c.scale(2, 2);
   const places = MAP_PLACES.map(([key, e, lab]) => { const s = SPOTS.find((x) => x.key === key); return s && { s, e, name: t(lab || key) }; }).filter(Boolean);
+  if (OSM && OSM.exitMark) places.push({ s: { x: OSM.exitMark.x, z: OSM.exitMark.z, r: 10, key: "exit" }, e: osmPack.exit.rural ? "🌾" : "🛣️", name: exitText(osmPack, me.x, me.z) });
   function draw() {
-    c.fillStyle = "#9bbf63"; c.fillRect(0, 0, W, W);
-    c.fillStyle = "#52525b"; [-24, 24, -72, 72].forEach((v) => { c.fillRect(0, P(v) - 4 * k, W, 8 * k); c.fillRect(P(v) - 4 * k, 0, 8 * k, W); });
-    c.fillStyle = "#86efac"; c.fillRect(P(-61), P(35), 26 * k, 26 * k);
-    c.fillStyle = "#e2e8f0"; [[0, 10, 16, 13], [0, 46, 26, 16], [40, 38, 10, 8], [-52, 6, 16, 20], [-46, -40, 14, 14], [0, -32, 4, 3]].forEach(([x, z, w, d]) => c.fillRect(P(x - w / 2), P(z - d / 2), w * k, d * k));
+    if (OSM) drawMap(cv, osmPack, { cx: 0, cz: 0, scale: W / R, icons: false });   // mapa real (o canvas tem 2× pixels)
+    else {
+      c.fillStyle = "#9bbf63"; c.fillRect(0, 0, W, W);
+      c.fillStyle = "#52525b"; [-24, 24, -72, 72].forEach((v) => { c.fillRect(0, P(v) - 4 * k, W, 8 * k); c.fillRect(P(v) - 4 * k, 0, 8 * k, W); });
+      c.fillStyle = "#86efac"; c.fillRect(P(-61), P(35), 26 * k, 26 * k);
+      c.fillStyle = "#e2e8f0"; [[0, 10, 16, 13], [0, 46, 26, 16], [40, 38, 10, 8], [-52, 6, 16, 20], [-46, -40, 14, 14], [0, -32, 4, 3]].forEach(([x, z, w, d]) => c.fillRect(P(x - w / 2), P(z - d / 2), w * k, d * k));
+    }
     c.font = "16px sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
     const tg = dest || (mission && mission.target);
     if (tg) { c.strokeStyle = "#facc15"; c.lineWidth = 3; c.beginPath(); c.arc(P(tg.x), P(tg.z), 13, 0, Math.PI * 2); c.stroke(); }
@@ -349,14 +396,14 @@ function openMap() {
     const px = P(me.x), pz = P(me.z), dx = Math.sin(me.rot), dz = Math.cos(me.rot);
     c.fillStyle = "#ef4444"; c.strokeStyle = "#fff"; c.lineWidth = 2; c.beginPath();
     c.moveTo(px + dx * 10, pz + dz * 10); c.lineTo(px - dz * 6 - dx * 6, pz + dx * 6 - dz * 6); c.lineTo(px + dz * 6 - dx * 6, pz - dx * 6 - dz * 6); c.closePath(); c.fill(); c.stroke();
-    c.fillStyle = "#0f172a"; c.font = "bold 11px sans-serif"; c.fillText("N ▲", W - 20, 12);
+    if (!OSM) { c.fillStyle = "#0f172a"; c.font = "bold 11px sans-serif"; c.fillText("N ▲", W - 20, 12); }
   }
   draw();
   let m = null;
   const go = (p) => { dest = p.s; toast("🧭 " + t("mapDest", { x: p.name }), 2600); Audio.play("ok"); m.close(); };
   cv.addEventListener("pointerdown", (e) => {
     const r = cv.getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * W / k - R, z = ((e.clientY - r.top) / r.height) * W / k - R;
-    let best = null, bd = 9; for (const p of places) { const d = Math.hypot(p.s.x - x, p.s.z - z); if (d < bd) { bd = d; best = p; } }
+    let best = null, bd = (9 * R) / 90; for (const p of places) { const d = Math.hypot(p.s.x - x, p.s.z - z); if (d < bd) { bd = d; best = p; } }
     if (best) go(best);
   });
   m = openMenu(() => ({ title: t("mapT") + (paper ? " · " + t("mapPaper") : ""), info: [h("p.ez-msg", { style: { textAlign: "center" } }, t("mapHelp")), cv],
@@ -538,6 +585,11 @@ spot(hx, z1, 1.9, "i_door", () => openMenu(() => ({ title: "🚪 " + t("i_door")
 ] })));
 // marcadores ❗ sobre quem precisa de você
 const markTex = (() => { const cv = document.createElement("canvas"); cv.width = cv.height = 64; const c = cv.getContext("2d"); c.font = "52px sans-serif"; c.textAlign = "center"; c.fillText("❗", 32, 52); const tt = new THREE.CanvasTexture(cv); return tt; })();
+// mapa real: mercado, farmácia, banca, caixa eletrônico e posto vão para os lugares de verdade (ou lojas genéricas)
+if (OSMP) {
+  const mv = (key, p) => { const s = SPOTS.find((x) => x.key === key); if (s && p) { s.x = p.x; s.z = p.z; s.r = Math.max(s.r, 3.4); } };
+  mv("i_market", OSMP.market); mv("i_pharma", OSMP.pharma); mv("i_atm", OSMP.atm); mv("i_gas", OSMP.gas); mv("i_newsstand", OSMP.news);
+}
 SPOTS.filter((s) => s.mark).forEach((s) => { s.sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: markTex, depthTest: false })); s.sprite.scale.set(1.4, 1.4, 1); s.sprite.position.set(s.x, 4.6, s.z); s.sprite.visible = false; world.scene.add(s.sprite); });
 
 // ---------------------------------------------------------------- dormir, desmaiar, fim
@@ -742,7 +794,9 @@ function showTitle() {
   const pv = createAvatarPreview(cv); pv.set(me.ch.look); pv.start();
   const saved = store.getJSON("save", null);
   const act = consumeAction();
-  if (act === "cont" && saved && !saved.ended) { pv.stop(); load(saved); start(); return; }
+  const mapOk = (sv) => (sv.map || "gyn") === MAP_NOW;
+  if (act === "cont" && saved && !saved.ended) { pv.stop(); if (!mapOk(saved)) { toast(t("map_lost"), 6000); showSetup(); return; } load(saved); start(); return; }
+  if (act === "novo:osm" || act === "novo:gyn") { pv.stop(); if (act === "novo:osm" && !OSM) { toast(t("map_lost"), 6000); showSetup(); return; } load(newState(cfg)); showIntro(); return; }
   if (act === "novo") { pv.stop(); showSetup(); return; }
   let scr = null;
   const close = () => { pv.stop(); scr.close(); };
@@ -750,7 +804,7 @@ function showTitle() {
     h("h1", "🔦 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.7 } }, t("tagline") + " · v" + VERSION),
     cv,
     h("div.ez-col", { style: { marginTop: "10px" } },
-      ...modeMenu(store, { contReal: () => { close(); load(saved); start(); }, newReal: () => { close(); showSetup(); } }),
+      ...modeMenu(store, { contReal: () => { close(); if (!mapOk(saved)) { location.href = "?acao=cont"; return; } load(saved); start(); }, newReal: () => { close(); showSetup(); } }),
       h("div.ez-row", { style: { justifyContent: "center" } },
         h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
         h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle, actions: roomActions(room, store, enterGame) }); } }, "👥 " + t("mp")),
@@ -768,13 +822,31 @@ function showSetup() {
   let scr = null;
   function draw() {
     body.replaceChildren(
-      h("h3", t("map")), h("div.ez-row", chip("map", "gyn", t("map_gyn")), chip("map", "rio", t("map_rio"), true)),
+      h("h3", t("map")), h("div.ez-row", chip("map", "gyn", t("map_gyn")), chip("map", "rio", t("map_rio"), true), room.connected ? null : chip("map", "osm", t("map_osm"))),
+      cfg.map === "osm" && !room.connected ? osmBox() : null,
       h("h3", t("age")), h("div.ez-row", chip("age", "kid", t("age_kid")), chip("age", "teen", t("age_teen"))),
       h("h3", t("diff")), h("div.ez-row", chip("diff", "easy", t("d_easy")), chip("diff", "hard", t("d_hard"))),
       h("p.ez-msg", t(cfg.diff === "hard" ? "d_hardInfo" : "d_easyInfo")),
-      h("button.ez-btn.wide", { style: { marginTop: "10px" }, onclick: () => { store.setJSON("cfg", cfg); scr.close(); load(newState(cfg)); showIntro(); } }, "▶ " + t("start")),
+      h("button.ez-btn.wide", { style: { marginTop: "10px" }, onclick: () => {
+        if (cfg.map === "osm" && room.connected) cfg.map = "gyn";
+        store.setJSON("cfg", cfg);
+        // mapa diferente do que está montado: recarrega a página já com o mapa certo
+        if (cfg.map === "osm") { const pk = pinnedPack("pick"); if (!pk) { choose(); return; } pinPack(pk, "game"); location.href = "?acao=novo:osm"; return; }
+        if (MAP_NOW !== "gyn") { location.href = "?acao=novo:gyn"; return; }
+        scr.close(); load(newState(cfg)); showIntro();
+      } }, "▶ " + t("start")),
       h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("back")),
     );
+  }
+  function choose() {
+    scr.close();
+    openPicker({ kid: cfg.age !== "teen", size: cfg.citySize || 250, onSize: (v) => { cfg.citySize = v; }, okLabel: t("useHere"), title: t("map_osm"),
+      onPack: (p) => { pinPack(p, "pick"); showSetup(); }, onCancel: showSetup });
+  }
+  function osmBox() {
+    const pk = pinnedPack("pick");
+    return h("div.ez-col", { style: { gap: "4px" } }, h("p.ez-msg", t("map_osmInfo")), h("p", { style: { margin: "2px 0", fontWeight: "600" } }, pk ? "📍 " + shortLabel(pk.label) : t("map_none")),
+      h("button.ez-btn.blue.wide", { onclick: choose }, t(pk ? "map_change" : "map_pick")));
   }
   draw();
   scr = screen([h("h2", t("m_real") + " · " + t("newGame")), body]);
@@ -851,6 +923,7 @@ world.onUpdate((dt) => {
     if (st.s.health <= 0) { faint(); return; }
     // interação
     near = nearestSpot();
+    if (!near && OSM) { const d = OSM.nearDoor(me.x, me.z); if (d) near = { key: d.open ? "osmDoorClose" : "osmDoorOpen", open: () => { OSM.toggleDoor(d); Audio.play("click"); } }; }
     const soc = social.near(!near);   // item no chão tem prioridade; troca só longe dos lugares
     const useSoc = soc && (!near || soc.text.startsWith("⬆"));
     prompt.classList.toggle("ez-hidden", !near && !soc);
@@ -882,6 +955,7 @@ world.onUpdate((dt) => {
     const cp = world.camera.position, camIn = cp.y < 18 && cp.x > HOME.x - HOME.w / 2 - 5 && cp.x < HOME.x + HOME.w / 2 + 1.5 && cp.z > HOME.z - HOME.d / 2 - 1.5 && cp.z < HOME.z + HOME.d / 2 + 2.5;
     const inside = city.insideHome(me.x, me.z); city.roof.visible = !inside && !camIn; city.homeLabel.visible = Math.hypot(me.x - HOME.x, me.z - HOME.z) > 16;
     Object.values(city.npcs).forEach((c) => c.animate(dt, 0, true));
+    if (OSM) { OSM.setInside(OSM.insideHollow(me.x, me.z)); OSM.update(dt); people.forEach((b) => b.update(dt)); }
     updateLight(dt);
     hudT -= dt; if (hudT <= 0) { hudT = 0.5; updHud(); }
     updGuide();

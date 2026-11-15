@@ -218,21 +218,28 @@ games/sobrevivencia/
 
 ---
 
-## 🏙️ Jogar na minha cidade (EM TESTES — prova de conceito, 15/11/2026)
+## 🏙️ Mapa real ("📍 Minha cidade") — EM TESTES (15/11/2026)
 
 Decisões do dono:
-- Dados só do **OpenStreetMap** (Overpass para ruas/prédios/locais, Nominatim para busca). O link do Google Maps (ou de outro app) é só para ler as coordenadas. Tudo **grátis** para o dono e para o jogador (sem servidor pago); monetização só no futuro (itens).
+- Dados só do **OpenStreetMap** (Overpass para ruas/prédios/locais, Nominatim para busca). O link do Google Maps (ou de outro app) é só para ler as coordenadas. Tudo **grátis** para o dono e para o jogador; monetização só no futuro (itens).
 - **Faixa infantil sem GPS** (só busca por nome/link).
-- Visível no menu na seção "🧪 Em testes". O desenvolvimento do resto do Sobrevivência fica pausado até este modo ficar pronto.
-- Endereço de teste: Escola Hugo de Carvalho Ramos, Goiânia (botão de exemplo).
-- Prioridade: locais estratégicos (mercado, farmácia, posto, delegacia, hospital…) e, principalmente, a **rodovia de saída mais próxima**.
+- No **Apagão Real**, o mapa é opcional: "Cidade no Cerrado" (padrão) ou "📍 Minha cidade (testes)". O modo "🏙️ Explorar minha cidade" (`?modo=cidade`) fica na seção 🧪 Em testes para andar livre no mapa.
+- Exemplo do botão: "Jardim Goiás, Goiânia" (se não achar: "Praça Tamandaré, Goiânia, Goiás").
+- Carregamento com % (bytes recebidos), KB, segundos e aviso de lentidão; mensagens próprias para **sem internet** e **servidor ocupado** (botão Tentar de novo).
+- Casas (térreas/sobrados): **50% fechadas, 25% com porta (✋ abre/fecha), 25% abertas**. Prédios grandes ficam fechados; lojas pequenas ficam abertas.
+- Itens: **30% das casas abertas/com porta** têm 1 item; locais estratégicos concentram itens do tipo (farmácia = remédios, mercado = comida/água, posto = galão, material de construção = lanterna/pilhas…). Até 70 itens no Apagão Real (usam os itens do chão de `social.js`, salvos em `st.ground`).
+- Pessoas andando pelas ruas (bots amigáveis), além das multidões do roteiro.
+- Saída: rodovia mais próxima (BR/GO… ou via expressa); **sem rodovia, o lado (N/L/S/O) com zona rural mais perto** (lavoura, pasto, mata, sítios, povoados); sem dados, o lado com menos construções.
 
-Arquivos: `boot.js` (`?modo=cidade`) → `cidade.js` (telas, HUD, minimapa, lista de locais) · `geo.js` (entrada, Overpass/Nominatim, "pacote do mapa" v1, cache local dos 4 últimos blocos) · `osmcity.js` (mundo 3D em poucas malhas, colisão por faixas de caixas, casas genéricas onde o OSM não tem prédios, placas, farol verde da saída, `drawMap`).
+Arquivos: `geo.js` (entrada, Overpass/Nominatim, pacote do mapa v2, cache dos 4 últimos blocos + slots "pick"/"game", `fitHome`) · `osmcity.js` (mundo 3D, casas abertas/porta/fechadas, portas instanciadas, itens, `place(cat)`, `drawMap`) · `cidade.js` (`openPicker`, textos, `runExplorer`) · `city.js` com `{ homeOnly }` (só o quarteirão de casa + torre).
+
+Apagão Real no mapa real: `fitHome` gira/move o bairro para o quarteirão de casa (prédio, Zé, Cida, Valdir, garagem) caber de frente para uma rua real perto do ponto escolhido; o que estava ali sai. Mercado, farmácia, banca, caixa e posto vão para o local real mais perto de casa (ou uma loja genérica no bloco). Trocar de mapa recarrega a página (`?acao=novo:osm|novo:gyn|cont`). O norte do mapa do celular segue a rotação. Multijogador no mapa real ainda não (a opção some quando há sala).
 
 Regras técnicas:
-- Bloco = centro encaixado numa grade de 0,001° (~110 m) + raio (150 ou 250 m) → o mesmo lugar gera sempre o mesmo mundo (base do multijogador: o anfitrião manda só `{id do bloco, versão, seed}`; nunca geometria).
-- Nominatim: só por clique, ≤ 1 pedido/s, sem autocompletar. Overpass: 2 pedidos por lugar novo, com 3 servidores reserva. Sempre mostrar "© OpenStreetMap contributors".
-- Cada local guarda ID do OSM + categoria (`CATS` em `geo.js`): gancho para loot, loja, afiliados e mapas premium.
-- Delegacia = ponto de segurança/ajuda; itens de defesa seguem a regra da Era 5 (só itens de jogo que espantam).
+- Bloco = centro encaixado numa grade de 0,001° (~110 m) + raio (150 ou 250 m) → o mesmo lugar gera sempre o mesmo mundo (base do multijogador futuro: mandar só `{id do bloco, versão, seed}`).
+- Nominatim: só por clique, ≤ 1 pedido/s, sem autocompletar. Overpass: 2–3 pedidos por lugar novo, com 3 servidores reserva. Sempre mostrar "© OpenStreetMap contributors".
+- Cada local guarda ID do OSM + categoria (`CATS`): gancho para loot, loja, afiliados e mapas premium.
+- Delegacia = ponto de segurança/ajuda; itens de defesa seguem a regra da Era 5.
+- Chaves de texto novas usam prefixo (`geo…`, `osm…`, `map_…`) para não sobrescrever textos do jogo/motor.
 
-Próximas etapas (depois de validar a PoC): loot/perigos por categoria + roteiro de sobrevivência no mapa real; multijogador por ID do bloco; resolver links curtos (maps.app.goo.gl) se surgir solução grátis; nascer em ponto aleatório no multijogador.
+Próximo: multijogador no mapa real; resolver links curtos (maps.app.goo.gl) se surgir solução grátis; mais tipos de perigo por local.

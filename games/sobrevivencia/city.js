@@ -9,29 +9,35 @@ export const ZONES = {
   square: { x: -48, z: 48, r: 12 },
 };
 
-export function buildCity(world, phys) {
+/**
+ * opt.homeOnly: só o quarteirão de casa (prédio, vizinhos, garagem, torre) — o resto vem do mapa real (osmcity.js).
+ */
+export function buildCity(world, phys, opt = {}) {
+  const homeOnly = !!opt.homeOnly;
   const S = world.scene;
   const lit = [];                       // janelas e postes que apagam no apagão
   const winOn = getMat("#fde68a", 0.9), winOff = getMat("#1e293b");
   const lampOn = getMat("#fef9c3", 1.2), lampOff = getMat("#475569");
 
-  addGround(world, phys, { size: 180, color: 0x9bbf63 });
-  // limites invisíveis
-  [[0, -88, 180, 2], [0, 88, 180, 2], [-88, 0, 2, 180], [88, 0, 2, 180]].forEach(([x, z, w, d]) => phys.addBox({ x, y: 3, z, w, h: 8, d, mesh: false }));
+  if (!homeOnly) {
+    addGround(world, phys, { size: 180, color: 0x9bbf63 });
+    // limites invisíveis
+    [[0, -88, 180, 2], [0, 88, 180, 2], [-88, 0, 2, 180], [88, 0, 2, 180]].forEach(([x, z, w, d]) => phys.addBox({ x, y: 3, z, w, h: 8, d, mesh: false }));
 
-  // ruas (só visual; o chão já colide)
-  const road = (x, z, w, d) => { const m = part(w, 0.04, d, "#3f3f46", x, 0.02, z, S, false); m.receiveShadow = true; };
-  const dash = (x, z, w, d) => part(w, 0.05, d, "#facc15", x, 0.03, z, S, false);
-  [-24, 24, -72, 72].forEach((c) => { road(0, c, 180, 8); road(c, 0, 8, 180); });
-  for (let i = -84; i < 84; i += 6) [-24, 24].forEach((c) => { dash(i, c, 2.4, 0.2); dash(c, i, 0.2, 2.4); });
-  // calçadas nas ruas principais
-  [-24, 24].forEach((c) => { [c - 5, c + 5].forEach((s) => { part(180, 0.12, 2, "#d6d3d1", 0, 0.06, s, S, false); part(2, 0.12, 180, "#d6d3d1", s, 0.06, 0, S, false); }); });
+    // ruas (só visual; o chão já colide)
+    const road = (x, z, w, d) => { const m = part(w, 0.04, d, "#3f3f46", x, 0.02, z, S, false); m.receiveShadow = true; };
+    const dash = (x, z, w, d) => part(w, 0.05, d, "#facc15", x, 0.03, z, S, false);
+    [-24, 24, -72, 72].forEach((c) => { road(0, c, 180, 8); road(c, 0, 8, 180); });
+    for (let i = -84; i < 84; i += 6) [-24, 24].forEach((c) => { dash(i, c, 2.4, 0.2); dash(c, i, 0.2, 2.4); });
+    // calçadas nas ruas principais
+    [-24, 24].forEach((c) => { [c - 5, c + 5].forEach((s) => { part(180, 0.12, 2, "#d6d3d1", 0, 0.06, s, S, false); part(2, 0.12, 180, "#d6d3d1", s, 0.06, 0, S, false); }); });
 
-  // postes de luz
-  for (let i = -66; i <= 66; i += 22) [[i, -18.6], [i, 29.4], [-18.6, i], [29.4, i]].forEach(([x, z]) => {
-    part(0.25, 5, 0.25, "#64748b", x, 2.5, z, S);
-    const head = part(0.9, 0.3, 0.5, "#64748b", x, 5.1, z, S); head.material = lampOn; lit.push({ m: head, on: lampOn, off: lampOff });
-  });
+    // postes de luz
+    for (let i = -66; i <= 66; i += 22) [[i, -18.6], [i, 29.4], [-18.6, i], [29.4, i]].forEach(([x, z]) => {
+      part(0.25, 5, 0.25, "#64748b", x, 2.5, z, S);
+      const head = part(0.9, 0.3, 0.5, "#64748b", x, 5.1, z, S); head.material = lampOn; lit.push({ m: head, on: lampOn, off: lampOff });
+    });
+  }
 
   /** Placa de loja: quadro colorido com o nome, em cima do prédio. */
   function roofSign(text, x, y, z, bg) {
@@ -124,52 +130,54 @@ export function buildCity(world, phys) {
   building(10, -14, 8, 8, 3.2, "#fed7aa");
   const homeLabel = roofSign("🏢 " + t("l_building"), H.x - 1.5, WH + 11.2, H.z, "#b45309");
 
-  // ---------------------------------------------------------------- comércio e serviços
-  building(0, 46, 26, 16, 6, "#f1f5f9", { roof: "#16a34a" });                     // mercado
-  part(6, 3, 0.2, "#0f172a", 0, 1.5, 37.95, S); part(10, 1.4, 0.3, "#16a34a", 0, 5.2, 37.9, S);
-  building(40, 38, 10, 8, 4, "#ecfeff", { roof: "#0d9488" });                     // farmácia
-  part(2.4, 2.6, 0.2, "#0f172a", 40, 1.3, 33.95, S);
-  phys.addBox({ x: 0, y: 1.6, z: -32, w: 4, h: 3.2, d: 3, color: "#1d4ed8", scene: S });   // banco 24h
-  const atmScr = part(1.2, 0.9, 0.1, "#38bdf8", 0, 1.7, -30.45, S, false); atmScr.material = getMat("#38bdf8", 1); lit.push({ m: atmScr, on: atmScr.material, off: winOff });
-  // posto
-  [[-52, -46], [-40, -46], [-52, -34], [-40, -34]].forEach(([x, z]) => part(0.5, 5, 0.5, "#e5e7eb", x, 2.5, z, S));
-  part(14, 0.5, 14, "#dc2626", -46, 5.2, -40, S);
-  [[-49, -40], [-43, -40]].forEach(([x, z]) => { phys.addBox({ x, y: 0.9, z, w: 1, h: 1.8, d: 0.8, color: "#f8fafc", scene: S }); const d = part(0.6, 0.4, 0.1, "#22c55e", x, 1.3, z + 0.42, S, false); d.material = getMat("#22c55e", 1); lit.push({ m: d, on: d.material, off: winOff }); });
-  building(-46, -56, 12, 6, 3.5, "#fef2f2", { roof: "#dc2626" });
-  // torre de celular
-  const tower = new THREE.Group(); tower.position.set(48, 0, -50); S.add(tower);
+  const TP = homeOnly ? { x: 20, z: -20 } : { x: 48, z: -50 };   // torre de celular
+  const tower = new THREE.Group(); tower.position.set(TP.x, 0, TP.z); S.add(tower);
   for (let y = 0; y < 28; y += 4) { part(0.25, 4, 0.25, "#94a3b8", -1, y + 2, -1, tower); part(0.25, 4, 0.25, "#94a3b8", 1, y + 2, 1, tower); part(0.25, 4, 0.25, "#94a3b8", -1, y + 2, 1, tower); part(0.25, 4, 0.25, "#94a3b8", 1, y + 2, -1, tower); part(2.2, 0.15, 2.2, "#94a3b8", 0, y + 4, 0, tower); }
   const tl = part(0.6, 0.6, 0.6, "#ef4444", 0, 28.6, 0, tower); tl.material = getMat("#ef4444", 1.5);
   part(3, 2.4, 2, "#cbd5e1", 3, 1.2, 0, tower);
-  phys.addBox({ x: 48, y: 2, z: -50, w: 2.5, h: 4, d: 2.5, mesh: false });
-  // hospital
-  building(-52, 6, 16, 20, 9, "#f8fafc", { roof: "#1d4ed8" });
-  part(0.2, 2.4, 0.8, "#ef4444", -43.85, 7, 6, S); part(0.2, 0.8, 2.4, "#ef4444", -43.85, 7, 6, S);
-  // ponto de ônibus + ônibus parado
-  part(3, 0.15, 1.4, "#334155", 30.5, 2.6, -4, S); part(0.15, 2.6, 0.15, "#334155", 29.2, 1.3, -4.5, S); part(0.15, 2.6, 0.15, "#334155", 31.8, 1.3, -4.5, S);
-  phys.addBox({ x: 27, y: 1.6, z: 8, w: 2.8, h: 3.2, d: 11, color: "#facc15", scene: S });
-  // praça
-  part(26, 0.1, 26, "#86efac", -48, 0.05, 48, S, false);
-  part(4, 1, 4, "#a8a29e", -48, 0.5, 48, S); part(1, 2.4, 1, "#a8a29e", -48, 1.7, 48, S);
-  [[-56, 42], [-40, 42], [-56, 54], [-40, 54]].forEach(([x, z]) => { part(3, 0.4, 1, "#92400e", x, 0.5, z, S); });
-  [[-58, 38], [-38, 38], [-58, 58], [-38, 58], [-50, 58], [-46, 38]].forEach(([x, z]) => addTree(world, phys, x, z, 1.1));
+  phys.addBox({ x: TP.x, y: 2, z: TP.z, w: 2.5, h: 4, d: 2.5, mesh: false });
+  [["👴 " + t("l_ze"), -15, 11.6, 10, "#4d7c0f"], ["👩 " + t("l_cida"), 14, 5.6, -2, "#be185d"], ["👨 " + t("l_valdir"), -8, 5.6, -12, "#7e22ce"]].forEach(([txt, x, y, z, bg]) => roofSign(txt, x, y, z, bg));
+  if (!homeOnly) {
+    // ---------------------------------------------------------------- comércio e serviços
+    building(0, 46, 26, 16, 6, "#f1f5f9", { roof: "#16a34a" });                     // mercado
+    part(6, 3, 0.2, "#0f172a", 0, 1.5, 37.95, S); part(10, 1.4, 0.3, "#16a34a", 0, 5.2, 37.9, S);
+    building(40, 38, 10, 8, 4, "#ecfeff", { roof: "#0d9488" });                     // farmácia
+    part(2.4, 2.6, 0.2, "#0f172a", 40, 1.3, 33.95, S);
+    phys.addBox({ x: 0, y: 1.6, z: -32, w: 4, h: 3.2, d: 3, color: "#1d4ed8", scene: S });   // banco 24h
+    const atmScr = part(1.2, 0.9, 0.1, "#38bdf8", 0, 1.7, -30.45, S, false); atmScr.material = getMat("#38bdf8", 1); lit.push({ m: atmScr, on: atmScr.material, off: winOff });
+    // posto
+    [[-52, -46], [-40, -46], [-52, -34], [-40, -34]].forEach(([x, z]) => part(0.5, 5, 0.5, "#e5e7eb", x, 2.5, z, S));
+    part(14, 0.5, 14, "#dc2626", -46, 5.2, -40, S);
+    [[-49, -40], [-43, -40]].forEach(([x, z]) => { phys.addBox({ x, y: 0.9, z, w: 1, h: 1.8, d: 0.8, color: "#f8fafc", scene: S }); const d = part(0.6, 0.4, 0.1, "#22c55e", x, 1.3, z + 0.42, S, false); d.material = getMat("#22c55e", 1); lit.push({ m: d, on: d.material, off: winOff }); });
+    building(-46, -56, 12, 6, 3.5, "#fef2f2", { roof: "#dc2626" });
+    // hospital
+    building(-52, 6, 16, 20, 9, "#f8fafc", { roof: "#1d4ed8" });
+    part(0.2, 2.4, 0.8, "#ef4444", -43.85, 7, 6, S); part(0.2, 0.8, 2.4, "#ef4444", -43.85, 7, 6, S);
+    // ponto de ônibus + ônibus parado
+    part(3, 0.15, 1.4, "#334155", 30.5, 2.6, -4, S); part(0.15, 2.6, 0.15, "#334155", 29.2, 1.3, -4.5, S); part(0.15, 2.6, 0.15, "#334155", 31.8, 1.3, -4.5, S);
+    phys.addBox({ x: 27, y: 1.6, z: 8, w: 2.8, h: 3.2, d: 11, color: "#facc15", scene: S });
+    // praça
+    part(26, 0.1, 26, "#86efac", -48, 0.05, 48, S, false);
+    part(4, 1, 4, "#a8a29e", -48, 0.5, 48, S); part(1, 2.4, 1, "#a8a29e", -48, 1.7, 48, S);
+    [[-56, 42], [-40, 42], [-56, 54], [-40, 54]].forEach(([x, z]) => { part(3, 0.4, 1, "#92400e", x, 0.5, z, S); });
+    [[-58, 38], [-38, 38], [-58, 58], [-38, 58], [-50, 58], [-46, 38]].forEach(([x, z]) => addTree(world, phys, x, z, 1.1));
 
-  // quarteirões de enchimento
-  const fill = [[-46, -10, "#fde68a"], [46, 6, "#c7d2fe"], [46, 54, "#fecaca"], [60, -40, "#d9f99d"], [0, -50, "#e0e7ff"], [14, -54, "#fae8ff"], [-14, -54, "#cffafe"], [46, -10, "#fef9c3"], [-16, 62, "#e2e8f0"], [14, 60, "#fee2e2"], [60, 40, "#dcfce7"]];
-  fill.forEach(([x, z, c], i) => building(x, z, 10, 9, i % 4 === 0 ? 9 : 3.4, c, { roof: i % 2 ? "#7c2d12" : "#475569" }));
-  [[-18, 21], [18, 21], [-18, -21], [18, -21], [-30, 30], [30, 30], [-30, -30], [30, -30], [6, -30], [-6, 30], [36, -18], [-36, 18]].forEach(([x, z]) => addTree(world, phys, x, z, 0.9));
+    // quarteirões de enchimento
+    const fill = [[-46, -10, "#fde68a"], [46, 6, "#c7d2fe"], [46, 54, "#fecaca"], [60, -40, "#d9f99d"], [0, -50, "#e0e7ff"], [14, -54, "#fae8ff"], [-14, -54, "#cffafe"], [46, -10, "#fef9c3"], [-16, 62, "#e2e8f0"], [14, 60, "#fee2e2"], [60, 40, "#dcfce7"]];
+    fill.forEach(([x, z, c], i) => building(x, z, 10, 9, i % 4 === 0 ? 9 : 3.4, c, { roof: i % 2 ? "#7c2d12" : "#475569" }));
+    [[-18, 21], [18, 21], [-18, -21], [18, -21], [-30, 30], [30, 30], [-30, -30], [30, -30], [6, -30], [-6, 30], [36, -18], [-36, 18]].forEach(([x, z]) => addTree(world, phys, x, z, 0.9));
 
-  // banca de jornais (vende o mapa de papel)
-  phys.addBox({ x: 20, y: 1.2, z: 33, w: 4, h: 2.4, d: 2.4, color: "#1d4ed8", scene: S }); part(4.6, 0.3, 3, "#facc15", 20, 2.55, 32.8, S);
-  part(3, 1, 0.1, "#f8fafc", 20, 1.5, 31.75, S); part(0.9, 0.7, 0.1, "#fca5a5", 19, 1.6, 31.7, S); part(0.9, 0.7, 0.1, "#bfdbfe", 21, 1.6, 31.7, S);
-  // placas grandes no topo dos lugares importantes (sempre viradas para a câmera)
-  const signs = [
-    ["🛒 " + t("l_market"), 0, 9.4, 46, "#15803d"], ["💊 " + t("l_pharma"), 40, 6.8, 38, "#0f766e"], ["🏧 " + t("l_bank"), 0, 5.6, -32, "#1d4ed8"],
-    ["⛽ " + t("l_gas"), -46, 7.8, -40, "#b91c1c"], ["🏥 " + t("i_hospital"), -52, 11.8, 6, "#1d4ed8"], ["🌳 " + t("l_square"), -48, 5.2, 48, "#166534"],
-    ["📡 " + t("i_tower"), 48, 31.5, -50, "#475569"], ["📰 " + t("i_newsstand"), 20, 4.6, 33, "#1d4ed8"], ["🚌 " + t("i_bus"), 30.5, 4.4, -4, "#a16207"],
-    ["👴 " + t("l_ze"), -15, 11.6, 10, "#4d7c0f"], ["👩 " + t("l_cida"), 14, 5.6, -2, "#be185d"], ["👨 " + t("l_valdir"), -8, 5.6, -12, "#7e22ce"],
-  ];
-  signs.forEach(([txt, x, y, z, bg]) => roofSign(txt, x, y, z, bg));
+    // banca de jornais (vende o mapa de papel)
+    phys.addBox({ x: 20, y: 1.2, z: 33, w: 4, h: 2.4, d: 2.4, color: "#1d4ed8", scene: S }); part(4.6, 0.3, 3, "#facc15", 20, 2.55, 32.8, S);
+    part(3, 1, 0.1, "#f8fafc", 20, 1.5, 31.75, S); part(0.9, 0.7, 0.1, "#fca5a5", 19, 1.6, 31.7, S); part(0.9, 0.7, 0.1, "#bfdbfe", 21, 1.6, 31.7, S);
+    // placas grandes no topo dos lugares importantes (sempre viradas para a câmera)
+    const signs = [
+      ["🛒 " + t("l_market"), 0, 9.4, 46, "#15803d"], ["💊 " + t("l_pharma"), 40, 6.8, 38, "#0f766e"], ["🏧 " + t("l_bank"), 0, 5.6, -32, "#1d4ed8"],
+      ["⛽ " + t("l_gas"), -46, 7.8, -40, "#b91c1c"], ["🏥 " + t("i_hospital"), -52, 11.8, 6, "#1d4ed8"], ["🌳 " + t("l_square"), -48, 5.2, 48, "#166534"],
+      ["📡 " + t("i_tower"), TP.x, 31.5, TP.z, "#475569"], ["📰 " + t("i_newsstand"), 20, 4.6, 33, "#1d4ed8"], ["🚌 " + t("i_bus"), 30.5, 4.4, -4, "#a16207"],
+    ];
+    signs.forEach(([txt, x, y, z, bg]) => roofSign(txt, x, y, z, bg));
+  }
 
   // ---------------------------------------------------------------- vizinhos (NPCs parados)
   const npc = (name, x, z, rot, look) => {
@@ -187,7 +195,7 @@ export function buildCity(world, phys) {
 
   let power = true;
   return {
-    roof, npcs, gen, tower, towerLight: tl, homeLabel,
+    roof, npcs, gen, tower, towerLight: tl, homeLabel, towerPos: TP,
     /** Porta do apartamento: trancada = fechada e sólida; destrancada = aberta. */
     setDoor(locked) {
       doorMesh.rotation.y = locked ? 0 : -1.35; bar.visible = locked;

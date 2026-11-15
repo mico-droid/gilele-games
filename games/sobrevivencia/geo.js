@@ -12,7 +12,7 @@
 // Cada local tem o ID do OSM ("n123"/"w456") e uma categoria normalizada: é o gancho para itens, loja,
 // afiliados e mapas premium no futuro (tabela categoria → conteúdo), sem mudar o formato.
 
-export const PACK_V = 1;
+export const PACK_V = 2;
 export const U = 0.5;                // metros por unidade (igual ao M_PER_UNIT do jogo)
 const GRID = 0.001;                  // o centro "encaixa" numa grade de ~110 m → o mesmo lugar gera sempre o mesmo bloco
 const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter", "https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
@@ -32,6 +32,7 @@ export const CATS = {
   hardware: { e: "🔧", c: "#78716c", wall: "#e7e5e4" },
   water: { e: "🚰", c: "#0284c7", wall: "#bae6fd" },
   school: { e: "🏫", c: "#ca8a04", wall: "#fef08a" },
+  news: { e: "📰", c: "#1d4ed8", wall: "#bfdbfe" },   // banca (só genérica, no Apagão Real)
 };
 /** Ordem de importância para a sobrevivência (lista de "locais estratégicos"). */
 export const CAT_ORDER = ["market", "pharmacy", "fuel", "hospital", "police", "water", "hardware", "bakery", "bank", "atm", "fire", "school"];
@@ -114,21 +115,35 @@ export function projector(lat0, lon0) {
 }
 const r1 = (v) => Math.round(v * 10) / 10;
 
-// ---------------------------------------------------------------- Overpass
-async function overpass(q, signal) {
+// ---------------------------------------------------------------- Overpass (com progresso)
+/** Erro com tipo para a tela: "offline" (sem internet), "busy" (servidor ocupado/lento) ou "other". */
+export function netError(kind, msg) { const e = new Error(msg || kind); e.kind = kind; return e; }
+async function overpass(q, { signal, onBytes } = {}) {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) throw netError("offline");
   let err = null;
   for (const ep of OVERPASS) {
-    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 60000);
+    const ac = new AbortController(); let tm = setTimeout(() => ac.abort(), 70000);
     const stop = () => ac.abort(); if (signal) signal.addEventListener("abort", stop);
     try {
       // POST com form-urlencoded = pedido "simples" (sem preflight de CORS)
       const r = await fetch(ep, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ac.signal });
-      if (r.ok) { const j = await r.json(); if (j && Array.isArray(j.elements)) return j; }
-      err = new Error("overpass " + r.status);
-    } catch (e) { err = e; if (signal && signal.aborted) throw e; }
-    finally { clearTimeout(tm); if (signal) signal.removeEventListener("abort", stop); }
+      if (!r.ok) { err = netError(r.status === 429 || r.status >= 500 ? "busy" : "other", "overpass " + r.status); continue; }
+      // lê aos pedaços para mostrar quanto já chegou
+      let text = "";
+      if (r.body && r.body.getReader) {
+        const rd = r.body.getReader(), dec = new TextDecoder(); let n = 0;
+        for (;;) { const { done, value } = await rd.read(); if (done) break; n += value.length; text += dec.decode(value, { stream: true }); onBytes && onBytes(n); clearTimeout(tm); tm = setTimeout(() => ac.abort(), 45000); }
+        text += dec.decode();
+      } else text = await r.text();
+      const j = JSON.parse(text);
+      if (j && Array.isArray(j.elements)) { if (j.remark && /timed out|out of memory/i.test(j.remark) && !j.elements.length) { err = netError("busy", j.remark); continue; } return j; }
+      err = netError("other", "overpass json");
+    } catch (e) {
+      if (signal && signal.aborted) throw e;
+      err = e && e.kind ? e : netError(typeof navigator !== "undefined" && navigator.onLine === false ? "offline" : e && e.name === "AbortError" ? "busy" : "offline", String(e && e.message));
+    } finally { clearTimeout(tm); if (signal) signal.removeEventListener("abort", stop); }
   }
-  throw err || new Error("overpass");
+  throw err || netError("other");
 }
 
 // ---------------------------------------------------------------- cache local (últimos blocos)
@@ -150,41 +165,56 @@ export function distM(a, b, c, d) {
 
 /**
  * Baixa (ou lê do cache) o bloco ao redor de (lat, lon). rM = raio jogável em metros (150–300).
- * onStep(chave) informa a etapa para a tela de carregamento.
+ * onProgress({ pct 0–100, step, kb }) alimenta a barra de carregamento.
  */
-export async function loadPack(lat, lon, rM = 250, { onStep, signal } = {}) {
+export async function loadPack(lat, lon, rM = 250, { onProgress, signal } = {}) {
   const cLat = Math.round(lat / GRID) * GRID, cLon = Math.round(lon / GRID) * GRID;
   const id = `${Math.round(cLat / GRID)}_${Math.round(cLon / GRID)}_${rM}`;
   const P = projector(cLat, cLon), user = { x: r1(P.x(lon)), z: r1(P.z(lat)) };
   const hit = cacheGet(id);
   if (hit && hit.v === PACK_V) return { ...hit, user };
+  const prog = (pct, step, kb) => onProgress && onProgress({ pct: Math.min(99, Math.round(pct)), step, kb: Math.round(kb || 0) });
 
   const dLat = rM / 110540, dLon = rM / (111320 * Math.cos((cLat * Math.PI) / 180));
   const bb = [cLat - dLat, cLon - dLon, cLat + dLat, cLon + dLon].map((v) => v.toFixed(6)).join(",");
   const C = `${cLat.toFixed(6)},${cLon.toFixed(6)}`;
-  onStep && onStep("stStreets");
-  // 1) bloco jogável: ruas, construções, áreas verdes/água e os locais dentro dele
+  // 1) bloco jogável: ruas, construções, áreas verdes/água e os locais estratégicos (até 2,5 km)
+  const est = rM >= 250 ? 900e3 : 380e3; let got = 0;   // tamanho típico da resposta (para a %)
+  prog(3, "stStreets", 0);
   const qa = `[out:json][timeout:50];
 (way["highway"](${bb});way["building"](${bb});way["leisure"~"^(park|pitch|playground|garden)$"](${bb});way["landuse"~"^(grass|forest|meadow|recreation_ground)$"](${bb});way["natural"~"^(water|wood|scrub)$"](${bb}););
 out tags geom qt;
 (nwr["amenity"~"^(${AMEN})$"](around:2500,${C});nwr["shop"~"^(${SHOPS})$"](around:2500,${C}););
 out tags center qt;`;
-  const A = await overpass(qa, signal);
-  onStep && onStep("stExit");
+  const A = await overpass(qa, { signal, onBytes: (n) => { got = n; prog(3 + 67 * (1 - Math.exp(-n / est)), "stStreets", n / 1024); } });
   // 2) rodovia de saída mais próxima (BR/GO/SP-…, ou via expressa/rodovia troncal)
+  prog(72, "stExit", got / 1024);
   let H = null;
   for (const rad of [4000, 15000]) {
     try {
       const qh = `[out:json][timeout:40];(way["highway"~"^(motorway|trunk|primary|motorway_link|trunk_link)$"]["ref"~"^[A-Z]{2,3}-? ?[0-9]"](around:${rad},${C});way["highway"~"^(motorway|trunk)$"](around:${rad},${C}););out tags geom(${(cLat - rad / 110540).toFixed(5)},${(cLon - rad / 100000).toFixed(5)},${(cLat + rad / 110540).toFixed(5)},${(cLon + rad / 100000).toFixed(5)}) qt;`;
-      H = await overpass(qh, signal);
+      H = await overpass(qh, { signal, onBytes: (n) => prog(72 + (rad > 4000 ? 8 : 0) + 8 * (1 - Math.exp(-n / 200e3)), "stExit", (got + n) / 1024) });
       if (H.elements.length) break;
     } catch (e) { if (signal && signal.aborted) throw e; H = null; break; }
   }
-  onStep && onStep("stBuild");
-  const pack = toPack(A, H, { id, cLat, cLon, rM, P });
+  // 3) sem rodovia: para que lado fica a zona rural mais perto?
+  let Ru = null;
+  if (!H || !H.elements.length) {
+    prog(90, "stRural", got / 1024);
+    try {
+      const qr = `[out:json][timeout:40];(way["landuse"~"^(farmland|farmyard|meadow|orchard|plantation|forest)$"](around:9000,${C});node["place"~"^(village|hamlet|farm|isolated_dwelling)$"](around:15000,${C}););out tags center qt;`;
+      Ru = await overpass(qr, { signal });
+    } catch (e) { if (signal && signal.aborted) throw e; Ru = null; }
+  }
+  prog(96, "stBuild", got / 1024);
+  const pack = toPack(A, H, Ru, { id, cLat, cLon, rM, P });
   cachePut(id, pack);
   return { ...pack, user };
 }
+/** Guarda o bloco do jogo salvo (não sai do cache quando o jogador abre outros lugares). */
+// slot "game" = mapa do jogo salvo; "pick" = lugar escolhido na tela de novo jogo (ainda não começou)
+export function pinPack(pack, slot = "game") { try { localStorage.setItem(CK + slot, JSON.stringify(pack)); return true; } catch (e) { return false; } }
+export function pinnedPack(slot = "game") { try { const s = localStorage.getItem(CK + slot); const p = s && JSON.parse(s); return p && p.v === PACK_V ? p : null; } catch (e) { return null; } }
 
 const ROADW = { motorway: 14, trunk: 12, primary: 11, secondary: 10, tertiary: 8, unclassified: 7, residential: 7, living_street: 6, service: 4, track: 3, pedestrian: 5, footway: 2, path: 1.6, cycleway: 2, steps: 2, motorway_link: 7, trunk_link: 7, primary_link: 7, secondary_link: 7, tertiary_link: 6 };
 const SKIP_ROAD = /^(proposed|construction|abandoned|razed|platform|bus_stop|elevator|corridor|raceway)$/;
@@ -202,7 +232,7 @@ function levelsOf(tg, areaM2) {
 function polyArea(p) { let a = 0; for (let i = 0, n = p.length / 2; i < n; i++) { const j = (i + 1) % n; a += p[2 * i] * p[2 * j + 1] - p[2 * j] * p[2 * i + 1]; } return a / 2; }
 
 /** Converte a resposta do Overpass no pacote do mapa (ordenado por ID → determinístico). */
-function toPack(A, H, { id, cLat, cLon, rM, P }) {
+function toPack(A, H, Ru, { id, cLat, cLon, rM, P }) {
   const R = rM / U, lim = R * 1.15, roads = [], blds = [], areas = [], poiMap = new Map();
   const els = A.elements.slice().sort((a, b) => (a.type + a.id < b.type + b.id ? -1 : 1));
   const path = (geom) => { const p = []; for (const g of geom || []) if (g) { p.push(r1(P.x(g.lon)), r1(P.z(g.lat))); } return p; };
@@ -247,7 +277,30 @@ function toPack(A, H, { id, cLat, cLon, rM, P }) {
       if (!exit || d < exit.d) exit = { n: tg.ref || tg.name || "", x: r1(q[0]), z: r1(q[1]), d: Math.round(d), k: tg.highway };
     }
   }
-  return { v: PACK_V, id, c: [cLat, cLon], r: rM, date: new Date().toISOString().slice(0, 10), roads, blds, areas, pois, exit, src: "© OpenStreetMap contributors (ODbL)" };
+  // sem rodovia: lado (N/L/S/O) com zona rural mais perto (lavoura, pasto, mata, sítios, povoados)
+  if (!exit && Ru && Ru.elements.length) {
+    const side = {};
+    for (const e of Ru.elements) {
+      const ll = e.type === "node" ? e : e.center; if (!ll) continue;
+      const x = P.x(ll.lon), z = P.z(ll.lat), d = Math.hypot(x, z) * U; if (d < 300) continue;
+      const k = Math.abs(x) > Math.abs(z) ? (x > 0 ? "E" : "W") : z > 0 ? "S" : "N";
+      const s = side[k] || (side[k] = { n: 0, best: null }); s.n++;
+      if (!s.best || d < s.best.d) s.best = { x: r1(x), z: r1(z), d: Math.round(d) };
+    }
+    // o mais perto vence; empate (±15%) desempata por quantidade de áreas rurais
+    let pick = null;
+    for (const k in side) { const s = side[k]; if (!pick || s.best.d < pick.best.d * 0.85 || (s.best.d < pick.best.d * 1.15 && s.n > pick.n)) pick = { k, ...s }; }
+    if (pick) exit = { n: "", rural: 1, side: pick.k, x: pick.best.x, z: pick.best.z, d: pick.best.d };
+  }
+  // último recurso: o lado do bloco com menos construções (rumo à periferia)
+  if (!exit) {
+    const cnt = { N: 0, S: 0, E: 0, W: 0 };
+    for (const b of blds) { const x = cx(b.p), z = cz(b.p); cnt[Math.abs(x) > Math.abs(z) ? (x > 0 ? "E" : "W") : z > 0 ? "S" : "N"]++; }
+    const k = Object.keys(cnt).sort((a, b) => cnt[a] - cnt[b])[0], D = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] }[k];
+    exit = { n: "", rural: 1, guess: 1, side: k, x: D[0] * R * 3, z: D[1] * R * 3, d: Math.round(R * 3 * U) };
+  }
+  const edge = [-R, -R, R, -R, R, R, -R, R].map(r1);
+  return { v: PACK_V, id, c: [cLat, cLon], r: rM, date: new Date().toISOString().slice(0, 10), roads, blds, areas, pois, exit, edge, src: "© OpenStreetMap contributors (ODbL)" };
 }
 function cx(p) { let s = 0; for (let i = 0; i < p.length; i += 2) s += p[i]; return s / (p.length / 2); }
 function cz(p) { let s = 0; for (let i = 1; i < p.length; i += 2) s += p[i]; return s / (p.length / 2); }
@@ -258,4 +311,51 @@ export function nearestOnSeg(px, pz, ax, az, bx, bz) {
 /** Direção cardeal (N, NE, L, SE, S, SO, O, NO) de um vetor (x = leste, z = sul). */
 export function dirOf(x, z, labels = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"]) {
   const a = (Math.atan2(x, -z) * 180) / Math.PI; return labels[((Math.round(a / 45) % 8) + 8) % 8];
+}
+
+// ---------------------------------------------------------------- encaixe do "quarteirão de casa" do Apagão Real
+/** Direção cardeal levando em conta a rotação do mapa (fitHome). */
+export function dirFrom(pack, x, z, labels) {
+  const f = pack && pack.frame; if (f) { const X = x * f.u[0] + z * f.w[0], Z = x * f.u[1] + z * f.w[1]; x = X; z = Z; }
+  return dirOf(x, z, labels);
+}
+/**
+ * Gira/move o mapa para o quarteirão do jogador (prédio, vizinhos, garagem — city.js com homeOnly) caber
+ * de frente para uma rua real perto do ponto escolhido. No sistema novo a rua fica em z ≈ 20 + meia largura
+ * (como a rua sul do mapa padrão) e o quarteirão ocupa x ∈ [-24, 24], z ∈ [-24, 19]; o que estiver ali sai.
+ * Devolve um novo pacote (mesmo formato) com frame = { u, w, O } e o encaixe é determinístico.
+ */
+export function fitHome(pack, box = { x0: -24, x1: 24, z0: -24, z1: 19 }) {
+  const R = pack.r / U, user = pack.user || { x: 0, z: 0 };
+  const segs = [];
+  for (const r of pack.roads) { if (!/^(residential|living_street|unclassified|tertiary|secondary|primary|service)$/.test(r.k)) continue;
+    for (let i = 0; i + 3 < r.p.length; i += 2) segs.push({ r, ax: r.p[i], az: r.p[i + 1], bx: r.p[i + 2], bz: r.p[i + 3] }); }
+  const toL = (O, u, w, x, z) => { const dx = x - O[0], dz = z - O[1]; return [dx * u[0] + dz * u[1], dx * w[0] + dz * w[1]]; };
+  let best = null;
+  for (const sg of segs) {
+    const dx = sg.bx - sg.ax, dz = sg.bz - sg.az, L = Math.hypot(dx, dz); if (L < 54) continue;
+    const mx = (sg.ax + sg.bx) / 2, mz = (sg.az + sg.bz) / 2, dist0 = Math.hypot(mx - user.x, mz - user.z); if (dist0 > 320) continue;
+    for (const side of [1, -1]) {
+      let u = [dx / L, dz / L]; const v = [-u[1] * side, u[0] * side], w = [-v[0], -v[1]];
+      if (u[0] * w[1] - u[1] * w[0] < 0) u = [-u[0], -u[1]];          // mantém a mão (sem espelhar o mapa)
+      const off = sg.r.w / 2 + 20, O = [mx + v[0] * off, mz + v[1] * off];
+      // o quarteirão inteiro tem de ficar dentro do bloco
+      let ok = true; for (const [a, b] of [[box.x0, box.z0], [box.x1, box.z0], [box.x0, box.z1], [box.x1, box.z1]]) { const X = O[0] + a * u[0] + b * w[0], Z = O[1] + a * u[1] + b * w[1]; if (Math.abs(X) > R - 16 || Math.abs(Z) > R - 16) ok = false; }
+      if (!ok) continue;
+      let pen = 0;
+      for (const r of pack.roads) { if (r === sg.r) continue; for (let i = 0; i < r.p.length; i += 2) { const [x, z] = toL(O, u, w, r.p[i], r.p[i + 1]); if (x > box.x0 - 2 && x < box.x1 + 2 && z > box.z0 - 2 && z < box.z1) pen += /^(footway|path|steps|cycleway|service)$/.test(r.k) ? 15 : 400; } }
+      for (const b of pack.blds) { const [x, z] = toL(O, u, w, b.p[0], b.p[1]); if (x > box.x0 && x < box.x1 && z > box.z0 && z < box.z1) pen += b.k ? 200 : 6; }
+      const score = dist0 + pen + (/^(residential|living_street)$/.test(sg.r.k) ? 0 : 40);
+      if (!best || score < best.score) best = { score, O, u, w };
+    }
+  }
+  if (!best) best = { O: [user.x, user.z], u: [1, 0], w: [0, 1] };
+  const { O, u, w } = best, T = (x, z) => toL(O, u, w, x, z).map((v) => Math.round(v * 10) / 10);
+  const tp = (p) => { const o = []; for (let i = 0; i < p.length; i += 2) o.push(...T(p[i], p[i + 1])); return o; };
+  const inBox = (p, m = 1) => { for (let i = 0; i < p.length; i += 2) { const x = p[i], z = p[i + 1]; if (x > box.x0 - m && x < box.x1 + m && z > box.z0 - m && z < box.z1 + 1) return true; } return false; };
+  const roads = pack.roads.map((r) => ({ ...r, p: tp(r.p) })).filter((r) => !(/^(footway|path|steps|cycleway|service)$/.test(r.k) && inBox(r.p, 0)));
+  const blds = pack.blds.map((b) => ({ ...b, p: tp(b.p) })).filter((b) => !inBox(b.p, 2));
+  const pt = (o) => { const [x, z] = T(o.x, o.z); return { ...o, x, z }; };
+  return { ...pack, roads, blds, areas: pack.areas.map((a) => ({ ...a, p: tp(a.p) })), pois: pack.pois.map(pt), exit: pack.exit && pt(pack.exit),
+    user: { x: 0, z: 0 }, edge: tp(pack.edge), frame: { u, w, O }, home: box };
 }
