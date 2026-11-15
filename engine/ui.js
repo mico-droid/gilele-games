@@ -115,7 +115,8 @@ export function openSettings({ world, onClose } = {}) {
         h("button.ez-chip" + (Audio.musicOn ? ".sel" : ""), { onclick: () => { Audio.init(); Audio.setMusic(!Audio.musicOn); draw(); } }, "🎵 " + t("music")),
         h("button.ez-chip" + (Audio.sfxOn ? ".sel" : ""), { onclick: () => { Audio.init(); Audio.setSfx(!Audio.sfxOn); draw(); } }, "🔊 " + t("sfx"))),
       world ? h("h3", t("quality")) : null,
-      world ? chips(["auto", "low", "high"], world.quality, (q) => t("q_" + q), (q) => { world.setQuality(q); draw(); }) : null,
+      world ? chips(["auto", "low", "medium", "high"], world.quality, (q) => t("q_" + q), (q) => { world.setQuality(q); draw(); }) : null,
+      world ? h("p", { style: { opacity: ".75", margin: "4px 0 0", fontSize: "12px" } }, t("q_note")) : null,
       installButton(),
     );
   };

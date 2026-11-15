@@ -54,6 +54,24 @@ function lamp(parent, w, h, d, color, x, y, z) {
 
 /** Build a blocky vehicle model facing +Z. Returns parts used for animation (wheels, lamps, steering). */
 export function buildVehicleMesh(kind = "car", color = "#f8fafc", opt = {}) {
+  return shine(buildVehicleMeshRaw(kind, color, opt), color);
+}
+// Realistic graphics: glossy car paint and glass that reflect the sky (no change on "Leve").
+const shineCache = new Map();
+function shine(P, color) {
+  if (!THREE.GFX.pbr) return P;
+  const paint = new THREE.Color(color).getHex(), glassHex = new THREE.Color(glass).getHex();
+  const get = (key, make) => { let m = shineCache.get(key); if (!m) { m = make(); shineCache.set(key, m); } return m; };
+  P.body.traverse((o) => {
+    if (!o.isMesh || !o.material || !o.material.color || o.material.emissive?.getHex()) return;
+    const hex = o.material.color.getHex();
+    if (hex === glassHex) o.material = get("g", () => new THREE.MeshStandardMaterial({ color: glass, roughness: 0.06, metalness: 0.2, envMapIntensity: 1.6 }));
+    else if (hex === paint) o.material = get("p" + hex, () => new THREE.MeshStandardMaterial({ color: paint, roughness: 0.32, metalness: 0.15, envMapIntensity: 1.3 }));
+    else if (hex === 0xcbd5e1) o.material = get("h", () => new THREE.MeshStandardMaterial({ color: hex, roughness: 0.25, metalness: 0.9 }));
+  });
+  return P;
+}
+function buildVehicleMeshRaw(kind, color, opt) {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   const P = { root, body, wheels: [], front: [], lamps: {} };
   if (kind === "moto") {

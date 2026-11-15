@@ -47,6 +47,7 @@ export function addSign(world, text, x, y, z, ry = 0, { width = 4 } = {}) {
 export function createCoins(world) {
   const geo = new THREE.CylinderGeometry(0.5, 0.5, 0.14, 20);
   const mat = new THREE.MeshLambertMaterial({ color: 0xfacc15, emissive: 0xb45309, emissiveIntensity: 0.35 });
+  if (THREE.GFX.pbr) Object.assign(mat, { metalness: 0.85, roughness: 0.28, emissiveIntensity: 0.2 }); // shiny gold
   const list = [];
   return {
     list,

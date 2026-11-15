@@ -1,13 +1,15 @@
 // Core: renderer, scene, lights, resize, game loop, pause and automatic quality for phones.
 import * as THREE from "./three.js";
 import { shared } from "./storage.js";
+import { addSky } from "./sky.js";
+const { GFX } = THREE;
 
 export const isTouch = matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
 export const isMobile = isTouch && Math.min(screen.width, screen.height) < 820;
 
 const UNIT = new THREE.BoxGeometry(1, 1, 1);
 const matCache = new Map();
-/** Cached Lambert material by color (+ optional emissive intensity). */
+/** Cached material by color (+ optional emissive intensity). Lambert on "Leve", physically based otherwise. */
 export function getMat(color, emissive = 0) {
   const key = color + "|" + emissive;
   let m = matCache.get(key);
@@ -41,6 +43,7 @@ export function createWorld(opt = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: "high-performance" });
   renderer.shadowMap.enabled = opt.shadows !== false;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  if (GFX.pbr) { renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.78; }
 
   const scene = new THREE.Scene();
   const sky = new THREE.Color(opt.sky ?? 0xaee6ff);
@@ -56,21 +59,32 @@ export function createWorld(opt = {}) {
   const S = opt.shadowRange || 30, sc = sun.shadow.camera;
   sc.left = -S; sc.right = S; sc.top = S; sc.bottom = -S; sc.near = 1; sc.far = 120;
   sun.shadow.bias = -0.0008;
+  if (GFX.pbr) {
+    sun.shadow.normalBias = 0.03; sun.color.set(0xfff4e0); hemi.color.set(0xdfefff);
+    // realistic look: less flat ambient light (the sky reflections add some back) → deeper shadows.
+    // Games keep setting hemi.intensity as before; the scale is applied here.
+    let raw = hemi.intensity;
+    Object.defineProperty(hemi, "intensity", { get: () => raw * 0.5, set: (v) => { raw = v; }, configurable: true });
+  }
   scene.add(sun, sun.target);
   const sunOffset = sun.position.clone();
+  // realistic levels: sky dome with sun and clouds + sky reflections on every material
+  const skyUpdate = GFX.pbr ? addSky({ renderer, scene, camera, sun }, GFX.level) : null;
 
-  // ---- quality: auto | low | high
+  // ---- quality: auto | low | medium | high. The look (materials/sky) is chosen when the game opens
+  // (GFX.level); resolution and shadow detail also change live.
   let quality = shared.get("quality", "auto");
-  let level = isMobile ? 0 : 1; // effective: 0 low, 1 high
+  let level = GFX.level; // effective now: 0 low, 1 medium, 2 high
   function applyQuality() {
-    const lv = quality === "low" ? 0 : quality === "high" ? 1 : level;
+    const lv = { low: 0, medium: 1, high: 2 }[quality] ?? level;
     const dpr = window.devicePixelRatio || 1;
-    renderer.setPixelRatio(Math.min(dpr, lv ? 1.6 : 1));
-    sun.shadow.mapSize.set(lv ? 2048 : 1024, lv ? 2048 : 1024);
+    renderer.setPixelRatio(Math.min(dpr, [1, 1.25, 1.75][lv]));
+    const ms = lv === 2 ? 2048 : 1024;
+    sun.shadow.mapSize.set(ms, ms);
     if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
     resize();
   }
-  function setQuality(q) { quality = q; shared.set("quality", q); applyQuality(); }
+  function setQuality(q) { quality = q; shared.set("quality", q); shared.del("autoSlow"); applyQuality(); }
 
   function resize() {
     const w = innerWidth, h = innerHeight;
@@ -92,20 +106,27 @@ export function createWorld(opt = {}) {
     const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
     last = now;
     if (!paused) for (const fn of updates) fn(dt, now / 1000);
+    if (skyUpdate) skyUpdate(dt);
     for (const fn of before) fn(dt);
     renderer.render(scene, camera);
     for (const fn of after) fn(dt);
-    // auto quality: drop to low if the device can't keep ~40fps
-    if (quality === "auto" && level === 1) {
+    // auto quality: lighter resolution/shadows if the device can't keep ~40fps; if it's still
+    // very slow, the next time the game opens it starts on "Leve"
+    if (quality === "auto" && !paused) {
       fpsAcc += dt; fpsN++; fpsT += dt;
-      if (fpsT > 4) { if (fpsN / fpsAcc < 40) { level = 0; applyQuality(); } fpsAcc = fpsN = fpsT = 0; }
+      if (fpsT > 4) {
+        const fps = fpsN / fpsAcc;
+        if (fps < 40 && level > 0) { level--; applyQuality(); }
+        else if (fps < 28 && level === 0 && GFX.pbr) shared.set("autoSlow", "1");
+        fpsAcc = fpsN = fpsT = 0;
+      }
     }
   }
   document.addEventListener("visibilitychange", () => { last = performance.now(); });
 
   applyQuality();
   return {
-    THREE, renderer, scene, camera, sun, hemi,
+    THREE, renderer, scene, camera, sun, hemi, gfx: GFX.level,
     get paused() { return paused; },
     get quality() { return quality; },
     setQuality,

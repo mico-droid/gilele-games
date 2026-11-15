@@ -324,6 +324,69 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
+/* Gráficos realistas (igual ao motor gi-lele games): nível escolhido ao abrir o jogo, salvo em
+   localStorage "gilele:quality" (vale para todos os jogos do portal).
+   0 = Leve (visual antigo) · 1 = Equilibrado · 2 = Realista (céu com nuvens, reflexos, sombras melhores) */
+window.GFX=(function(){
+  let q="auto",slow=false;try{q=localStorage.getItem("gilele:quality")||"auto";slow=localStorage.getItem("gilele:autoSlow")==="1";}catch(e){}
+  const touch=matchMedia("(pointer: coarse)").matches||"ontouchstart" in window;
+  const phone=touch&&Math.min(screen.width,screen.height)<820;
+  const mem=navigator.deviceMemory||4,cores=navigator.hardwareConcurrency||4;
+  const level=q==="low"?0:q==="medium"?1:q==="high"?2:(slow||(phone&&(mem<=2||cores<=4)))?0:phone?1:2;
+  const G={q,level,pbr:level>0,QS:["auto","low","medium","high"]};
+  G.cycle=function(){const n=G.QS[(G.QS.indexOf(q)+1)%4];try{localStorage.setItem("gilele:quality",n);localStorage.removeItem("gilele:autoSlow");}catch(e){}location.reload();};
+  if(G.pbr){ // todo material "Lambert" vira físico (luz real + reflexo do céu)
+    const Std=THREE.MeshStandardMaterial;
+    THREE.MeshLambertMaterial=class extends Std{constructor(p){p=Object.assign({roughness:0.9,metalness:0,envMapIntensity:0.3},p||{});delete p.reflectivity;delete p.combine;delete p.refractionRatio;super(p);}};
+  }
+  const VERT="varying vec3 vDir;void main(){vDir=normalize(position);vec4 p=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position=p.xyww;}";
+  const FRAG=`uniform vec3 top;uniform vec3 horizon;uniform vec3 ground;uniform vec3 sunDir;uniform vec3 sunColor;uniform float sunStrength;uniform float clouds;uniform float time;varying vec3 vDir;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
+float fbm(vec2 p){float v=0.0,a=0.5;for(int i=0;i<4;i++){v+=a*noise(p);p*=2.03;a*=0.5;}return v;}
+void main(){vec3 d=normalize(vDir);float h=d.y;
+vec3 col=h>0.0?mix(horizon,top,pow(h,0.55)):mix(horizon,ground,smoothstep(0.0,0.25,-h));
+float skyLum=dot(horizon,vec3(0.299,0.587,0.114));
+if(h>0.0&&skyLum<0.2){vec2 g=floor(d.xz/(h+0.3)*260.0);col+=vec3(step(0.997,hash(g))*(1.0-smoothstep(0.04,0.2,skyLum))*smoothstep(0.05,0.3,h)*0.9);}
+float s=max(dot(d,sunDir),0.0);
+col+=sunColor*sunStrength*(pow(s,900.0)*6.0+pow(s,60.0)*0.35+pow(s,6.0)*0.08);
+if(clouds>0.0&&h>0.0){vec2 uv=d.xz/(h+0.12)*1.3+vec2(time*0.004,time*0.002);float c=smoothstep(0.5,0.78,fbm(uv))*smoothstep(0.0,0.25,h)*clouds;
+vec3 cc=mix(horizon,vec3(1.0),0.75)*(0.55+0.45*min(1.0,skyLum*1.6))+sunColor*sunStrength*pow(s,8.0)*0.25;col=mix(col,cc,c*0.85);}
+gl_FragColor=vec4(col,1.0);}`;
+  function domeMat(cloudy){return new THREE.ShaderMaterial({vertexShader:VERT,fragmentShader:FRAG,side:THREE.BackSide,depthWrite:false,fog:false,toneMapped:false,uniforms:{top:{value:new THREE.Color()},horizon:{value:new THREE.Color()},ground:{value:new THREE.Color()},sunDir:{value:new THREE.Vector3(0,1,0)},sunColor:{value:new THREE.Color(1,0.96,0.88)},sunStrength:{value:1},clouds:{value:cloudy?1:0},time:{value:0}}});}
+  function tint(u,b){u.horizon.value.copy(b);const hsl={};b.getHSL(hsl);u.top.value.setHSL(hsl.h,Math.min(1,hsl.s*1.25+0.05),hsl.l*0.62);u.ground.value.copy(b).multiplyScalar(0.62);}
+  /* chamado depois de criar renderer/cena/sol; devolve update(dt) para chamar antes de cada render */
+  G.setup=function(renderer,scene,camera,sun,hemi){G.scene=scene;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,[1,1.25,1.75][level]));
+    if(level===2)sun.shadow.mapSize.set(2048,2048);
+    if(!G.pbr)return function(){};
+    sun.shadow.normalBias=0.03;
+    if(hemi){hemi.color.multiplyScalar(0.45);hemi.groundColor.multiplyScalar(0.45);} // menos luz "chapada" → sombras com mais volume
+    const mat=domeMat(level>=2),dome=new THREE.Mesh(new THREE.SphereGeometry(1,32,16),mat);
+    dome.frustumCulled=false;dome.renderOrder=-1000;dome.raycast=function(){};scene.add(dome);
+    const base=scene.background&&scene.background.isColor?scene.background.clone():new THREE.Color(0xaee6ff);
+    const em=domeMat(false);tint(em.uniforms,base);em.uniforms.sunDir.value.copy(sun.position).sub(sun.target.position).normalize();em.uniforms.sunStrength.value=0.6;
+    const es=new THREE.Scene(),ed=new THREE.Mesh(new THREE.SphereGeometry(10,32,16),em);es.add(ed);
+    const pm=new THREE.PMREMGenerator(renderer),envC=base.clone();let envT=0;
+    // r128: renderiza o céu num cubo comum (LDR) e só depois filtra — fromScene() direto sai vermelho (RGBE)
+    const cubeRT=new THREE.WebGLCubeRenderTarget(64),cubeCam=new THREE.CubeCamera(0.1,100,cubeRT);es.add(cubeCam);
+    function bake(){em.uniforms.sunDir.value.copy(sun.position).sub(sun.target.position).normalize();cubeCam.update(renderer,es);const old=scene.environment;scene.environment=pm.fromCubemap(cubeRT.texture).texture;if(old)old.dispose();}
+    bake();
+    const u=mat.uniforms,last=new THREE.Color(-1,-1,-1),base0=sun.intensity||1;
+    return function(dt){
+      const bg=scene.background&&scene.background.isColor?scene.background:base;
+      if(!bg.equals(last)){last.copy(bg);tint(u,bg);}
+      envT+=dt||0.016; // tema da fase mudou (lava, neon, noite…): refaz os reflexos do céu
+      if(envT>1.5&&Math.abs(bg.r-envC.r)+Math.abs(bg.g-envC.g)+Math.abs(bg.b-envC.b)>0.12){envT=0;envC.copy(bg);tint(em.uniforms,bg);bake();}
+      u.sunDir.value.copy(sun.position).sub(sun.target.position).normalize();
+      u.sunStrength.value=Math.min(1.2,sun.visible?sun.intensity/base0:0);
+      u.time.value+=dt||0.016;dome.position.copy(camera.position);const r=camera.far*0.95;dome.scale.set(r,r,r);
+    };
+  };
+  return G;
+})();
+</script>
+<script>
 (function(){
 "use strict";
 const GAME_BASE=location.href.split(/[?#]/)[0];let GAME_URL=GAME_BASE;
@@ -334,7 +397,7 @@ const T = {
       hair:"Cabelo", hairColor:"Cor do cabelo", h_none:"Sem cabelo", h_short:"Curto", h_spiky:"Espetado", h_curly:"Cacheado", h_long:"Longo", h_ponytail:"Rabo de cavalo", h_pigtails:"Maria-chiquinha", h_bob:"Chanel",
       head:"Pele", headFur:"Pelo", torso:"Camisa", arms:"Mangas", legs:"Calça", acc:"Acessório",
       a_none:"Nenhum", a_hat:"🎩 Cartola", a_cap:"🧢 Boné", a_glasses:"🕶 Óculos",
-      options:"Opções", botsOn:"🤖 Bots: ligados", botsOff:"🤖 Bots: desligados", musicOn:"♫ Música: sim", musicOff:"♫ Música: não",
+      options:"Opções", gfx:"Gráficos", gfx_auto:"Auto", gfx_low:"Leve", gfx_medium:"Equilibrado", gfx_high:"Realista", botsOn:"🤖 Bots: ligados", botsOff:"🤖 Bots: desligados", musicOn:"♫ Música: sim", musicOff:"♫ Música: não",
       play:"JOGAR", cont:"▶ CONTINUAR (Fase {n})", restart:"Recomeçar do início", stage:"Fase", tutorial:"Tutorial",
       themes:["Parquinho","Céu","Gelo","Contas","Floresta","Pedra Gigante","Neon","Lava"],
       ctrlPc:"<b>PC:</b> WASD/setas andam · Espaço pula · arraste o mouse para girar a câmera · roda = zoom · R volta ao checkpoint · <b>T</b> abre o chat (1-8 manda direto) · M liga/desliga música",
@@ -354,7 +417,7 @@ const T = {
       hair:"Hair", hairColor:"Hair color", h_none:"No hair", h_short:"Short", h_spiky:"Spiky", h_curly:"Curly", h_long:"Long", h_ponytail:"Ponytail", h_pigtails:"Pigtails", h_bob:"Bob",
       head:"Skin", headFur:"Fur", torso:"Shirt", arms:"Sleeves", legs:"Pants", acc:"Accessory",
       a_none:"None", a_hat:"🎩 Top hat", a_cap:"🧢 Cap", a_glasses:"🕶 Shades",
-      options:"Options", botsOn:"🤖 Bots: on", botsOff:"🤖 Bots: off", musicOn:"♫ Music: on", musicOff:"♫ Music: off",
+      options:"Options", gfx:"Graphics", gfx_auto:"Auto", gfx_low:"Fast", gfx_medium:"Balanced", gfx_high:"Realistic", botsOn:"🤖 Bots: on", botsOff:"🤖 Bots: off", musicOn:"♫ Music: on", musicOff:"♫ Music: off",
       play:"PLAY", cont:"▶ CONTINUE (Stage {n})", restart:"Start over", stage:"Stage", tutorial:"Tutorial",
       themes:["Playground","Sky","Ice","Math","Forest","Giant Boulder","Neon","Lava"],
       ctrlPc:"<b>PC:</b> WASD/arrows move · Space jumps · drag the mouse to turn the camera · wheel = zoom · R back to checkpoint · <b>T</b> opens chat (1-8 send directly) · M toggles music",
@@ -374,7 +437,7 @@ const T = {
       hair:"Pelo", hairColor:"Color del pelo", h_none:"Sin pelo", h_short:"Corto", h_spiky:"Puntiagudo", h_curly:"Rizado", h_long:"Largo", h_ponytail:"Coleta", h_pigtails:"Dos coletas", h_bob:"Bob",
       head:"Piel", headFur:"Pelaje", torso:"Camisa", arms:"Mangas", legs:"Pantalón", acc:"Accesorio",
       a_none:"Ninguno", a_hat:"🎩 Chistera", a_cap:"🧢 Gorra", a_glasses:"🕶 Gafas",
-      options:"Opciones", botsOn:"🤖 Bots: sí", botsOff:"🤖 Bots: no", musicOn:"♫ Música: sí", musicOff:"♫ Música: no",
+      options:"Opciones", gfx:"Gráficos", gfx_auto:"Auto", gfx_low:"Ligero", gfx_medium:"Equilibrado", gfx_high:"Realista", botsOn:"🤖 Bots: sí", botsOff:"🤖 Bots: no", musicOn:"♫ Música: sí", musicOff:"♫ Música: no",
       play:"JUGAR", cont:"▶ CONTINUAR (Fase {n})", restart:"Empezar de nuevo", stage:"Fase", tutorial:"Tutorial",
       themes:["Parque","Cielo","Hielo","Cuentas","Bosque","Roca Gigante","Neón","Lava"],
       ctrlPc:"<b>PC:</b> WASD/flechas para moverte · Espacio salta · arrastra el ratón para girar la cámara · rueda = zoom · R vuelve al checkpoint · <b>T</b> abre el chat (1-8 envía directo) · M música",
@@ -659,6 +722,7 @@ const sun=new THREE.DirectionalLight(0xffffff,0.85);
 sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
 const sc=sun.shadow.camera;sc.left=-30;sc.right=30;sc.top=30;sc.bottom=-30;sc.near=1;sc.far=120;sun.shadow.bias=-0.0008;
 scene.add(sun);scene.add(sun.target);
+const gfxUpdate=GFX.setup(renderer,scene,camera,sun,hemi);
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();resizePreview();}
 const UNIT=new THREE.BoxGeometry(1,1,1);
 const INK="#111827";
@@ -1819,6 +1883,7 @@ function buildMenu(){
   const O=$("opts");O.innerHTML="";
   chip(O,botsOn?t("botsOn"):t("botsOff"),botsOn,()=>{botsOn=!botsOn;store("ezobby_bots",botsOn?"1":"0");buildMenu();});
   chip(O,Snd.musicOn?t("musicOn"):t("musicOff"),Snd.musicOn,()=>{toggleMusic();buildMenu();});
+  chip(O,"🎨 "+t("gfx")+": "+t("gfx_"+GFX.q),GFX.q!=="auto",()=>GFX.cycle()); // muda e reabre o jogo
   const resume=me.cp===0&&savedCp>=1;
   const contN=me.cp>=1?me.cp:(resume?savedCp:0);
   $("playBtn").innerHTML=t("mAtk")+"<small>"+(contN?"▶ "+t("contShort").replace("{n}",contN):t("mAtkSub").replace("{n}",NSTAGE))+"</small>";
@@ -2633,7 +2698,7 @@ function setPause(v){
 }
 function frame(now){
   requestAnimationFrame(frame);
-  if(paused){renderer.render(scene,camera);return;}
+  if(paused){gfxUpdate(0);renderer.render(scene,camera);return;}
   const dt=Math.min(0.05,(now-last)/1000);last=now;tmAcc+=dt;
   if(playing&&startT&&!me.won)elapsed=(now-startT)/1000;
   let iv=(playing&&fxState.frozen<=0)?inputVec():{x:0,z:0};
@@ -2702,7 +2767,7 @@ function frame(now){
   }
   boardT-=dt;if(boardT<=0){boardT=0.3;renderBoard();}
   sendState(false);
-  renderer.render(scene,camera);
+  gfxUpdate(dt);renderer.render(scene,camera);
   if(inMenu&&pvAv){pvAv.g.rotation.y=Math.sin(now*0.0011)*0.7;pvR.render(pvScene,pvCam);}
 }
 addEventListener("resize",resize);resize();

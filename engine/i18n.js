@@ -9,7 +9,7 @@ const BASE = {
   pt: {
     play: "Jogar", back: "Voltar", save: "Salvar", cancel: "Cancelar", close: "Fechar", random: "Aleatório",
     paused: "Pausado", resume: "Continuar", menu: "Menu", settings: "Configurações", language: "Idioma",
-    music: "Música", sfx: "Efeitos", quality: "Gráficos", q_auto: "Auto", q_low: "Leve", q_high: "Bonito",
+    music: "Música", sfx: "Efeitos", quality: "Gráficos", q_auto: "Auto", q_low: "Leve", q_medium: "Equilibrado", q_high: "Realista", q_note: "Leve ↔ Equilibrado/Realista muda ao reabrir o jogo.",
     privacy: "Privacidade", install: "Instalar app", installIos: "No iPhone: toque em Compartilhar e depois em \"Adicionar à Tela de Início\".",
     portal: "gi-lele games", share: "Compartilhar", shareText: "Vem jogar {g} comigo! 🎮", linkCopied: "Link copiado! Cole numa conversa para compartilhar.",
     howInstall: "Como instalar", installHow: "No Android (Chrome): toque no menu ⋮ e depois em \"Instalar app\" ou \"Adicionar à tela inicial\". No iPhone (Safari): toque em Compartilhar e depois em \"Adicionar à Tela de Início\". No computador (Chrome/Edge): clique no ícone de instalar na barra de endereço.",
@@ -29,7 +29,7 @@ const BASE = {
   en: {
     play: "Play", back: "Back", save: "Save", cancel: "Cancel", close: "Close", random: "Random",
     paused: "Paused", resume: "Resume", menu: "Menu", settings: "Settings", language: "Language",
-    music: "Music", sfx: "Sound FX", quality: "Graphics", q_auto: "Auto", q_low: "Fast", q_high: "Pretty",
+    music: "Music", sfx: "Sound FX", quality: "Graphics", q_auto: "Auto", q_low: "Fast", q_medium: "Balanced", q_high: "Realistic", q_note: "Fast ↔ Balanced/Realistic applies when you reopen the game.",
     privacy: "Privacy", install: "Install app", installIos: "On iPhone: tap Share, then \"Add to Home Screen\".",
     portal: "gi-lele games", share: "Share", shareText: "Come play {g} with me! 🎮", linkCopied: "Link copied! Paste it in a chat to share.",
     howInstall: "How to install", installHow: "On Android (Chrome): tap the ⋮ menu, then \"Install app\" or \"Add to Home screen\". On iPhone (Safari): tap Share, then \"Add to Home Screen\". On a computer (Chrome/Edge): click the install icon in the address bar.",
@@ -49,7 +49,7 @@ const BASE = {
   es: {
     play: "Jugar", back: "Volver", save: "Guardar", cancel: "Cancelar", close: "Cerrar", random: "Aleatorio",
     paused: "Pausado", resume: "Continuar", menu: "Menú", settings: "Ajustes", language: "Idioma",
-    music: "Música", sfx: "Efectos", quality: "Gráficos", q_auto: "Auto", q_low: "Ligero", q_high: "Bonito",
+    music: "Música", sfx: "Efectos", quality: "Gráficos", q_auto: "Auto", q_low: "Ligero", q_medium: "Equilibrado", q_high: "Realista", q_note: "Ligero ↔ Equilibrado/Realista cambia al reabrir el juego.",
     privacy: "Privacidad", install: "Instalar app", installIos: "En iPhone: toca Compartir y luego \"Agregar a inicio\".",
     portal: "gi-lele games", share: "Compartir", shareText: "¡Ven a jugar {g} conmigo! 🎮", linkCopied: "¡Enlace copiado! Pégalo en un chat para compartir.",
     howInstall: "Cómo instalar", installHow: "En Android (Chrome): toca el menú ⋮ y luego \"Instalar app\" o \"Agregar a la pantalla principal\". En iPhone (Safari): toca Compartir y luego \"Agregar a inicio\". En la computadora (Chrome/Edge): haz clic en el icono de instalar en la barra de direcciones.",

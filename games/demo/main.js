@@ -44,6 +44,7 @@ function buildLevel() {
   addGround(world, phys, { size: 220 });
   // water ring (kill) around the island
   const water = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ color: 0x38bdf8 }));
+  if (THREE.GFX.pbr) Object.assign(water.material, { roughness: 0.2, metalness: 0, envMapIntensity: 0.9 }); // reflects the sky
   water.rotation.x = -Math.PI / 2; water.position.y = -3; world.scene.add(water);
   phys.addBox({ x: 0, y: -4, z: 0, w: 800, h: 1, d: 800, type: "kill", mesh: false });
 
