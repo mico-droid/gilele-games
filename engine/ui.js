@@ -152,6 +152,19 @@ export function installButton() {
 }
 
 /**
+ * Avisos de instalação no Android (abrir no Chrome, "Instalar assim mesmo" do Play Protect, Family Link).
+ * Aparece em "Como instalar" de TODO jogo (vem por gameLinks). Fora do Android devolve null.
+ */
+export function installNotes() {
+  if (!/android/i.test(navigator.userAgent)) return null;
+  return h("div.ez-col", { style: { gap: "3px", marginTop: "4px" } },
+    h("p", { style: { margin: "0", fontWeight: "700" } }, "⚠️ " + t("instNotesT")),
+    h("p.ez-msg", { style: { margin: "0" } }, "• " + t("instN1")),
+    h("p.ez-msg", { style: { margin: "0" } }, "• " + t("instN2")),
+    h("p.ez-msg", { style: { margin: "0" } }, "• " + t("instN3")));
+}
+
+/**
  * Rodapé padrão da tela inicial de todo jogo: 🏠 Gilelê Games · 📲 Instalar · 📤 Compartilhar.
  * - Instalar some quando o app já está instalado; sem o pedido nativo do navegador, abre "Como instalar".
  * - Compartilhar usa o menu do celular (navigator.share) ou copia o link.
@@ -170,7 +183,8 @@ export function gameLinks(gameName, { portal = "../../jogos.html" } = {}) {
     catch { prompt(t("mpShare"), shareUrl); }
   };
   const howTo = () => {
-    const scr = screen([h("h2", "📲 " + t("howInstall")), h("p", t("installHow")), h("button.ez-btn.wide", { onclick: () => scr.close() }, t("close"))], { dim: true, x: true });
+    const scr = screen([h("h2", "📲 " + t("howInstall")), h("p", t("installHow")), installNotes(),
+      h("button.ez-btn.ok.wide", { "data-k": "next", onclick: () => scr.close() }, t("close"))], { dim: true, x: true });
   };
   // "já instalado": aberto como app, ou marcado antes (o app instalado e o navegador dividem o mesmo armazenamento)
   const KEY = "ez:installed:" + location.pathname;
@@ -183,7 +197,7 @@ export function gameLinks(gameName, { portal = "../../jogos.html" } = {}) {
     if (canInstall()) { try { localStorage.removeItem(KEY); } catch {} }
     row.replaceChildren(...[
       h("a.ez-btn.gray.small", { href: portal, style: { textDecoration: "none" } }, "🏠 " + t("portal")),
-      installed() && !canInstall() ? null : h("button.ez-btn.blue.small", { onclick: async () => { track("install_click", {}); if (canInstall()) { if (await promptInstall()) { mark(); draw(); } } else howTo(); } }, "📲 " + t("install")),
+      installed() && !canInstall() ? null : h("button.ez-btn.blue.small", { onclick: async () => { track("install_click", {}); if (canInstall()) { if (await promptInstall()) { mark(); draw(); } else howTo(); } else howTo(); } }, "📲 " + t("install")),
       h("button.ez-btn.blue.small", { onclick: share }, "📤 " + t("share")),
       h("a.ez-btn.gray.small", { href: portal + "privacidade.html", style: { textDecoration: "none" } }, "🔒 " + t("privacy")),
     ].filter(Boolean));

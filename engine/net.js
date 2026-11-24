@@ -12,6 +12,7 @@
 //   room.shared / room.setShared(obj)        // host-owned game state (level, timer, seed…)
 //   room.onShared((obj) => ...)
 import { Character } from "./avatar.js";
+import { iceServers, STUN } from "./ice.js";
 
 const PEERJS_URL = "https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js";
 let peerLib = null;
@@ -33,11 +34,22 @@ export function createRoom(opt = {}) {
   const PREFIX = "gilele-" + (opt.gameId || "game") + "-v1-";
   const qs = new URLSearchParams(location.search), srv = qs.get("server");
   const popts = srv ? { host: srv.split(":")[0], port: +srv.split(":")[1] || 9000, path: "/", secure: false } : {};
-  popts.config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
+  popts.config = { iceServers: STUN };
+  // Pede a lista com TURN (ice.js). Se demorar ou falhar, segue com o STUN de sempre.
+  async function withIce() { try { popts.config = { iceServers: await iceServers() }; } catch (e) {} }
 
   let peer = null, isHost = false, myId = null, code = null, hostConn = null, dirty = true, lastSnap = 0, lastSent = 0;
   const conns = new Map(), seen = {}, myP = {}, evH = {}, peersFns = [], statusFns = [], sharedFns = [];
   let pres = {}, shared = {}, sharedVer = 0;
+  let lastCode = null, tries = 0, backT = 0;
+
+  /** Caiu a ligação com o anfitrião: tenta voltar sozinho 3 vezes antes de avisar o jogador. */
+  function retry(why) {
+    const c = lastCode;
+    if (!c || tries >= 3) { tries = 0; reset(why); return; }
+    tries++; reset(); status("connecting");
+    clearTimeout(backT); backT = setTimeout(() => join(c), 1200 * tries);
+  }
 
   const status = (k, info) => statusFns.forEach((f) => f(k, info || {}));
   function list() {
@@ -71,7 +83,7 @@ export function createRoom(opt = {}) {
         if (c.sharedV !== sharedVer && now - (c.sharedT || 0) > 1000) { c.sharedT = now; c.send({ t: "sh", d: shared, v: sharedVer }); }
       }
       emit();
-    } else if (hostConn && hostConn.open && lastSnap && now - lastSnap > 10000) reset("hostLeft");
+    } else if (hostConn && hostConn.open && lastSnap && now - lastSnap > 10000) retry("hostLeft");
     else if (hostConn && hostConn.open && (dirty || now - lastSent > 900)) { hostConn.send({ t: "p", p: myP }); dirty = false; lastSent = now; }
   }, 66);
 
@@ -82,6 +94,7 @@ export function createRoom(opt = {}) {
     wanted = typeof wanted === "string" ? wanted.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4) : "";
     if (wanted.length !== 4) wanted = "";
     let Peer; try { Peer = await loadPeer(); } catch (e) { status("fail"); return; }
+    await withIce();
     reset(); const c = wanted || opt.code || code4(); isHost = true; status("connecting");
     const pr = new Peer(PREFIX + c, popts); peer = pr;
     pr.on("open", (id) => { if (peer !== pr) return; myId = id; code = c; pres = {}; emit(); status("room", info()); });
@@ -101,20 +114,27 @@ export function createRoom(opt = {}) {
       });
       cn.on("close", () => { conns.delete(cn.peer); delete pres[cn.peer]; delete seen[cn.peer]; dispatch("leave", null, cn.peer); emit(); status("room", info()); });
     });
+    pr.on("disconnected", () => { if (peer === pr) { try { pr.reconnect(); } catch (e) {} } });   // caiu o servidor de sinalização: volta sozinho
     pr.on("error", (e) => { if (peer !== pr) return; if (e.type === "unavailable-id" && !opt.code && !wanted) create(); else if (!code) reset("fail"); });
   }
 
-  async function join(c) {
+  async function join(c, again = 0) {
     c = String(c || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
     if (c.length !== 4) { status("notFound"); return; }
     let Peer; try { Peer = await loadPeer(); } catch (e) { status("fail"); return; }
-    reset(); isHost = false; status("connecting");
+    await withIce();
+    reset(); isHost = false; lastCode = c; status("connecting");
     const pr = new Peer(popts); peer = pr;
     pr.on("open", (id) => {
       if (peer !== pr) return; myId = id;
       const hc = pr.connect(PREFIX + c, { reliable: true }); hostConn = hc;
-      const to = setTimeout(() => { if (hostConn === hc && !hc.open) reset("fail"); }, 12000);
-      hc.on("open", () => { clearTimeout(to); lastSnap = Date.now(); code = c; dirty = true; status("room", info()); });
+      // Celular em rede lenta/fechada pode demorar: 20 s e mais uma tentativa antes de desistir.
+      const to = setTimeout(() => {
+        if (hostConn !== hc || hc.open) return;
+        if (again < 1) { reset(); status("connecting"); setTimeout(() => join(c, again + 1), 400); return; }
+        reset("fail");
+      }, 20000);
+      hc.on("open", () => { clearTimeout(to); lastSnap = Date.now(); code = c; dirty = true; tries = 0; status("room", info()); });
       hc.on("data", (d) => {
         if (!d || hostConn !== hc) return;
         if (d.t === "full") { hc.full = true; reset("full"); return; }
@@ -127,14 +147,15 @@ export function createRoom(opt = {}) {
           if (Object.keys(np).length !== before) status("room", info());
         }
       });
-      hc.on("close", () => { if (hostConn !== hc || hc.full) return; reset("hostLeft"); });
+      hc.on("close", () => { if (hostConn !== hc || hc.full) return; retry("hostLeft"); });
     });
-    pr.on("error", (e) => { if (peer !== pr) return; if (e.type === "peer-unavailable") reset("notFound"); else if (!code) reset("fail"); });
+    pr.on("disconnected", () => { if (peer === pr) { try { pr.reconnect(); } catch (e) {} } });
+    pr.on("error", (e) => { if (peer !== pr) return; if (e.type === "peer-unavailable") { if (again < 1) { reset(); status("connecting"); setTimeout(() => join(c, again + 1), 1200); } else reset("notFound"); } else if (!code) reset("fail"); });
   }
 
   const room = {
     create, join,
-    leave() { reset("left"); },
+    leave() { lastCode = null; tries = 0; clearTimeout(backT); reset("left"); },
     presence(patch) { for (const k in patch) { if (patch[k] === null || patch[k] === undefined) delete myP[k]; else myP[k] = patch[k]; } dirty = true; },
     onPeers(fn) { peersFns.push(fn); setTimeout(() => fn(list()), 0); },
     onStatus(fn) { statusFns.push(fn); return () => { const i = statusFns.indexOf(fn); if (i >= 0) statusFns.splice(i, 1); }; },

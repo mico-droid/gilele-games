@@ -4,7 +4,7 @@ import { isTouch } from "./core.js";
 
 const DEFAULT_KEYS = {
   up: ["KeyW", "ArrowUp"], down: ["KeyS", "ArrowDown"], left: ["KeyA", "ArrowLeft"], right: ["KeyD", "ArrowRight"],
-  jump: ["Space"], act: ["KeyE", "KeyJ"], reset: ["KeyR"], chat: ["KeyT", "Enter"], pause: ["KeyP", "Escape"],
+  jump: ["Space"], act: ["KeyJ"], reset: ["KeyR"], chat: ["KeyT", "Enter"], pause: ["KeyP", "Escape"],
   run: ["ShiftLeft", "ShiftRight"],
 };
 const PAD = { jump: 0, act: 2, reset: 3, pause: 9, run: 10 }; // standard gamepad button indexes
@@ -58,6 +58,7 @@ export function createInput(opt = {}) {
   }
   const joyHome = () => { joyEl.style.left = joyEl.style.top = ""; joyEl.classList.remove("live"); drawJoy(); };
   let joyId = null, joyBase = { x: 0, y: 0 }, lookId = null, lookLast = { x: 0, y: 0 };
+  let click = null;   // clique esquerdo do mouse: pula se for clique curto (se arrastar, é câmera)
   const joy = { x: 0, y: 0 };
   const R = 52;
   const joyStart = (e, float) => {
@@ -86,6 +87,10 @@ export function createInput(opt = {}) {
       if (e.pointerType === "touch" && e.clientX < innerWidth * 0.45 && joyId === null) {
         joyStart(e, true); knob.style.transform = "translate(-50%,-50%)";
       } else if (lookId === null) { lookId = e.pointerId; lookLast = { x: e.clientX, y: e.clientY }; }
+      if (e.pointerType === "mouse") {
+        if (e.button === 2) fire("act", true);                                            // botão direito = ação
+        else if (e.button === 0) click = { x: e.clientX, y: e.clientY, t: Date.now() };   // esquerdo: pular
+      }
       try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
     });
     canvas.addEventListener("pointermove", (e) => {
@@ -98,6 +103,13 @@ export function createInput(opt = {}) {
     const up = (e) => {
       if (e.pointerId === joyId) joyEnd();
       if (e.pointerId === lookId) lookId = null;
+      if (e.pointerType === "mouse") {
+        if (e.button === 2) fire("act", false);
+        else if (e.button === 0) {
+          if (click && enabled() && Date.now() - click.t < 400 && Math.hypot(e.clientX - click.x, e.clientY - click.y) < 6) { fire("jump", true); fire("jump", false); }
+          click = null;
+        }
+      }
     };
     canvas.addEventListener("pointerup", up); canvas.addEventListener("pointercancel", up);
     canvas.addEventListener("wheel", (e) => { e.preventDefault(); if (opt.onZoom) opt.onZoom(e.deltaY * 0.01); }, { passive: false });
