@@ -1,0 +1,20 @@
+{
+  "name": "EZ Obby",
+  "short_name": "EZ Obby",
+  "description": "Parkour 3D com amigos",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0B1F2E",
+  "theme_color": "#0B1F2E",
+  "lang": "pt-BR",
+  "icons": [
+    {"src": "../../icons/ez-obby-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "../../icons/ez-obby-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "../../icons/ez-obby-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "related_applications": [
+    {"platform": "webapp", "url": "manifest.webmanifest"}
+  ]
+}
