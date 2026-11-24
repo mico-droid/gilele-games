@@ -2,7 +2,7 @@
   "name": "Gilelê Games",
   "short_name": "Gilelê",
   "description": "Jogos 3D no navegador",
-  "start_url": "./",
+  "start_url": "jogos.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#38bdf8",

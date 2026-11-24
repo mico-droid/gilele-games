@@ -2,111 +2,405 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gilelê Games</title>
-<meta name="apple-mobile-web-app-title" content="Gilelê Games">
-<meta name="application-name" content="Gilelê Games">
-<meta name="description" content="Jogos 3D grátis no navegador, para jogar sozinho ou com amigos.">
-<meta name="theme-color" content="#22c55e">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gilelê Games — Jogos sob medida para ensinar e treinar</title>
+<meta name="description" content="Jogos e simuladores 3D sob medida para escolas e para treinamento corporativo. Rodam no navegador, sem instalação.">
+<meta name="theme-color" content="#0B1F2E">
+<link rel="icon" href="icons/portal.svg">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="engine/ez.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  /* portal is a normal scrolling page: undo the game-only rules of ez.css (fixed height, overflow hidden, no touch scrolling) */
-  html { height: auto; overflow: visible; overflow-y: auto; touch-action: pan-x pan-y; overscroll-behavior: auto; }
-  body { height: auto; min-height: 100%; overflow: visible; touch-action: pan-x pan-y; overscroll-behavior: auto; user-select: auto; -webkit-user-select: auto; background: linear-gradient(160deg, #38bdf8, #22c55e); }
-  main { max-width: 960px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 40px; }
-  header { text-align: center; margin-bottom: 22px; }
-  header h1 { font-size: 44px; margin: 0; text-shadow: 0 4px 0 rgba(0,0,0,.15); }
-  header p { margin: 4px 0 0; font-size: 18px; opacity: .9; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-  .game { background: #fff; color: #0f172a; border-radius: 20px; padding: 0 0 18px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 8px; text-decoration: none; transition: transform .1s; }
-  .game > :not(.shot) { margin-left: 18px; margin-right: 18px; }
-  .game:hover { transform: translateY(-3px); }
-  /* print do próprio jogo no lugar do desenho genérico */
-  .game .shot { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #bfe3ff; border-bottom: 3px solid #e2e8f0; }
-  .game h2 { margin-top: 12px; }
-  .game .emoji { font-size: 54px; line-height: 1; }
-  .game h2 { margin: 0; font-size: 24px; }
-  .game p { margin: 0; opacity: .75; flex: 1; }
-  .game .tag { align-self: flex-start; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #dcfce7; color: #15803d; }
-  .sec { color: #fff; font-size: 20px; margin: 22px 4px 10px; text-shadow: 0 2px 0 rgba(0,0,0,.15); }
-  .game.dev { border: 3px dashed #f59e0b; }
-  .game.dev .tag { background: #fef3c7; color: #b45309; }
-  .game.soon { opacity: .6; pointer-events: none; }
-  .game.soon .tag { background: #e2e8f0; color: #475569; }
-  footer { text-align: center; margin-top: 30px; font-size: 14px; opacity: .85; }
-  footer a { color: #fff; }
-  #install { display: block; margin: 0 auto 20px; }
+:root{
+  --bg:#0B1F2E; --base:#0F2A3D; --surf:#16364B; --surf2:#1C4260;
+  --line:rgba(242,246,248,.13); --tx:#F2F6F8; --mut:#9FB3C2; --am:#E8A33D;
+  --r:14px; --max:1180px; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--tx);font-family:Manrope,system-ui,sans-serif;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;
+ background:
+  linear-gradient(rgba(242,246,248,.028) 1px,transparent 1px) 0 0/100% 64px,
+  linear-gradient(90deg,rgba(242,246,248,.028) 1px,transparent 1px) 0 0/64px 100%,
+  var(--bg)}
+h1,h2,h3{line-height:1.12;letter-spacing:-.025em;margin:0}
+h1{font-size:clamp(34px,6.4vw,64px);font-weight:800}
+h2{font-size:clamp(26px,3.8vw,42px);font-weight:800}
+h3{font-size:19px;font-weight:700}
+p{margin:0}
+a{color:inherit}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 22px}
+.lead{color:var(--mut);font-size:clamp(16px,2vw,19px);max-width:58ch}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:10px;font-weight:700;font-size:16px;text-decoration:none;border:1px solid transparent;cursor:pointer;font-family:inherit}
+.btn-p{background:var(--am);color:#0B1F2E}
+.btn-p:hover{filter:brightness(1.07)}
+.btn-s{border-color:var(--line);color:var(--tx);background:transparent}
+.btn-s:hover{background:var(--surf)}
+
+section{padding:clamp(54px,7vw,88px) 0;position:relative}
+section + section{border-top:1px solid var(--line)}
+.shead{display:grid;grid-template-columns:72px 1fr;gap:0 18px;align-items:start;margin-bottom:34px}
+.shead .ix{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--am);padding-top:9px;border-top:2px solid var(--am)}
+.shead .tt{border-top:1px solid var(--line);padding-top:9px}
+.shead .tt .k{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);display:block;margin-bottom:12px}
+.shead .tt p{margin-top:12px}
+@media(max-width:620px){.shead{grid-template-columns:52px 1fr;gap:0 12px}}
+
+header{position:sticky;top:0;z-index:50;background:rgba(11,31,46,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:26px;height:66px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.02em;text-decoration:none;font-size:18px}
+.brand img{width:31px;height:31px;border-radius:9px}
+.nav nav{margin-left:auto;display:flex;gap:24px;font-size:14px;font-weight:700;color:var(--mut);font-family:var(--mono);letter-spacing:.02em}
+.nav nav a{text-decoration:none}
+.nav nav a:hover{color:var(--tx)}
+.nav nav a.kids{color:var(--am)}
+.nav .btn{padding:9px 16px;font-size:15px}
+@media(max-width:900px){.nav nav{display:none}.nav .btn{margin-left:auto}}
+
+.hero{padding:clamp(40px,6vw,66px) 0 clamp(34px,5vw,50px)}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:46px;align-items:center}
+@media(max-width:980px){.hero-grid{grid-template-columns:1fr;gap:32px}}
+.kicker{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--am);display:flex;align-items:center;gap:10px}
+.kicker::before{content:"";width:28px;height:2px;background:var(--am)}
+.hero h1{margin:18px 0 18px}
+.hero h1 em{font-style:normal;color:var(--am)}
+.cta{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.facts{display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:24px;font-family:var(--mono);font-size:12px;color:var(--mut)}
+.facts span{border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+
+.mock{position:relative;aspect-ratio:4/3}
+.laptop{position:absolute;inset:0 0 14% 0;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.45)}
+.laptop img{width:100%;height:100%;object-fit:cover;display:block}
+.phone{position:absolute;right:-4px;bottom:0;width:27%;aspect-ratio:9/18;background:#0B1F2E;border:1px solid var(--line);border-radius:22px;padding:7px;box-shadow:0 20px 40px rgba(0,0,0,.5);overflow:hidden}
+.phone img{width:100%;height:100%;object-fit:cover;border-radius:16px;display:block}
+
+/* FAIXA CRIANÇAS */
+.kidsband{background:linear-gradient(100deg,#2a6c91,#1d5476);border:1px solid var(--line);border-radius:18px;padding:26px 28px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:space-between}
+.kidsband h3{font-size:clamp(20px,2.6vw,26px)}
+.kidsband p{color:#D8E6EE;font-size:15.5px;margin-top:6px;max-width:52ch}
+
+.feat{display:grid;grid-template-columns:1.25fr .75fr;gap:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--surf);text-decoration:none}
+@media(max-width:860px){.feat{grid-template-columns:1fr}}
+.feat .thumb{aspect-ratio:16/9;border-right:1px solid var(--line)}
+.feat-body{padding:30px 28px;display:flex;flex-direction:column;gap:12px;justify-content:center}
+.feat-body h3{font-size:clamp(24px,3vw,32px)}
+.feat-body p{color:var(--mut);font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
+@media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.g{background:var(--surf);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;transition:transform .12s,border-color .12s}
+.g:hover,.feat:hover{transform:translateY(-3px);border-color:rgba(232,163,61,.5)}
+.thumb{aspect-ratio:16/10;position:relative;overflow:hidden;background:#123a4f}
+.thumb .sh{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.thumb .ic{position:absolute;z-index:3;right:12px;bottom:12px;width:38px;height:38px;border-radius:11px;border:1px solid var(--line)}
+.thumb::after{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(11,31,46,.34),rgba(11,31,46,.06) 45%,rgba(11,31,46,.42))}
+.g-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:9px;flex:1}
+.g-body p{color:var(--mut);font-size:14px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:8px}
+.t{font-size:11.5px;font-weight:600;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-family:var(--mono)}
+.status{position:absolute;z-index:3;top:12px;left:12px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;background:rgba(11,31,46,.82);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+.status.dev{color:var(--am);border-color:rgba(232,163,61,.45)}
+.pf{font-family:var(--mono);font-size:11px;color:var(--am);letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.pfnote{margin-top:20px;font-size:14px;color:var(--mut)}
+
+.seg{display:inline-flex;background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:5px;gap:4px}
+.seg button{border:0;background:transparent;color:var(--mut);font:inherit;font-weight:700;font-size:15px;padding:10px 20px;border-radius:9px;cursor:pointer}
+.seg button[aria-selected=true]{background:var(--am);color:#0B1F2E}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
+@media(max-width:860px){.cards{grid-template-columns:1fr}}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:24px}
+.card h3{margin-bottom:8px}
+.card p{color:var(--mut);font-size:15px}
+.card .tag{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--am);display:block;margin-bottom:12px}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:860px){.steps{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.steps{grid-template-columns:1fr}}
+.step{border-top:2px solid var(--am);padding-top:16px}
+.step b{display:block;font-family:var(--mono);font-size:12px;color:var(--am);font-weight:700;letter-spacing:.1em;margin-bottom:6px}
+.step p{color:var(--mut);font-size:15px;margin-top:6px}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start}
+@media(max-width:860px){.two{grid-template-columns:1fr;gap:30px}}
+ul.clean{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+ul.clean li{padding-left:28px;position:relative;color:var(--mut);font-size:16px}
+ul.clean li::before{content:"";position:absolute;left:0;top:9px;width:14px;height:8px;border-left:2px solid var(--am);border-bottom:2px solid var(--am);transform:rotate(-45deg)}
+.subt{font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--am);display:block;margin-bottom:14px}
+
+.form{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:clamp(22px,4vw,32px)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:620px){.row{grid-template-columns:1fr}}
+label{display:block;font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:14px 0 6px}
+input,select,textarea{width:100%;background:var(--base);border:1px solid var(--line);border-radius:10px;color:var(--tx);font:inherit;font-size:16px;padding:12px 14px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--am);outline-offset:1px}
+textarea{min-height:110px;resize:vertical}
+.ok{margin-top:16px;background:rgba(232,163,61,.12);border:1px solid rgba(232,163,61,.4);border-radius:10px;padding:14px;font-size:15px;display:none}
+.ok.on{display:block}
+
+footer{border-top:1px solid var(--line);padding:38px 0;color:var(--mut);font-size:14px}
+.f-grid{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer a{text-decoration:none}
+footer a:hover{color:var(--tx)}
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>🎮 Gilelê Games</h1>
-    <p data-t="portalSub">Jogos 3D no navegador — sozinho ou com até 4 amigos</p>
-  </header>
-  <div id="installSlot"></div>
-  <!-- STATUS: "ready" = pronto · "dev" = em desenvolvimento/testes. Sempre perguntar ao dono antes de mudar. Prontos ficam primeiro. -->
-  <h2 class="sec" data-t="secReady">✅ Prontos para jogar</h2>
-  <div class="grid">
-    <a class="game" href="https://mico-droid.github.io/ez-obby/">
-      <img class="shot" src="shots/ez-obby.jpg" width="640" height="360" loading="lazy" decoding="async" alt="EZ Obby"><h2>EZ Obby</h2>
-      <p data-t="obbyDesc">Parkour 3D com fases, poderes, bots e multiplayer.</p>
-      <span class="tag" data-t="tagPlay">Jogar</span>
-    </a>
-    <a class="game" href="games/parkour-tabuada/">
-      <img class="shot" src="shots/parkour-tabuada.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Parkour Tabuada"><h2 data-t="pktTitle">Parkour Tabuada</h2>
-      <p data-t="pktDesc">Parkour 3D de contas: soma, subtração, multiplicação e divisão. Sozinho ou com até 4 amigos.</p>
-      <span class="tag" data-t="tagPlay">Jogar</span>
-    </a>
-    <a class="game" href="games/tabuada/">
-      <img class="shot" src="shots/tabuada.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Tabuada Simples"><h2 data-t="tabTitle">Tabuada Simples</h2>
-      <p data-t="tabDesc">Contas das 4 operações com trilha de fases, modo treino e dicas. De 3 a 16 anos.</p>
-      <span class="tag" data-t="tagPlay">Jogar</span>
-    </a>
-    <a class="game" href="games/sobrevivencia/">
-      <img class="shot" src="shots/sobrevivencia.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Apagão: Sobreviva"><h2 data-t="svTitle">Apagão: Sobreviva</h2>
-      <p data-t="svDesc">A energia caiu e ninguém sabe quando volta. Sobreviva às primeiras 72 horas e aprenda a se preparar.</p>
-      <span class="tag" data-t="tagPlay">Jogar</span>
-    </a>
-    <a class="game" href="games/demo/">
-      <img class="shot" src="shots/demo.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Playground Testes"><h2 data-t="demoTitle">Playground Testes</h2>
-      <p data-t="demoDesc">Parkour, moedas, trampolim e multijogador. Pegue bolas, travesseiros e bolas de neve e arremesse nos amigos e nos alvos!</p>
-      <span class="tag" data-t="tagPlay">Jogar</span>
-    </a>
+
+<header>
+ <div class="wrap nav">
+  <a class="brand" href="#top"><img src="icons/portal.svg" alt=""> Gilelê Games</a>
+  <nav>
+   <a href="#jogos">Jogos</a>
+   <a href="#publico">Soluções</a>
+   <a href="#como">Como funciona</a>
+   <a href="#sobmedida">Sob medida</a>
+   <a class="kids" href="jogos.html">Sou criança</a>
+  </nav>
+  <a class="btn btn-p" href="#orcamento">Pedir orçamento</a>
+ </div>
+</header>
+
+<section class="hero wrap" id="top">
+ <div class="hero-grid">
+  <div>
+   <span class="kicker">Jogos aplicados ao ensino e ao treinamento</span>
+   <h1>Jogos sob medida para <em>ensinar</em> e <em>treinar</em>.</h1>
+   <p class="lead">Colocamos o conteúdo da sua escola ou o procedimento da sua empresa dentro de um jogo 3D. Abre por um link, no computador ou no celular.</p>
+   <div class="cta">
+    <a class="btn btn-p" href="#jogos">Ver os jogos</a>
+    <a class="btn btn-s" href="#orcamento">Pedir orçamento</a>
+   </div>
+   <div class="facts">
+    <span>sem instalação</span><span>funciona offline</span><span>roda em Chromebook</span><span>PT · EN · ES</span>
+   </div>
   </div>
-  <h2 class="sec" data-t="secDev">🚧 Em desenvolvimento/testes</h2>
-  <div class="grid">
-    <a class="game dev" href="games/auto-escola/">
-      <img class="shot" src="shots/auto-escola.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Auto Escola"><h2 data-t="carTitle">Auto Escola</h2>
-      <p data-t="carDesc">Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.</p>
-      <span class="tag" data-t="tagDev">🚧 Em desenvolvimento/testes</span>
-    </a>
+
+  <div class="mock" aria-hidden="true">
+   <div class="laptop"><img src="shots/demo.jpg" alt=""></div>
+   <div class="phone"><img src="shots/sobrevivencia.jpg" alt=""></div>
   </div>
-  <footer>
-    <span data-t="foot">Feito com o Gilelê Engine</span> · <a href="privacidade.html" data-t="privacyLink">🔒 Privacidade e publicidade</a> · <a href="https://github.com/mico-droid/gilele-games">GitHub</a>
-  </footer>
-</main>
-<script type="module">
-  import { addStrings, applyDom, installButton, registerPWA, initGTM, track } from "./engine/ez.js";
-  initGTM();
-  // qual jogo as pessoas abrem a partir do portal
-  document.querySelectorAll("a.game").forEach((a) => a.addEventListener("click", () => {
-    const m = a.getAttribute("href").match(/games\/([^/]+)/) || a.getAttribute("href").match(/github\.io\/([^/]+)/);
-    track("select_game", { target: m ? m[1] : a.getAttribute("href") });
-  }));
-  addStrings({
-    pt: { portalSub: "Jogos 3D no navegador — sozinho ou com até 4 amigos", demoTitle: "Playground Testes", demoDesc: "Parkour, moedas, trampolim e multijogador. Pegue bolas, travesseiros e bolas de neve e arremesse nos amigos e nos alvos!", secReady: "✅ Prontos para jogar", secDev: "🚧 Em desenvolvimento/testes", tagDev: "🚧 Em desenvolvimento/testes", obbyDesc: "Parkour 3D com fases, poderes, bots e multiplayer.", pktTitle: "Parkour Tabuada", pktDesc: "Parkour 3D de contas: soma, subtração, multiplicação e divisão. Sozinho ou com até 4 amigos.", carTitle: "Auto Escola", tabTitle: "Tabuada Simples", tabDesc: "Contas das 4 operações com trilha de fases, modo treino e dicas. De 3 a 16 anos.", carDesc: "Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.", svTitle: "Apagão: Sobreviva", svDesc: "A energia caiu e ninguém sabe quando volta. Sobreviva às primeiras 72 horas e aprenda a se preparar.", tagPlay: "Jogar", tagSoon: "Em breve", foot: "Feito com o Gilelê Engine", privacyLink: "🔒 Privacidade e publicidade" },
-    en: { portalSub: "3D browser games — solo or with up to 4 friends", demoTitle: "Test Playground", demoDesc: "Parkour, coins, trampoline and multiplayer. Pick up balls, pillows and snowballs and throw them at friends and targets!", secReady: "✅ Ready to play", secDev: "🚧 In development/testing", tagDev: "🚧 In development/testing", obbyDesc: "3D parkour with stages, power-ups, bots and multiplayer.", pktTitle: "Times Table Parkour", pktDesc: "3D math parkour: addition, subtraction, multiplication and division. Solo or with up to 4 friends.", carTitle: "Driving School", tabTitle: "Simple Times Tables", tabDesc: "Practice all 4 operations with a stage trail, practice mode and tips. Ages 3 to 16.", carDesc: "Learn to drive: clutch, gears, turn signals, parking and a mock test.", svTitle: "Blackout: Survive", svDesc: "The power is out and nobody knows when it comes back. Survive the first 72 hours and learn to prepare.", tagPlay: "Play", tagSoon: "Coming soon", foot: "Made with Gilelê Engine", privacyLink: "🔒 Privacy and advertising" },
-    es: { portalSub: "Juegos 3D en el navegador — solo o con hasta 4 amigos", demoTitle: "Playground de Pruebas", demoDesc: "Parkour, monedas, trampolín y multijugador. ¡Agarra pelotas, almohadas y bolas de nieve y lánzalas a tus amigos y a los blancos!", secReady: "✅ Listos para jugar", secDev: "🚧 En desarrollo/pruebas", tagDev: "🚧 En desarrollo/pruebas", obbyDesc: "Parkour 3D con fases, poderes, bots y multijugador.", pktTitle: "Parkour de las Tablas", pktDesc: "Parkour 3D de cuentas: suma, resta, multiplicación y división. Solo o con hasta 4 amigos.", carTitle: "Autoescuela", tabTitle: "Tablas Sencillas", tabDesc: "Cuentas de las 4 operaciones con ruta de fases, modo práctica y consejos. De 3 a 16 años.", carDesc: "Aprende a conducir: embrague, marchas, intermitentes, estacionamiento y examen.", svTitle: "Apagón: Sobrevive", svDesc: "Se cortó la luz y nadie sabe cuándo vuelve. Sobrevive a las primeras 72 horas y aprende a prepararte.", tagPlay: "Jugar", tagSoon: "Próximamente", foot: "Hecho con Gilelê Engine", privacyLink: "🔒 Privacidad y publicidad" },
-  });
-  applyDom();
-  registerPWA("sw.js");
-  const slot = document.getElementById("installSlot");
-  const draw = () => { slot.replaceChildren(); const b = installButton(); if (b) { b.id = "install"; b.style.width = "auto"; slot.appendChild(b); } };
-  draw(); addEventListener("beforeinstallprompt", () => setTimeout(draw, 0));
+ </div>
+</section>
+
+<section class="hero-pf" id="jogos">
+ <div class="wrap">
+  <div class="shead">
+   <div class="ix">01</div>
+   <div class="tt">
+    <span class="k">Jogos exemplo · jogáveis agora</span>
+    <h2>Antes de pedir o seu, jogue os nossos.</h2>
+    <p class="lead">Tudo abaixo foi feito pela Gilelê Games e está aberto ao público. É o mesmo padrão de entrega que a sua escola ou empresa recebe — com o conteúdo trocado pelo seu.</p>
+   </div>
+  </div>
+  <div id="feat"></div>
+  <div class="grid" id="grid"></div>
+  <p class="pfnote">Os exemplos voltados ao público infantil exibem anúncios. As versões contratadas por escolas e empresas não exibem anúncio algum.</p>
+
+  <div class="kidsband" style="margin-top:30px">
+   <div>
+    <h3>É criança e só quer jogar?</h3>
+    <p>Tem uma página só com os jogos, sem nada de venda: abre, escolhe e joga.</p>
+   </div>
+   <a class="btn btn-p" href="jogos.html">Ir para os jogos</a>
+  </div>
+ </div>
+</section>
+
+<section id="publico">
+ <div class="wrap">
+  <div class="shead">
+   <div class="ix">02</div>
+   <div class="tt">
+    <span class="k">Para quem</span>
+    <h2>Para a sala de aula e para o treinamento.</h2>
+   </div>
+  </div>
+  <div class="seg" role="tablist">
+   <button role="tab" aria-selected="true" data-seg="escolas">Para escolas</button>
+   <button role="tab" aria-selected="false" data-seg="empresas">Para empresas</button>
+  </div>
+
+  <div class="cards" data-panel="escolas">
+   <div class="card"><span class="tag">Reforço de conteúdo</span><h3>A matéria vira desafio</h3><p>Operações, interpretação, ciências e educação para o trânsito dentro de um jogo 3D, com o nível ajustado por ano escolar.</p></div>
+   <div class="card"><span class="tag">Sala e casa</span><h3>Usa no laboratório e no celular</h3><p>Abre por um link, roda em Chromebook e continua funcionando sem internet depois do primeiro acesso.</p></div>
+   <div class="card"><span class="tag">Acompanhamento</span><h3>O professor vê o resultado</h3><p>Relatório simples de uso e de acertos por turma, sem cadastrar dados pessoais de aluno.</p></div>
+  </div>
+
+  <div class="cards" data-panel="empresas" hidden>
+   <div class="card"><span class="tag">Segurança do trabalho</span><h3>Treinar o risco sem correr o risco</h3><p>Simulações de procedimento, EPI, bloqueio e situações de emergência no ambiente da sua operação.</p></div>
+   <div class="card"><span class="tag">Procedimentos</span><h3>Da norma à prática</h3><p>O passo a passo do seu POP virado em missão: o colaborador executa, erra em ambiente seguro e repete.</p></div>
+   <div class="card"><span class="tag">Integração</span><h3>Onboarding que não é slide</h3><p>Reconhecimento de área, rotina e regras da empresa em um percurso guiado de poucos minutos.</p></div>
+  </div>
+ </div>
+</section>
+
+<section id="como">
+ <div class="wrap">
+  <div class="shead">
+   <div class="ix">03</div>
+   <div class="tt">
+    <span class="k">Como funciona</span>
+    <h2>Do briefing à turma em quatro etapas.</h2>
+    <p class="lead">Você traz o conteúdo. Nós cuidamos do jogo.</p>
+   </div>
+  </div>
+  <div class="steps">
+   <div class="step"><b>01</b><h3>Briefing</h3><p>Reunião curta para entender o conteúdo, o público e onde o jogo vai rodar.</p></div>
+   <div class="step"><b>02</b><h3>Protótipo</h3><p>Uma primeira versão jogável em poucas semanas, com a mecânica principal.</p></div>
+   <div class="step"><b>03</b><h3>Ajustes</h3><p>Professores ou instrutores testam e pedem mudanças de conteúdo e dificuldade.</p></div>
+   <div class="step"><b>04</b><h3>Entrega e suporte</h3><p>Publicação com a sua marca, treinamento de uso e manutenção contratada.</p></div>
+  </div>
+ </div>
+</section>
+
+<section id="sobmedida">
+ <div class="wrap">
+  <div class="shead">
+   <div class="ix">04</div>
+   <div class="tt">
+    <span class="k">Sob medida</span>
+    <h2>O que muda quando o jogo é seu.</h2>
+    <p class="lead">Já temos jogos prontos e testados como ponto de partida — o projeto começa andando, e não do zero.</p>
+   </div>
+  </div>
+  <div class="two">
+   <div>
+    <span class="subt">Personalização</span>
+    <ul class="clean">
+     <li>Conteúdo: perguntas, etapas, regras e critérios de aprovação</li>
+     <li>Identidade: cores, logotipo e nome da escola ou da empresa</li>
+     <li>Cenário: sala, pátio, fábrica, rua ou subestação</li>
+     <li>Idioma: português, inglês e espanhol</li>
+     <li>Relatórios de uso e de desempenho por turma ou por equipe</li>
+     <li>Área privada só sua: subdomínio ou pasta exclusiva, com acesso por link restrito</li>
+    </ul>
+   </div>
+   <div>
+    <span class="subt">Simples de aprovar na TI</span>
+    <ul class="clean">
+     <li>Sem coleta de dados pessoais de alunos — conformidade com a LGPD</li>
+     <li>Sem anúncios e sem compras dentro do jogo nas versões contratadas</li>
+     <li>Roda no navegador: nada a instalar na máquina da escola</li>
+     <li>Funciona offline após o primeiro acesso (PWA)</li>
+     <li>Cada cliente em seu próprio ambiente, separado dos demais</li>
+     <li>Código entregue ou hospedado por nós, conforme o contrato</li>
+    </ul>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section id="orcamento">
+ <div class="wrap">
+  <div class="shead">
+   <div class="ix">05</div>
+   <div class="tt">
+    <span class="k">Orçamento</span>
+    <h2>Conte o que você precisa ensinar.</h2>
+    <p class="lead">Respondemos em até um dia útil com escopo, prazo e valor.</p>
+   </div>
+  </div>
+  <div class="two">
+   <div>
+    <span class="subt">Contato direto</span>
+    <ul class="clean">
+     <li><a href="mailto:contato@gilelegames.com">contato@gilelegames.com</a></li>
+     <li>Goiânia, GO — atendemos o Brasil inteiro, remoto</li>
+    </ul>
+   </div>
+   <form class="form" id="f">
+    <div class="row">
+     <div><label for="n">Seu nome</label><input id="n" required></div>
+     <div><label for="o">Escola ou empresa</label><input id="o" required></div>
+    </div>
+    <div class="row">
+     <div><label for="e">E-mail</label><input id="e" type="email" required></div>
+     <div><label for="tel">Telefone</label><input id="tel" inputmode="tel"></div>
+    </div>
+    <label for="p">Qual é o público?</label>
+    <select id="p">
+     <option>Escola — educação infantil e fundamental I</option>
+     <option>Escola — fundamental II e ensino médio</option>
+     <option>Empresa — treinamento e segurança do trabalho</option>
+     <option>Empresa — integração e procedimentos</option>
+     <option>Outro</option>
+    </select>
+    <label for="m">O que o jogo precisa ensinar?</label>
+    <textarea id="m" placeholder="Ex.: tabuada para o 4º ano / procedimento de bloqueio e etiquetagem para 120 eletricistas"></textarea>
+    <button class="btn btn-p" style="margin-top:18px;width:100%;justify-content:center" type="submit">Enviar pedido</button>
+    <div class="ok" id="ok"></div>
+   </form>
+  </div>
+ </div>
+</section>
+
+<footer>
+ <div class="wrap f-grid">
+  <div><strong>Gilelê Games</strong><br>Jogos sob medida para ensinar e treinar.</div>
+  <div><a href="jogos.html">Jogos</a> · <a href="#orcamento">Orçamento</a> · <a href="privacidade.html">Privacidade</a> · <a href="https://github.com/mico-droid/gilele-games">GitHub</a></div>
+  <div>© 2026 Gilelê Games</div>
+ </div>
+</footer>
+
+<script>
+const JOGOS=[
+ {n:"Apagão: Sobreviva",i:"apagao",img:"shots/sobrevivencia.jpg",u:"games/sobrevivencia/",d:"Cenário de blecaute prolongado: decidir o que levar, racionar recursos e sobreviver aos primeiros dias.",t:["Tomada de decisão","Sobrevivência","Cerrado e Mata Atlântica"],s:"ok"},
+ {n:"Parkour Tabuada",i:"parkour-tabuada",img:"shots/parkour-tabuada.jpg",u:"games/parkour-tabuada/",d:"Percurso 3D em que cada plataforma é uma operação: soma, subtração, multiplicação e divisão.",t:["Matemática","Fundamental I e II","Multijogador"],s:"ok"},
+ {n:"Tabuada Simples",i:"tabuada-simples",img:"shots/tabuada.jpg",u:"games/tabuada/",d:"Treino rápido de tabuada em três faixas de idade e três idiomas.",t:["Matemática","3 idiomas","PWA"],s:"ok"},
+ {n:"EZ Obby",i:"ez-obby",img:"shots/ez-obby.jpg",u:"https://mico-droid.github.io/ez-obby/",d:"Parkour 3D multijogador: coordenação, tentativa e erro e progressão por fases.",t:["Coordenação","Multijogador","Portfólio técnico"],s:"ok"},
+ {n:"Playground Testes",i:"playground",img:"shots/demo.jpg",u:"games/demo/",d:"Área aberta onde testamos física, câmeras e mecânicas novas antes de levar para os jogos.",t:["Laboratório","Física","Objetos e arremesso"],s:"ok"},
+ {n:"Auto Escola",i:"auto-escola",img:"shots/auto-escola.jpg",u:"games/auto-escola/",d:"Simulador de direção com a legislação brasileira: modos Aprendizado, Prova e Trânsito Difícil.",t:["Simulação","Educação para o trânsito","Câmbio manual e automático"],s:"dev"}
+];
+
+const thumb=g=>`
+ <div class="thumb">
+  <img class="sh" src="${g.img}" width="640" height="360" loading="lazy" decoding="async" alt="">
+  <span class="status ${g.s==='dev'?'dev':''}">${g.s==='dev'?'Em desenvolvimento':'Jogável agora'}</span>
+  <img class="ic" src="icons/${g.i}.svg" alt="">
+ </div>`;
+
+const card=g=>`
+ <a class="g" href="${g.u}">
+  ${thumb(g)}
+  <div class="g-body">
+   <span class="pf">Exemplo</span>
+   <h3>${g.n}</h3>
+   <p>${g.d}</p>
+   <div class="tags">${g.t.map(t=>`<span class="t">${t}</span>`).join('')}</div>
+  </div>
+ </a>`;
+
+const F=JOGOS[0];
+document.getElementById('feat').innerHTML=`
+ <a class="feat" href="${F.u}">
+  ${thumb(F)}
+  <div class="feat-body">
+   <span class="pf">Destaque do portfólio</span>
+   <h3>${F.n}</h3>
+   <p>${F.d}</p>
+   <div class="tags">${F.t.map(t=>`<span class="t">${t}</span>`).join('')}</div>
+   <div style="margin-top:8px"><span class="btn btn-p">Jogar agora</span></div>
+  </div>
+ </a>`;
+document.getElementById('grid').innerHTML=JOGOS.slice(1).map(card).join('');
+
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-selected',x===b));
+ document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==b.dataset.seg);
+});
+
+// Sem servidor: o pedido é montado e aberto no programa de e-mail do visitante.
+document.getElementById('f').addEventListener('submit',ev=>{
+ ev.preventDefault();
+ const v=id=>document.getElementById(id).value.trim();
+ const corpo=[`Nome: ${v('n')}`,`Escola/empresa: ${v('o')}`,`E-mail: ${v('e')}`,`Telefone: ${v('tel')}`,
+   `Público: ${v('p')}`,'',`O que o jogo precisa ensinar:`,v('m')].join('\n');
+ const href='mailto:contato@gilelegames.com?subject='+encodeURIComponent('Pedido de orçamento — '+v('o'))+'&body='+encodeURIComponent(corpo);
+ const ok=document.getElementById('ok');
+ ok.classList.add('on');
+ ok.innerHTML='Pedido montado. <a href="'+href+'" style="color:var(--am);font-weight:700">Toque aqui para enviar</a> pelo seu e-mail — ou copie e mande para contato@gilelegames.com.';
+ location.href=href;
+});
 </script>
 </body>
 </html>

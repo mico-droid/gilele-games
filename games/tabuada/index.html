@@ -481,7 +481,7 @@ function topBar(){
   const c=childLevel();
   return `<div class="topbar"><div class="lvl" title="${t('levelHint',{a:LEVEL_EVERY-c.into})}"><span>⭐ ${t('level',{n:c.lv})}</span><div class="lvbar"><i style="width:${c.into/LEVEL_EVERY*100}%"></i></div></div>
   <select class="langsel" data-change="lang" aria-label="${t('langAria')}">${LANGS.map(l=>`<option value="${l}" ${lang()===l?'selected':''}>${{pt:'PT-BR',en:'EN',es:'ES'}[l]}</option>`).join('')}</select>
-  <a class="tb" href="../../" style="text-decoration:none" aria-label="Gilelê Games"><span>🏠</span>Gilelê</a>
+  <a class="tb" href="../../jogos.html" style="text-decoration:none" aria-label="Gilelê Games"><span>🏠</span>Gilelê</a>
   <button class="tb" data-a="shareapp"><span>📤</span>${t('shareApp')}</button>
   ${isStandalone()||(!DEFERRED&&(()=>{try{return localStorage.getItem('ez:installed:'+location.pathname)==='1'}catch(_){return false}})())?'':`<button class="tb" data-a="install"><span>📲</span>${t('addApp')}</button>`}</div>`;
 }

@@ -141,8 +141,8 @@ export function installButton() {
  * @param {string} gameName  nome do jogo no texto do compartilhamento
  * @param {string} portal    link do portal (padrão: raiz do monorepo, ../../)
  */
-export const PORTAL_URL = "https://mico-droid.github.io/gilele-games/";
-export function gameLinks(gameName, { portal = "../../" } = {}) {
+export const PORTAL_URL = "https://mico-droid.github.io/gilele-games/jogos.html";
+export function gameLinks(gameName, { portal = "../../jogos.html" } = {}) {
   const row = h("div.ez-row.ez-links", { style: { justifyContent: "center", flexWrap: "wrap", marginTop: "10px" } });
   const shareUrl = location.origin + location.pathname;
   const share = async () => {
