@@ -28,7 +28,7 @@
   "related_applications": [
     {
       "platform": "webapp",
-      "url": "https://mico-droid.github.io/gilele-games/manifest.webmanifest"
+      "url": "manifest.webmanifest"
     }
   ]
 }
