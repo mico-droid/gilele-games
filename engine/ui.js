@@ -84,7 +84,6 @@ export function openAvatarEditor(look, onSave, { onCancel } = {}) {
       : [h("p", "—")];
     if (tab === "colors") body = [
       h("h3", t("shirt")), swatches(PALETTE, lk.c[1], (x) => setC(1, x)),
-      h("h3", t("sleeves")), swatches([lk.c[0]].concat(PALETTE), lk.c[2], (x) => setC(2, x)),
       h("h3", t("pants")), swatches(PALETTE, lk.c[3], (x) => setC(3, x)),
     ];
     if (tab === "acc") body = [h("h3", t("acc")), chips(ACCS, lk.a, (x) => t("a_" + x), (x) => set({ a: x }))];
@@ -136,7 +135,7 @@ export function installButton() {
 }
 
 /**
- * Rodapé padrão da tela inicial de todo jogo: 🏠 gi-lele games · 📲 Instalar · 📤 Compartilhar.
+ * Rodapé padrão da tela inicial de todo jogo: 🏠 Gilelê Games · 📲 Instalar · 📤 Compartilhar.
  * - Instalar some quando o app já está instalado; sem o pedido nativo do navegador, abre "Como instalar".
  * - Compartilhar usa o menu do celular (navigator.share) ou copia o link.
  * @param {string} gameName  nome do jogo no texto do compartilhamento

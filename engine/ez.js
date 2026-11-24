@@ -1,8 +1,8 @@
-// Gilele Engine — entry point. Import what you need:
+// Gilelê Engine — entry point. Import what you need:
 //   import { THREE, createWorld, createPhysics, createBody, Character, ... } from "../../engine/ez.js";
 import * as THREE from "./three.js";
 export { THREE };
-export const VERSION = "0.4.0";
+export const VERSION = "0.5.0";
 export * from "./core.js";
 export * from "./storage.js";
 export * from "./i18n.js";
@@ -16,6 +16,7 @@ export * from "./ui.js";
 export * from "./pwa.js";
 export * from "./analytics.js";
 export * from "./props.js";
+export * from "./scenery.js";
 export * from "./player.js";
 export * from "./vehicle.js";
 export * from "./road.js";

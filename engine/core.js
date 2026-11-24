@@ -58,9 +58,10 @@ export function createWorld(opt = {}) {
   sun.castShadow = true;
   const S = opt.shadowRange || 30, sc = sun.shadow.camera;
   sc.left = -S; sc.right = S; sc.top = S; sc.bottom = -S; sc.near = 1; sc.far = 120;
-  sun.shadow.bias = -0.0008;
+  sun.shadow.bias = -0.0012;
+  sun.shadow.normalBias = 0.06;   // terreno com relevo: evita listras de sombra no chão
   if (GFX.pbr) {
-    sun.shadow.normalBias = 0.03; sun.color.set(0xfff4e0); hemi.color.set(0xdfefff);
+    sun.shadow.normalBias = 0.09; sun.color.set(0xfff4e0); hemi.color.set(0xdfefff);
     // realistic look: less flat ambient light (the sky reflections add some back) → deeper shadows.
     // Games keep setting hemi.intensity as before; the scale is applied here.
     let raw = hemi.intensity;
@@ -68,8 +69,9 @@ export function createWorld(opt = {}) {
   }
   scene.add(sun, sun.target);
   const sunOffset = sun.position.clone();
-  // realistic levels: sky dome with sun and clouds + sky reflections on every material
-  const skyUpdate = GFX.pbr ? addSky({ renderer, scene, camera, sun }, GFX.level) : null;
+  // céu em TODOS os níveis (o domo é barato); reflexos só nos níveis com PBR.
+  // opt.dome:false desliga (cenários fechados); opt.sky2 = { clouds, hills } força nuvens/morros.
+  const skyUpdate = opt.dome === false ? null : addSky({ renderer, scene, camera, sun }, GFX.level, opt.sky2 || {});
 
   // ---- quality: auto | low | medium | high. The look (materials/sky) is chosen when the game opens
   // (GFX.level); resolution and shadow detail also change live.

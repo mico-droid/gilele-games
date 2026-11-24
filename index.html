@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>gi-lele games</title>
-<meta name="apple-mobile-web-app-title" content="gi-lele games">
-<meta name="application-name" content="gi-lele games">
+<title>Gilelê Games</title>
+<meta name="apple-mobile-web-app-title" content="Gilelê Games">
+<meta name="application-name" content="Gilelê Games">
 <meta name="description" content="Jogos 3D grátis no navegador, para jogar sozinho ou com amigos.">
 <meta name="theme-color" content="#22c55e">
 <link rel="manifest" href="manifest.webmanifest">
@@ -21,8 +21,12 @@
   header h1 { font-size: 44px; margin: 0; text-shadow: 0 4px 0 rgba(0,0,0,.15); }
   header p { margin: 4px 0 0; font-size: 18px; opacity: .9; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-  .game { background: #fff; color: #0f172a; border-radius: 20px; padding: 18px; box-shadow: 0 8px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 8px; text-decoration: none; transition: transform .1s; }
+  .game { background: #fff; color: #0f172a; border-radius: 20px; padding: 0 0 18px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 8px; text-decoration: none; transition: transform .1s; }
+  .game > :not(.shot) { margin-left: 18px; margin-right: 18px; }
   .game:hover { transform: translateY(-3px); }
+  /* print do próprio jogo no lugar do desenho genérico */
+  .game .shot { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #bfe3ff; border-bottom: 3px solid #e2e8f0; }
+  .game h2 { margin-top: 12px; }
   .game .emoji { font-size: 54px; line-height: 1; }
   .game h2 { margin: 0; font-size: 24px; }
   .game p { margin: 0; opacity: .75; flex: 1; }
@@ -40,7 +44,7 @@
 <body>
 <main>
   <header>
-    <h1>🎮 gi-lele games</h1>
+    <h1>🎮 Gilelê Games</h1>
     <p data-t="portalSub">Jogos 3D no navegador — sozinho ou com até 4 amigos</p>
   </header>
   <div id="installSlot"></div>
@@ -48,27 +52,27 @@
   <h2 class="sec" data-t="secReady">✅ Prontos para jogar</h2>
   <div class="grid">
     <a class="game" href="https://mico-droid.github.io/ez-obby/">
-      <div class="emoji">🧗</div><h2>EZ Obby</h2>
+      <img class="shot" src="shots/ez-obby.jpg" width="640" height="360" loading="lazy" decoding="async" alt="EZ Obby"><h2>EZ Obby</h2>
       <p data-t="obbyDesc">Parkour 3D com fases, poderes, bots e multiplayer.</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
     <a class="game" href="games/parkour-tabuada/">
-      <div class="emoji">🧮</div><h2 data-t="pktTitle">Parkour Tabuada</h2>
+      <img class="shot" src="shots/parkour-tabuada.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Parkour Tabuada"><h2 data-t="pktTitle">Parkour Tabuada</h2>
       <p data-t="pktDesc">Parkour 3D de contas: soma, subtração, multiplicação e divisão. Sozinho ou com até 4 amigos.</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
     <a class="game" href="games/tabuada/">
-      <div class="emoji">🔢</div><h2 data-t="tabTitle">Tabuada Simples</h2>
+      <img class="shot" src="shots/tabuada.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Tabuada Simples"><h2 data-t="tabTitle">Tabuada Simples</h2>
       <p data-t="tabDesc">Contas das 4 operações com trilha de fases, modo treino e dicas. De 3 a 16 anos.</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
     <a class="game" href="games/sobrevivencia/">
-      <div class="emoji">🔦</div><h2 data-t="svTitle">Apagão: Sobreviva</h2>
+      <img class="shot" src="shots/sobrevivencia.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Apagão: Sobreviva"><h2 data-t="svTitle">Apagão: Sobreviva</h2>
       <p data-t="svDesc">A energia caiu e ninguém sabe quando volta. Sobreviva às primeiras 72 horas e aprenda a se preparar.</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
     <a class="game" href="games/demo/">
-      <div class="emoji">🛝</div><h2 data-t="demoTitle">Playground Testes</h2>
+      <img class="shot" src="shots/demo.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Playground Testes"><h2 data-t="demoTitle">Playground Testes</h2>
       <p data-t="demoDesc">Parkour, moedas, trampolim e multijogador. Pegue bolas, travesseiros e bolas de neve e arremesse nos amigos e nos alvos!</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
@@ -76,13 +80,13 @@
   <h2 class="sec" data-t="secDev">🚧 Em desenvolvimento/testes</h2>
   <div class="grid">
     <a class="game dev" href="games/auto-escola/">
-      <div class="emoji">🚗</div><h2 data-t="carTitle">Auto Escola</h2>
+      <img class="shot" src="shots/auto-escola.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Auto Escola"><h2 data-t="carTitle">Auto Escola</h2>
       <p data-t="carDesc">Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.</p>
       <span class="tag" data-t="tagDev">🚧 Em desenvolvimento/testes</span>
     </a>
   </div>
   <footer>
-    <span data-t="foot">Feito com o Gilele Engine</span> · <a href="privacidade.html" data-t="privacyLink">🔒 Privacidade e publicidade</a> · <a href="https://github.com/mico-droid/gilele-games">GitHub</a>
+    <span data-t="foot">Feito com o Gilelê Engine</span> · <a href="privacidade.html" data-t="privacyLink">🔒 Privacidade e publicidade</a> · <a href="https://github.com/mico-droid/gilele-games">GitHub</a>
   </footer>
 </main>
 <script type="module">
@@ -94,9 +98,9 @@
     track("select_game", { target: m ? m[1] : a.getAttribute("href") });
   }));
   addStrings({
-    pt: { portalSub: "Jogos 3D no navegador — sozinho ou com até 4 amigos", demoTitle: "Playground Testes", demoDesc: "Parkour, moedas, trampolim e multijogador. Pegue bolas, travesseiros e bolas de neve e arremesse nos amigos e nos alvos!", secReady: "✅ Prontos para jogar", secDev: "🚧 Em desenvolvimento/testes", tagDev: "🚧 Em desenvolvimento/testes", obbyDesc: "Parkour 3D com fases, poderes, bots e multiplayer.", pktTitle: "Parkour Tabuada", pktDesc: "Parkour 3D de contas: soma, subtração, multiplicação e divisão. Sozinho ou com até 4 amigos.", carTitle: "Auto Escola", tabTitle: "Tabuada Simples", tabDesc: "Contas das 4 operações com trilha de fases, modo treino e dicas. De 3 a 16 anos.", carDesc: "Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.", svTitle: "Apagão: Sobreviva", svDesc: "A energia caiu e ninguém sabe quando volta. Sobreviva às primeiras 72 horas e aprenda a se preparar.", tagPlay: "Jogar", tagSoon: "Em breve", foot: "Feito com o Gilele Engine", privacyLink: "🔒 Privacidade e publicidade" },
-    en: { portalSub: "3D browser games — solo or with up to 4 friends", demoTitle: "Test Playground", demoDesc: "Parkour, coins, trampoline and multiplayer. Pick up balls, pillows and snowballs and throw them at friends and targets!", secReady: "✅ Ready to play", secDev: "🚧 In development/testing", tagDev: "🚧 In development/testing", obbyDesc: "3D parkour with stages, power-ups, bots and multiplayer.", pktTitle: "Times Table Parkour", pktDesc: "3D math parkour: addition, subtraction, multiplication and division. Solo or with up to 4 friends.", carTitle: "Driving School", tabTitle: "Simple Times Tables", tabDesc: "Practice all 4 operations with a stage trail, practice mode and tips. Ages 3 to 16.", carDesc: "Learn to drive: clutch, gears, turn signals, parking and a mock test.", svTitle: "Blackout: Survive", svDesc: "The power is out and nobody knows when it comes back. Survive the first 72 hours and learn to prepare.", tagPlay: "Play", tagSoon: "Coming soon", foot: "Made with Gilele Engine", privacyLink: "🔒 Privacy and advertising" },
-    es: { portalSub: "Juegos 3D en el navegador — solo o con hasta 4 amigos", demoTitle: "Playground de Pruebas", demoDesc: "Parkour, monedas, trampolín y multijugador. ¡Agarra pelotas, almohadas y bolas de nieve y lánzalas a tus amigos y a los blancos!", secReady: "✅ Listos para jugar", secDev: "🚧 En desarrollo/pruebas", tagDev: "🚧 En desarrollo/pruebas", obbyDesc: "Parkour 3D con fases, poderes, bots y multijugador.", pktTitle: "Parkour de las Tablas", pktDesc: "Parkour 3D de cuentas: suma, resta, multiplicación y división. Solo o con hasta 4 amigos.", carTitle: "Autoescuela", tabTitle: "Tablas Sencillas", tabDesc: "Cuentas de las 4 operaciones con ruta de fases, modo práctica y consejos. De 3 a 16 años.", carDesc: "Aprende a conducir: embrague, marchas, intermitentes, estacionamiento y examen.", svTitle: "Apagón: Sobrevive", svDesc: "Se cortó la luz y nadie sabe cuándo vuelve. Sobrevive a las primeras 72 horas y aprende a prepararte.", tagPlay: "Jugar", tagSoon: "Próximamente", foot: "Hecho con Gilele Engine", privacyLink: "🔒 Privacidad y publicidad" },
+    pt: { portalSub: "Jogos 3D no navegador — sozinho ou com até 4 amigos", demoTitle: "Playground Testes", demoDesc: "Parkour, moedas, trampolim e multijogador. Pegue bolas, travesseiros e bolas de neve e arremesse nos amigos e nos alvos!", secReady: "✅ Prontos para jogar", secDev: "🚧 Em desenvolvimento/testes", tagDev: "🚧 Em desenvolvimento/testes", obbyDesc: "Parkour 3D com fases, poderes, bots e multiplayer.", pktTitle: "Parkour Tabuada", pktDesc: "Parkour 3D de contas: soma, subtração, multiplicação e divisão. Sozinho ou com até 4 amigos.", carTitle: "Auto Escola", tabTitle: "Tabuada Simples", tabDesc: "Contas das 4 operações com trilha de fases, modo treino e dicas. De 3 a 16 anos.", carDesc: "Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.", svTitle: "Apagão: Sobreviva", svDesc: "A energia caiu e ninguém sabe quando volta. Sobreviva às primeiras 72 horas e aprenda a se preparar.", tagPlay: "Jogar", tagSoon: "Em breve", foot: "Feito com o Gilelê Engine", privacyLink: "🔒 Privacidade e publicidade" },
+    en: { portalSub: "3D browser games — solo or with up to 4 friends", demoTitle: "Test Playground", demoDesc: "Parkour, coins, trampoline and multiplayer. Pick up balls, pillows and snowballs and throw them at friends and targets!", secReady: "✅ Ready to play", secDev: "🚧 In development/testing", tagDev: "🚧 In development/testing", obbyDesc: "3D parkour with stages, power-ups, bots and multiplayer.", pktTitle: "Times Table Parkour", pktDesc: "3D math parkour: addition, subtraction, multiplication and division. Solo or with up to 4 friends.", carTitle: "Driving School", tabTitle: "Simple Times Tables", tabDesc: "Practice all 4 operations with a stage trail, practice mode and tips. Ages 3 to 16.", carDesc: "Learn to drive: clutch, gears, turn signals, parking and a mock test.", svTitle: "Blackout: Survive", svDesc: "The power is out and nobody knows when it comes back. Survive the first 72 hours and learn to prepare.", tagPlay: "Play", tagSoon: "Coming soon", foot: "Made with Gilelê Engine", privacyLink: "🔒 Privacy and advertising" },
+    es: { portalSub: "Juegos 3D en el navegador — solo o con hasta 4 amigos", demoTitle: "Playground de Pruebas", demoDesc: "Parkour, monedas, trampolín y multijugador. ¡Agarra pelotas, almohadas y bolas de nieve y lánzalas a tus amigos y a los blancos!", secReady: "✅ Listos para jugar", secDev: "🚧 En desarrollo/pruebas", tagDev: "🚧 En desarrollo/pruebas", obbyDesc: "Parkour 3D con fases, poderes, bots y multijugador.", pktTitle: "Parkour de las Tablas", pktDesc: "Parkour 3D de cuentas: suma, resta, multiplicación y división. Solo o con hasta 4 amigos.", carTitle: "Autoescuela", tabTitle: "Tablas Sencillas", tabDesc: "Cuentas de las 4 operaciones con ruta de fases, modo práctica y consejos. De 3 a 16 años.", carDesc: "Aprende a conducir: embrague, marchas, intermitentes, estacionamiento y examen.", svTitle: "Apagón: Sobrevive", svDesc: "Se cortó la luz y nadie sabe cuándo vuelve. Sobrevive a las primeras 72 horas y aprende a prepararte.", tagPlay: "Jugar", tagSoon: "Próximamente", foot: "Hecho con Gilelê Engine", privacyLink: "🔒 Privacidad y publicidad" },
   });
   applyDom();
   registerPWA("sw.js");

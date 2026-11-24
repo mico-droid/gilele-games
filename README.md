@@ -1,7 +1,7 @@
 # 🎮 Gilele Games
 
 Jogos 3D que rodam no navegador (celular e PC), com multijogador sem login e instaláveis como app (PWA).
-Todos os jogos usam o **Gilele Engine**, que fica na pasta `engine/`.
+Todos os jogos usam o **Gilelê Engine**, que fica na pasta `engine/`.
 
 **Jogar:** https://mico-droid.github.io/gilele-games/
 
@@ -12,7 +12,7 @@ index.html            Portal com a lista de jogos (PWA)
 sw.js                 Service worker compartilhado (offline + cache)
 manifest.webmanifest  Manifest do portal
 icons/                Ícones do app
-engine/               Gilele Engine (módulos JS, sem build)
+engine/               Gilelê Engine (módulos JS, sem build)
 games/demo/           Playground Testes: jogo-modelo (inclui pegar e arremessar objetos)
 games/auto-escola/    Auto Escola: simulado de direção (CTB + MBEDV)
 games/parkour-tabuada/ Parkour Tabuada: parkour 3D de contas (+ − × ÷), HTML único derivado do EZ Obby, PWA própria

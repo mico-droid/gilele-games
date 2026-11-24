@@ -1,6 +1,7 @@
 // Blocky avatars (ported from EZ Obby) + Character wrapper with name label, speech bubble and animation.
 // A "look" is plain JSON so it can be saved and sent over the network:
-// { n: name, g: kind, h: hair, hc: hairColor, c: [skin, shirt, sleeves, pants], a: accessory, f: face }
+// { n: name, g: kind, h: hair, hc: hairColor, c: [skin, detalhe, (livre), pants], a: accessory, f: face }
+// A camiseta é sempre branca com a marca (uniforme); c[1] pinta gola, punho e barra.
 import * as THREE from "./three.js";
 import { part, getMat } from "./core.js";
 import { shared } from "./storage.js";
@@ -36,9 +37,9 @@ const pick = (a) => a[Math.floor(Math.random() * a.length)];
 export function randomLook(name = "") {
   const g = Math.random() < 0.8 ? pick(["m", "f"]) : pick(KINDS);
   const skin = KIND_SKIN[g] || pick(SKINS);
-  return sanitizeLook({ n: name, g, h: pick(HAIRS[g === "f" ? "f" : "m"]), hc: pick(HAIRCOLS), c: [skin, pick(PALETTE), Math.random() < 0.5 ? skin : pick(PALETTE), pick(PALETTE)], a: Math.random() < 0.6 ? "none" : pick(ACCS), f: pick(FACES) });
+  return sanitizeLook({ n: name, g, h: pick(HAIRS[g === "f" ? "f" : "m"]), hc: pick(HAIRCOLS), c: [skin, pick(PALETTE), skin, pick(PALETTE)], a: Math.random() < 0.6 ? "none" : pick(ACCS), f: pick(FACES) });
 }
-/** The player's look is shared by every Gilele game. */
+/** The player's look is shared by every Gilelê game. */
 export function loadLook() { return sanitizeLook(shared.getJSON("look", DEFAULT_LOOK)); }
 export function saveLook(lk) { shared.setJSON("look", sanitizeLook(lk)); }
 
@@ -114,6 +115,35 @@ function buildSmileyHead(head) {
   [[-0.36, 0.02, 0.12], [-0.25, -0.1, 0.14], [0, -0.17, 0.38], [0.25, -0.1, 0.14], [0.36, 0.02, 0.12]].forEach(([x, y, w]) => part(w, 0.08, 0.03, INK, x, y, 0.555, head, false));
 }
 
+// ------------------------------------------------------------------ uniforme da marca
+// Camiseta branca com o nome da marca estampado (pedido do dono: venda para escolas).
+export const BRAND = { name: "Gilelê Games", shirt: "#ffffff", ink: "#1f2937" };
+let brandTex = null;
+function brandTexture() {
+  if (brandTex) return brandTex;
+  const cv = document.createElement("canvas"); cv.width = 256; cv.height = 128;
+  const c = cv.getContext("2d");
+  c.clearRect(0, 0, 256, 128);
+  c.textAlign = "center"; c.textBaseline = "middle";
+  const parts = BRAND.name.split(" ");
+  const l1 = parts[0] || BRAND.name, l2 = parts.slice(1).join(" ");
+  const fit = (txt, size) => { let f = size; c.font = `800 ${f}px Fredoka, system-ui, sans-serif`; while (c.measureText(txt).width > 228 && f > 10) { f -= 2; c.font = `800 ${f}px Fredoka, system-ui, sans-serif`; } };
+  c.fillStyle = BRAND.ink;
+  if (l2) { fit(l1, 54); c.fillText(l1, 128, 48); fit(l2, 40); c.fillText(l2, 128, 94); }
+  else { fit(l1, 60); c.fillText(l1, 128, 64); }
+  brandTex = new THREE.CanvasTexture(cv); brandTex.colorSpace = THREE.SRGBColorSpace; brandTex.anisotropy = 4;
+  return brandTex;
+}
+/** Estampa da marca (frente e costas) no tronco. */
+function brandDecal(body, w, y, z) {
+  const m = new THREE.MeshBasicMaterial({ map: brandTexture(), transparent: true, depthWrite: false });
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.74, w * 0.37), m);
+  front.position.set(0, y, z + 0.005); body.add(front);
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.74, w * 0.37), m);
+  back.position.set(0, y, -z - 0.005); back.rotation.y = Math.PI; body.add(back);
+  return front;
+}
+
 /** Build the 3D model. Returns { g, body, legL, legR, armL, armR, head, zombie, top }. Model faces +Z. */
 export function buildAvatar(lk) {
   lk = sanitizeLook(lk);
@@ -122,10 +152,15 @@ export function buildAvatar(lk) {
   const tw = girl ? 0.9 : 1.0, ax = girl ? 0.69 : 0.75, aw = girl ? 0.4 : 0.46, lw = girl ? 0.42 : 0.47;
   const legL = new THREE.Group(); legL.position.set(-0.24, 1.0, 0); part(lw, 1.0, 0.48, c[3], 0, -0.5, 0, legL); body.add(legL);
   const legR = new THREE.Group(); legR.position.set(0.24, 1.0, 0); part(lw, 1.0, 0.48, c[3], 0, -0.5, 0, legR); body.add(legR);
-  part(tw, 1.0, 0.5, c[1], 0, 1.5, 0, body);
-  if (girl) { part(1.08, 0.42, 0.66, c[1], 0, 0.86, 0, body); part(0.5, 0.12, 0.04, "#ffffff", 0, 1.88, 0.26, body, false); }
-  const armL = new THREE.Group(); armL.position.set(-ax, 1.95, 0); part(aw, 0.45, 0.46, c[2], 0, -0.2, 0, armL); part(aw * 0.94, 0.55, 0.42, c[0], 0, -0.68, 0, armL); body.add(armL);
-  const armR = new THREE.Group(); armR.position.set(ax, 1.95, 0); part(aw, 0.45, 0.46, c[2], 0, -0.2, 0, armR); part(aw * 0.94, 0.55, 0.42, c[0], 0, -0.68, 0, armR); body.add(armR);
+  // camiseta branca com a marca (uniforme) + gola/barra na cor escolhida (c[1] = detalhe)
+  part(tw, 1.0, 0.5, BRAND.shirt, 0, 1.5, 0, body);
+  part(tw * 1.01, 0.11, 0.51, c[1], 0, 1.95, 0, body, false);   // gola
+  part(tw * 1.01, 0.09, 0.51, c[1], 0, 1.03, 0, body, false);   // barra
+  brandDecal(body, tw, 1.52, 0.251);
+  if (girl) { part(1.08, 0.42, 0.66, c[1], 0, 0.86, 0, body); }
+  const sleeve = BRAND.shirt;
+  const mkArm = (sx) => { const a = new THREE.Group(); a.position.set(sx * ax, 1.95, 0); part(aw, 0.45, 0.46, sleeve, 0, -0.2, 0, a); part(aw * 1.02, 0.08, 0.47, c[1], 0, -0.41, 0, a, false); part(aw * 0.94, 0.55, 0.42, c[0], 0, -0.68, 0, a); body.add(a); return a; };
+  const armL = mkArm(-1), armR = mkArm(1);
   const head = new THREE.Group(); head.position.set(0, 2.36, 0); body.add(head);
   const ret = { g, body, legL, legR, armL, armR, head, zombie: zom, top: kind === "smiley" ? 3.75 : et ? 3.55 : 3.3 };
   if (zom) {

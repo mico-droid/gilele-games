@@ -1,4 +1,4 @@
-/* Gilele Engine base styles. Games can override any --ez-* variable. */
+/* Gilelê Engine base styles. Games can override any --ez-* variable. */
 @import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap");
 :root {
   --ez-bg: rgba(15, 23, 42, 0.72);

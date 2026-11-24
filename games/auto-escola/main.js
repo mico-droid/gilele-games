@@ -1,4 +1,4 @@
-// Auto Escola — simulador educativo de direção (Gilele Engine).
+// Auto Escola — simulador educativo de direção (Gilelê Engine).
 // Regras: Res. CONTRAN 1.020/2025 + MBEDV. Modos: Aprendizado, Prova, Trânsito Difícil (e passeio livre).
 import {
   THREE, createWorld, createPhysics, createRoads, createTraffic, createVehicle, createFirstPersonCamera, Character,
@@ -550,7 +550,7 @@ function showTitle() {
     h("div.ez-row", { style: { justifyContent: "center", marginTop: "10px" } },
       h("button.ez-btn.gray.small", { onclick: () => { titleScr.close(); openSettings({ world, onClose: showTitle }); } }, "⚙️ " + t("settings"))),
     gameLinks(t("title")),
-    h("p.ez-msg", { style: { textAlign: "center", fontSize: "12px" } }, t("disclaimer") + " · Gilele Engine v" + VERSION),
+    h("p.ez-msg", { style: { textAlign: "center", fontSize: "12px" } }, t("disclaimer") + " · Gilelê Engine v" + VERSION),
   ]);
 }
 function showList(kind) {

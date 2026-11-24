@@ -33,7 +33,7 @@
 - **Depois do Apagão Real, o autor escolheu o Modo Aprendizado** (antes do Capítulo 2).
 - **Nome:** Apagão: Sobreviva. **Publicação:** direto no main, com card no portal.
 
-Jogo 3D do Gilele Engine (`games/sobrevivencia/`), estilo Roblox (bonecos de blocos), PWA, celular e teclado, PT/EN/ES, multijogador de até 4 por sala (WebRTC, sem login).
+Jogo 3D do Gilelê Engine (`games/sobrevivencia/`), estilo Roblox (bonecos de blocos), PWA, celular e teclado, PT/EN/ES, multijogador de até 4 por sala (WebRTC, sem login).
 
 ---
 

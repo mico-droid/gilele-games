@@ -1,6 +1,6 @@
 // Bairro genérico de Goiânia (grade plana, avenidas largas) para o Capítulo 1 do Apagão Real.
 // Tudo de caixas (estilo Roblox). Coordenadas: rua sul em z=24, rua norte em z=-24, ruas em x=±24.
-import { THREE, getMat, part, addGround, addTree, addLabel, Character, randomLook, t } from "../../engine/ez.js";
+import { THREE, getMat, part, addGround, addTree, addLabel, Character, randomLook, t, createScenery } from "../../engine/ez.js";
 
 export const HOME = { x: 0, z: 10, w: 12, d: 12 };          // sua casa (porta virada para +z)
 export const BED = { x: 3.6, z: 13.6 };
@@ -19,8 +19,12 @@ export function buildCity(world, phys, opt = {}) {
   const winOn = getMat("#fde68a", 0.9), winOff = getMat("#1e293b");
   const lampOn = getMat("#fef9c3", 1.2), lampOff = getMat("#475569");
 
+  const sc = createScenery(world, phys);
   if (!homeOnly) {
-    addGround(world, phys, { size: 180, color: 0x9bbf63 });
+    sc.ground({ size: 420, color: 0x8fbf5e, amp: 0.26 });
+    sc.hills({ radius: 190, count: 12, height: 16, color: 0x6a9e4e });
+    sc.birds({ n: 6, y: 34, r: 70 });
+    sc.autoUpdate();
     // limites invisíveis
     [[0, -88, 180, 2], [0, 88, 180, 2], [-88, 0, 2, 180], [88, 0, 2, 180]].forEach(([x, z, w, d]) => phys.addBox({ x, y: 3, z, w, h: 8, d, mesh: false }));
 
@@ -167,6 +171,21 @@ export function buildCity(world, phys, opt = {}) {
     fill.forEach(([x, z, c], i) => building(x, z, 10, 9, i % 4 === 0 ? 9 : 3.4, c, { roof: i % 2 ? "#7c2d12" : "#475569" }));
     [[-18, 21], [18, 21], [-18, -21], [18, -21], [-30, 30], [30, 30], [-30, -30], [30, -30], [6, -30], [-6, 30], [36, -18], [-36, 18]].forEach(([x, z]) => addTree(world, phys, x, z, 0.9));
 
+    // vegetação: canteiros da praça, arborização e mato nos terrenos vazios (preenche o vazio)
+    sc.meadow({ area: [-60, 36, -36, 60], n: 150, flowers: 0.4 });
+    sc.butterflies({ x: -48, z: 48, n: 6 });
+    [[-55, 41], [-41, 41], [-55, 55], [-41, 55]].forEach(([x, z]) => sc.bush(x, z, { s: 1.1 }));
+    // mato e árvores do lado de fora do bairro (atrás dos limites)
+    sc.scatter({
+      area: [-200, -200, 200, 200], trees: 70, rocks: 40, bushes: 50, grass: 5, flowers: 0.25,
+      avoid: [{ x: 0, z: 0, r: 108 }], kinds: ["round", "round", "pine"],
+    });
+    // canteiros entre a calçada e o muro das quadras
+    [[-34, -34], [34, -34], [-34, 34], [34, 34], [0, -60], [0, 60], [-62, 0], [62, 0]].forEach(([x, z], i) => {
+      sc.meadow({ area: [x - 7, z - 7, x + 7, z + 7], n: 30, flowers: 0.4 });
+      if (i % 2 === 0) sc.bush(x + 3, z + 3, { s: 1 });
+    });
+
     // banca de jornais (vende o mapa de papel)
     phys.addBox({ x: 20, y: 1.2, z: 33, w: 4, h: 2.4, d: 2.4, color: "#1d4ed8", scene: S }); part(4.6, 0.3, 3, "#facc15", 20, 2.55, 32.8, S);
     part(3, 1, 0.1, "#f8fafc", 20, 1.5, 31.75, S); part(0.9, 0.7, 0.1, "#fca5a5", 19, 1.6, 31.7, S); part(0.9, 0.7, 0.1, "#bfdbfe", 21, 1.6, 31.7, S);
@@ -195,7 +214,7 @@ export function buildCity(world, phys, opt = {}) {
 
   let power = true;
   return {
-    roof, npcs, gen, tower, towerLight: tl, homeLabel, towerPos: TP,
+    scenery: sc, roof, npcs, gen, tower, towerLight: tl, homeLabel, towerPos: TP,
     /** Porta do apartamento: trancada = fechada e sólida; destrancada = aberta. */
     setDoor(locked) {
       doorMesh.rotation.y = locked ? 0 : -1.35; bar.visible = locked;

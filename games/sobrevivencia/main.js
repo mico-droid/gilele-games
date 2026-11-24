@@ -1,4 +1,4 @@
-// Apagão: Sobreviva — Capítulo 1 (Apagão Real, primeiras 72 horas, Goiânia). Gilele Engine.
+// Apagão: Sobreviva — Capítulo 1 (Apagão Real, primeiras 72 horas, Goiânia). Gilelê Engine.
 // Plano e decisões: PLANO.md. Textos: strings.js. Mapa: city.js.
 import {
   THREE, createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot,

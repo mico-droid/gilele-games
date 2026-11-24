@@ -1,7 +1,7 @@
 {
   "name": "Playground Testes",
   "short_name": "Playground",
-  "description": "Jogo-modelo do Gilele Engine",
+  "description": "Jogo-modelo do Gilelê Engine",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

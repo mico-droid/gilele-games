@@ -1,7 +1,7 @@
 // Bairro-modelo genérico (sem cidade real): grade 3×3 de quarteirões, avenida com semáforos, rua de mão única,
 // rotatória, ladeira com semáforo e PARE no topo, rua da escola (30 km/h, lombada, faixa de pedestre, ponto de ônibus),
 // vagas paralelas na Rua do Comércio e uma estrada de pista simples para ultrapassagem.
-import { THREE, part, getMat } from "../../engine/ez.js";
+import { THREE, part, getMat, createScenery } from "../../engine/ez.js";
 
 export const XS = [-150, -50, 50, 150], ZS = [-150, -50, 50, 150];
 /** Terrain: a hill on the west side (plateau 9 m at x ≤ -140, flat at x ≥ -60). */
@@ -111,13 +111,17 @@ function house(world, phys, road, x, z, w, d, h, ry, col, label) {
   phys.addBox({ x, y: y0 + h / 2, z, w: W, h: h + 2, d: Dd, mesh: false, building: true });
   return g;
 }
+let SC = null;
 function tree(world, phys, road, x, z, s = 1) {
-  const y = road.groundAt(x, z).y, g = new THREE.Group(); g.position.set(x, y, z); g.scale.setScalar(s); world.scene.add(g);
-  part(0.35, 2.2, 0.35, "#8b5a2b", 0, 1.1, 0, g); part(2.2, 1.8, 2.2, "#16a34a", 0, 3.0, 0, g); part(1.4, 1.0, 1.4, "#22c55e", 0, 4.2, 0, g);
-  phys.addBox({ x, y: y + 1.1, z, w: 0.4, h: 2.2, d: 0.4, mesh: false });
+  const y = road.groundAt(x, z).y;
+  return SC.tree(x, z, { y, s, kind: rnd() < 0.78 ? "round" : "pine", seed: x * 0.7 + z });
 }
 export function decorate(world, phys, road) {
   seed = 7;
+  SC = createScenery(world, phys);
+  SC.hills({ radius: 620, count: 16, height: 55, color: 0x6a9e4e });
+  SC.birds({ x: 150, z: 0, n: 7, y: 46, r: 140 });
+  SC.autoUpdate();
   const SW = 2.6;
   for (const b of road.blocks) {
     const bd = b.data;
@@ -166,6 +170,18 @@ export function decorate(world, phys, road) {
   // road end barrier on the country road
   const r3 = road.nodes.r3; part(1, 1.2, 8, "#ef4444", r3.x - 6, road.height(r3.x, r3.z) + 0.6, r3.z, world.scene);
   phys.addBox({ x: r3.x - 6, y: 0.6, z: r3.z, w: 1, h: 1.2, d: 8, mesh: false });
-  // fields along the country road
+  // fields along the country road: árvores, moitas, pedras e mato (tira o vazio da estrada)
   for (let x = 200; x < 600; x += 22) { tree(world, phys, road, x, -50 - 14 - rnd() * 20, 1); tree(world, phys, road, x + 9, -50 + 14 + rnd() * 20, 1); }
+  for (let x = 196; x < 600; x += 13) {
+    const yz = road.height(x, -50);
+    for (const sgn of [-1, 1]) {
+      const z = -50 + sgn * (10 + rnd() * 26);
+      if (rnd() < 0.5) SC.bush(x + rnd() * 6, z, { y: yz, s: 0.8 + rnd() * 0.7 });
+      else SC.rock(x + rnd() * 6, z, { y: yz, s: 0.5 + rnd() * 0.9 });
+    }
+    SC.meadow({ area: [x, -50 + 9, x + 12, -50 + 34], n: 26, flowers: 0.35, y: yz });
+    SC.meadow({ area: [x, -50 - 34, x + 12, -50 - 9], n: 26, flowers: 0.35, y: yz });
+  }
+  SC.windmill({ x: 430, z: -96, ry: 0.6, s: 1.4 });
+  SC.balloons({ x: 320, z: -92, n: 3, y: 16 });
 }

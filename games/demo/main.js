@@ -1,11 +1,11 @@
-// Gilele Playground — template game showing every engine feature.
+// Gilelê Playground — template game showing every engine feature.
 // Copy this folder to start a new game (games/<name>/), then change GAME_ID, strings and buildLevel().
 import {
   THREE, createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot,
   createRoom, createRemotePlayers, loadLook, randomLook, Audio, addStrings, t, onLangChange, applyDom,
   h, toast, screen, openAvatarEditor, openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks,
   addGround, addTree, addCloud, addTrampoline, addSign, createCoins, addCheckpoint, addMover, createAvatarPreview,
-  registerPWA, track, initGTM, isTouch, VERSION, createThrowables, GEO, getMat,
+  registerPWA, track, initGTM, isTouch, VERSION, createThrowables, GEO, getMat, createScenery,
 } from "../../engine/ez.js";
 
 const GAME_ID = "demo";
@@ -19,7 +19,7 @@ addStrings({
 });
 
 // ---------------------------------------------------------------- world
-const world = createWorld({ canvas: document.getElementById("c"), sky: 0xaee6ff, fog: [50, 180] });
+const world = createWorld({ canvas: document.getElementById("c"), sky: 0xaee6ff, fog: [70, 230], far: 600 });
 const phys = createPhysics();
 let playing = false;
 const cam = createFollowCamera(world.camera, { phys });
@@ -40,16 +40,54 @@ let spawn = { x: 0, y: 0.05, z: 8 };
 const movers = [];
 const targets = [];
 
-function buildLevel() {
-  addGround(world, phys, { size: 220 });
-  // water ring (kill) around the island
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ color: 0x38bdf8 }));
-  if (THREE.GFX.pbr) Object.assign(water.material, { roughness: 0.2, metalness: 0, envMapIntensity: 0.9 }); // reflects the sky
-  water.rotation.x = -Math.PI / 2; water.position.y = -3; world.scene.add(water);
-  phys.addBox({ x: 0, y: -4, z: 0, w: 800, h: 1, d: 800, type: "kill", mesh: false });
+const sc = createScenery(world, phys);
 
-  for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2, r = 60 + (i % 3) * 14; addTree(world, phys, Math.cos(a) * r, Math.sin(a) * r, 0.9 + (i % 4) * 0.2); }
-  for (let i = 0; i < 10; i++) addCloud(world, (i - 5) * 30, 28 + (i % 3) * 5, -40 + (i % 4) * 25, 1.6);
+function buildLevel() {
+  sc.ground({ size: 420, color: 0x67c23a });
+  sc.hills({ radius: 150, count: 16 });
+  sc.water({ size: 900, y: -3, kill: true });
+
+  // caminho curvo ligando a praça à torre, passando pela ponte
+  sc.path([[0, 14], [2, 6], [0, -2], [5, -8], [12, -12], [12, -18]], { width: 3.2 });
+  sc.path([[0, 6], [-8, 4], [-14, -2], [-14, -8]], { width: 2.6, color: 0xcbb98a });
+
+  // lago com ponte por cima
+  sc.pond({ x: -26, z: 2, r: 6.5 });
+  sc.bridge([-33, 2], [-19, 2], { width: 4 });
+
+  // vilarejo
+  sc.hut({ x: -10, z: 16, ry: 0.4 });
+  sc.hut({ x: 6, z: 18, ry: -0.6, w: 4, d: 4, h: 2.8 });
+  sc.windmill({ x: 22, z: 6, ry: -0.5 });
+  sc.fence([-16, 11], [-4, 11]); sc.fence([-16, 11], [-16, 21]);
+  sc.campfire({ x: -2, z: 12 });
+  sc.swing({ x: 14, z: 20, ry: 0.2 });
+  sc.balloons({ x: 10, z: 10, n: 4, y: 7 });
+  sc.birds({ n: 7, y: 26, r: 50 });
+
+  // relevo: montinhos pisáveis + escada para um mirante
+  sc.mound({ x: -34, z: 22, r: 9, h: 2.6 });
+  sc.mound({ x: 30, z: -4, r: 7, h: 2.0 });
+  const st = sc.stairs({ x: 24, z: 26, ry: Math.PI, steps: 7, width: 4 });
+  phys.addPlatform(24, st.top, 26 + st.depth + 2.5, 6, 6, "#b9b2a4", { scene: world.scene });
+  sc.beacon({ x: 24, z: 26 + st.depth + 2.5, y: st.top, color: "#ffd23f" });
+
+  // natureza preenchendo os vazios (evita o que já está construído)
+  sc.scatter({
+    area: [-95, -95, 95, 95], trees: 46, rocks: 34, bushes: 30, grass: 16, flowers: 0.3,
+    avoid: [{ x: 0, z: 8, r: 6 }, { x: 12, z: -18, r: 12 }, { x: -2, z: 12, r: 5 }, { x: 22, z: 6, r: 7 },
+            { x: -10, z: 16, r: 6 }, { x: 6, z: 18, r: 5 }, { x: 24, z: 30, r: 10 }, { x: -26, z: 2, r: 9 },
+            { x: 20, z: 14, r: 10 }, { x: -30, z: 0, r: 8 }, { x: -3, z: 31, r: 9 }],
+  });
+  sc.butterflies({ x: -6, z: 6, n: 6 });
+  sc.butterflies({ x: 16, z: -2, n: 5 });
+  sc.fireflies({ x: -10, z: 16, n: 10, r: 8 });
+
+  // cogumelos-trampolim e baú
+  sc.mushroom({ x: -20, z: 10, power: 26 });
+  sc.mushroom({ x: -17, z: 14, power: 22, color: "#ffd23f" });
+  sc.chest({ x: -34, z: 22, y: 2.6, onOpen: () => { toast("🎁 +5 🪙", 2000, true); for (let i = 0; i < 5; i++) coins.add(-34 + (i - 2) * 1.4, 4.2, 24.5); } });
+
   addSign(world, t("welcome"), -4, 0, 4, 0.3);
   addSign(world, t("tower"), 6, 0, -6, -0.4, { width: 3 });
 
@@ -66,6 +104,8 @@ function buildLevel() {
   phys.addPlatform(12, y, -18, 6, 6, "#fde047", { scene: world.scene });
   addCheckpoint(world, phys, 12, y, -18, () => { Audio.play("win"); toast(t("top"), 2500, true); track("level_complete", {}); spawn = { x: 12, y: y + 0.05, z: -18 }; });
   for (let i = 0; i < 4; i++) coins.add(10.5 + (i % 2) * 3, y + 1.2, -19.5 + Math.floor(i / 2) * 3);
+  // a parte alta da torre é o "trecho difícil": a trilha vira o tema pulsante
+  dangerZone = { x: 12, z: -18, r2: 16 * 16, y: 9 };
 
   // stairs, trampoline, moving platform, ice
   for (let i = 0; i < 6; i++) phys.addPlatform(-14, 0.5 + i * 0.5, -6 - i * 1.6, 4, 1.6, "#94a3b8", { scene: world.scene });
@@ -92,6 +132,7 @@ function buildLevel() {
   }
   addSign(world, t("toys"), 7, 0, 3, -0.3, { width: 3 });
 }
+let dangerZone = null;
 buildLevel();
 
 // ---------------------------------------------------------------- player, bots, network
@@ -205,6 +246,11 @@ onLangChange(() => { updCoins(); updHits(); });
 // ---------------------------------------------------------------- loop
 world.onUpdate((dt, time) => {
   movers.forEach((m) => m.update(time));
+  sc.update(dt, me.x, me.y, me.z);
+  if (dangerZone && playing) {
+    const near = (me.x - dangerZone.x) ** 2 + (me.z - dangerZone.z) ** 2 < dangerZone.r2 && me.y > dangerZone.y;
+    Audio.danger(near);
+  }
   me.update(dt);
   bots.forEach((b) => b.update(dt));
   remotes.update(dt);
@@ -228,4 +274,4 @@ me.respawn(spawn);
 cam.update(0.016, me.body);
 if (room.autoJoin()) toast(t("mpConnecting"));
 showTitle();
-window.GAME = { world, phys, me, room, bots, cam, input, throwables, targets }; // handy for debugging in the console
+window.GAME = { world, phys, me, room, bots, cam, input, throwables, targets, sc }; // handy for debugging in the console

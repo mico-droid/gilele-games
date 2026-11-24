@@ -3,7 +3,7 @@
 > **Status (12/11/2026): v1 jogável.** Feito: `engine/vehicle.js`, `engine/road.js`, `engine/traffic.js`, bairro, cockpit com retrovisores reais, câmeras interior/externa, controles de toque e teclado, juiz com as fichas do MBEDV, Prova (3 percursos), 8 lições, 7 cenários, passeio livre, replay das infrações, PWA e PT/EN/ES.
 > Fica para depois: replay de 5 s com câmera lenta, cenário noturno, estacionamento a 45°, detector do art. 220, ranking, multijogador "examinador amigo", carteirinha fictícia, quiz de placas.
 
-Jogo 3D do Gilele Engine (`games/auto-escola/`), em PWA, para celular e teclado, em PT/EN/ES.
+Jogo 3D do Gilelê Engine (`games/auto-escola/`), em PWA, para celular e teclado, em PT/EN/ES.
 
 ---
 
@@ -73,7 +73,7 @@ No celular o padrão é **paisagem**, com aviso para girar a tela. No automátic
 
 ---
 
-## 5. Arquitetura sobre o Gilele Engine
+## 5. Arquitetura sobre o Gilelê Engine
 
 Módulos novos no motor (reaproveitáveis em outros jogos: kart, corrida etc.):
 
