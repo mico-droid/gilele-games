@@ -7,51 +7,82 @@
 <meta name="apple-mobile-web-app-title" content="Gilelê Games">
 <meta name="application-name" content="Gilelê Games">
 <meta name="description" content="Jogos 3D grátis no navegador, para jogar sozinho ou com amigos.">
-<meta name="theme-color" content="#22c55e">
+<meta name="theme-color" content="#0B1F2E">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/portal.svg">
+<link rel="apple-touch-icon" href="icons/portal-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="engine/ez.css">
 <style>
-  /* portal is a normal scrolling page: undo the game-only rules of ez.css (fixed height, overflow hidden, no touch scrolling) */
-  html { height: auto; overflow: visible; overflow-y: auto; touch-action: pan-x pan-y; overscroll-behavior: auto; }
-  body { height: auto; min-height: 100%; overflow: visible; touch-action: pan-x pan-y; overscroll-behavior: auto; user-select: auto; -webkit-user-select: auto; background: linear-gradient(160deg, #38bdf8, #22c55e); }
-  main { max-width: 960px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 40px; }
-  header { text-align: center; margin-bottom: 22px; }
-  header h1 { font-size: 44px; margin: 0; text-shadow: 0 4px 0 rgba(0,0,0,.15); }
-  header p { margin: 4px 0 0; font-size: 18px; opacity: .9; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-  .game { background: #fff; color: #0f172a; border-radius: 20px; padding: 0 0 18px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 8px; text-decoration: none; transition: transform .1s; }
-  .game > :not(.shot) { margin-left: 18px; margin-right: 18px; }
-  .game:hover { transform: translateY(-3px); }
-  /* print do próprio jogo no lugar do desenho genérico */
-  .game .shot { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #bfe3ff; border-bottom: 3px solid #e2e8f0; }
-  .game h2 { margin-top: 12px; }
-  .game .emoji { font-size: 54px; line-height: 1; }
-  .game h2 { margin: 0; font-size: 24px; }
-  .game p { margin: 0; opacity: .75; flex: 1; }
-  .game .tag { align-self: flex-start; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #dcfce7; color: #15803d; }
-  .sec { color: #fff; font-size: 20px; margin: 22px 4px 10px; text-shadow: 0 2px 0 rgba(0,0,0,.15); }
-  .game.dev { border: 3px dashed #f59e0b; }
-  .game.dev .tag { background: #fef3c7; color: #b45309; }
-  .game.soon { opacity: .6; pointer-events: none; }
-  .game.soon .tag { background: #e2e8f0; color: #475569; }
-  footer { text-align: center; margin-top: 30px; font-size: 14px; opacity: .85; }
-  footer a { color: #fff; }
-  #install { display: block; margin: 0 auto 20px; }
-  .tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; margin: 0 0 20px; }
-  .tools button { font: inherit; font-size: 15px; font-weight: 700; color: #0f172a; background: #fff; border: 0;
-    border-radius: 999px; padding: 9px 16px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.14); }
-  .tools button:hover { transform: translateY(-1px); }
-  .tools .langs { display: inline-flex; gap: 4px; background: rgba(255,255,255,.28); border-radius: 999px; padding: 4px; }
-  .tools .langs button { padding: 7px 12px; font-size: 13px; letter-spacing: .04em; background: transparent; color: #fff; box-shadow: none; }
-  .tools .langs button[aria-pressed="true"] { background: #fff; color: #0f172a; }
+:root{
+  --bg:#0B1F2E; --base:#0F2A3D; --surf:#16364B; --surf2:#1C4260;
+  --line:rgba(242,246,248,.13); --tx:#F2F6F8; --mut:#9FB3C2; --am:#E8A33D;
+  --max:1120px; --pad:clamp(20px,5vw,44px); --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+/* o portal é uma página que rola: desfaz as regras só-de-jogo do ez.css */
+html{height:auto;overflow:visible;overflow-y:auto;touch-action:pan-x pan-y;overscroll-behavior:auto}
+body{height:auto;min-height:100%;overflow:visible;touch-action:pan-x pan-y;overscroll-behavior:auto;
+ user-select:auto;-webkit-user-select:auto;margin:0;
+ color:var(--tx);font-family:Manrope,system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;
+ background:
+  linear-gradient(rgba(242,246,248,.028) 1px,transparent 1px) 0 0/100% 64px,
+  linear-gradient(90deg,rgba(242,246,248,.028) 1px,transparent 1px) 0 0/64px 100%,
+  var(--bg)}
+main{max-width:var(--max);margin:0 auto;padding-left:var(--pad);padding-right:var(--pad);
+ padding-top:max(26px,env(safe-area-inset-top));padding-bottom:40px}
+a{color:inherit}
+
+header{text-align:center;margin-bottom:22px}
+.brand{display:inline-flex;align-items:center;gap:13px;text-decoration:none}
+.brand img{width:46px;height:46px;border-radius:13px}
+header h1{font-size:clamp(28px,5vw,40px);font-weight:800;letter-spacing:-.025em;margin:0;line-height:1.1}
+header p{margin:10px 0 0;color:var(--mut);font-size:clamp(15px,2vw,17px)}
+
+/* barra: instalar · compartilhar · idioma */
+.tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:20px 0 26px}
+.tools button{font:inherit;font-size:15px;font-weight:700;color:var(--tx);background:var(--surf);
+ border:1px solid var(--line);border-radius:10px;padding:9px 15px;cursor:pointer}
+.tools button:hover{background:var(--surf2)}
+.tools .langs{display:inline-flex;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.tools .langs button{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--mut);
+ background:transparent;border:0;border-radius:8px;padding:7px 11px}
+.tools .langs button[aria-pressed="true"]{background:var(--am);color:#0B1F2E}
+
+.sec{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--am);
+ border-top:2px solid var(--am);padding-top:10px;margin:34px 0 16px}
+.sec:first-of-type{margin-top:0}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+.game{background:var(--surf);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+ display:flex;flex-direction:column;text-decoration:none;transition:transform .12s,border-color .12s}
+.game:hover{transform:translateY(-3px);border-color:rgba(232,163,61,.5)}
+.shotwrap{position:relative;aspect-ratio:16/9;overflow:hidden;background:#123a4f}
+.game .shot{display:block;width:100%;height:100%;object-fit:cover}
+.shotwrap::after{content:"";position:absolute;inset:0;z-index:2;
+ background:linear-gradient(180deg,rgba(11,31,46,.3),rgba(11,31,46,.05) 45%,rgba(11,31,46,.45))}
+.game .ic{position:absolute;z-index:3;right:12px;bottom:12px;width:40px;height:40px;border-radius:12px;border:1px solid var(--line)}
+.game h2{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em}
+.game p{margin:0;color:var(--mut);font-size:14.5px;flex:1}
+.game > :not(.shotwrap){margin-left:18px;margin-right:18px}
+.game h2{margin-top:15px}
+.game{padding-bottom:18px;gap:8px}
+.tag{align-self:flex-start;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+ padding:5px 12px;border-radius:999px;background:var(--am);color:#0B1F2E;margin-top:4px}
+.game.dev .tag{background:transparent;color:var(--am);border:1px solid rgba(232,163,61,.45)}
+.game.soon{opacity:.55;pointer-events:none}
+.game.soon .tag{background:transparent;color:var(--mut);border:1px solid var(--line)}
+
+footer{text-align:center;margin-top:36px;padding-top:24px;border-top:1px solid var(--line);color:var(--mut);font-size:14px}
+footer a{text-decoration:none}
+footer a:hover{color:var(--tx)}
 </style>
 </head>
 <body>
 <main>
   <header>
-    <h1>🎮 Gilelê Games</h1>
+    <a class="brand" href="./"><img src="icons/portal.svg" alt=""><h1>Gilelê Games</h1></a>
     <p data-t="portalSub">Jogos 3D no navegador — sozinho ou com até 4 amigos</p>
   </header>
   <div class="tools" id="tools"></div>
@@ -59,27 +90,47 @@
   <h2 class="sec" data-t="secReady">✅ Prontos para jogar</h2>
   <div class="grid">
     <a class="game" href="https://mico-droid.github.io/ez-obby/">
-      <img class="shot" src="shots/ez-obby.jpg" width="640" height="360" loading="lazy" decoding="async" alt="EZ Obby"><h2>EZ Obby</h2>
+      <div class="shotwrap">
+        <img class="shot" src="shots/ez-obby.jpg" width="640" height="360" loading="lazy" decoding="async" alt="EZ Obby">
+        <img class="ic" src="icons/ez-obby.svg" alt="">
+      </div>
+      <h2>EZ Obby</h2>
       <p data-t="obbyDesc">Parkour 3D com fases, poderes, bots e multiplayer.</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
     <a class="game" href="games/parkour-tabuada/">
-      <img class="shot" src="shots/parkour-tabuada.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Parkour Tabuada"><h2 data-t="pktTitle">Parkour Tabuada</h2>
+      <div class="shotwrap">
+        <img class="shot" src="shots/parkour-tabuada.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Parkour Tabuada">
+        <img class="ic" src="icons/parkour-tabuada.svg" alt="">
+      </div>
+      <h2 data-t="pktTitle">Parkour Tabuada</h2>
       <p data-t="pktDesc">Parkour 3D de contas: soma, subtração, multiplicação e divisão. Sozinho ou com até 4 amigos.</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
     <a class="game" href="games/tabuada/">
-      <img class="shot" src="shots/tabuada.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Tabuada Simples"><h2 data-t="tabTitle">Tabuada Simples</h2>
+      <div class="shotwrap">
+        <img class="shot" src="shots/tabuada.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Tabuada Simples">
+        <img class="ic" src="icons/tabuada-simples.svg" alt="">
+      </div>
+      <h2 data-t="tabTitle">Tabuada Simples</h2>
       <p data-t="tabDesc">Contas das 4 operações com trilha de fases, modo treino e dicas. De 3 a 16 anos.</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
     <a class="game" href="games/sobrevivencia/">
-      <img class="shot" src="shots/sobrevivencia.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Apagão: Sobreviva"><h2 data-t="svTitle">Apagão: Sobreviva</h2>
+      <div class="shotwrap">
+        <img class="shot" src="shots/sobrevivencia.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Apagão: Sobreviva">
+        <img class="ic" src="icons/apagao.svg" alt="">
+      </div>
+      <h2 data-t="svTitle">Apagão: Sobreviva</h2>
       <p data-t="svDesc">A energia caiu e ninguém sabe quando volta. Sobreviva às primeiras 72 horas e aprenda a se preparar.</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
     <a class="game" href="games/demo/">
-      <img class="shot" src="shots/demo.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Playground Testes"><h2 data-t="demoTitle">Playground Testes</h2>
+      <div class="shotwrap">
+        <img class="shot" src="shots/demo.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Playground Testes">
+        <img class="ic" src="icons/playground.svg" alt="">
+      </div>
+      <h2 data-t="demoTitle">Playground Testes</h2>
       <p data-t="demoDesc">Parkour, moedas, trampolim e multijogador. Pegue bolas, travesseiros e bolas de neve e arremesse nos amigos e nos alvos!</p>
       <span class="tag" data-t="tagPlay">Jogar</span>
     </a>
@@ -87,7 +138,11 @@
   <h2 class="sec" data-t="secDev">🚧 Em desenvolvimento/testes</h2>
   <div class="grid">
     <a class="game dev" href="games/auto-escola/">
-      <img class="shot" src="shots/auto-escola.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Auto Escola"><h2 data-t="carTitle">Auto Escola</h2>
+      <div class="shotwrap">
+        <img class="shot" src="shots/auto-escola.jpg" width="640" height="360" loading="lazy" decoding="async" alt="Auto Escola">
+        <img class="ic" src="icons/auto-escola.svg" alt="">
+      </div>
+      <h2 data-t="carTitle">Auto Escola</h2>
       <p data-t="carDesc">Aprenda a dirigir: embreagem, marchas, setas, baliza e simulado da prova.</p>
       <span class="tag" data-t="tagDev">🚧 Em desenvolvimento/testes</span>
     </a>
@@ -112,6 +167,7 @@
   });
   applyDom();
   registerPWA("sw.js");
+
   // barra do portal: Instalar (só se ainda não estiver instalado) · Compartilhar · idioma
   const tools = document.getElementById("tools");
   const KEY = "ez:installed:portal";
