@@ -138,6 +138,9 @@ textarea{min-height:110px;resize:vertical}
 .ok{margin-top:16px;background:rgba(232,163,61,.12);border:1px solid rgba(232,163,61,.4);border-radius:10px;padding:14px;font-size:15px;display:none}
 .ok.on{display:block}
 
+.wpp{position:fixed;right:18px;bottom:18px;z-index:60;display:inline-flex;align-items:center;gap:9px;background:#25D366;color:#073626;border-radius:999px;padding:13px 20px;font-weight:800;text-decoration:none;box-shadow:0 12px 28px rgba(0,0,0,.45);font-size:15px}
+.wpp:hover{filter:brightness(1.06)}
+.wpp svg{width:19px;height:19px;fill:currentColor}
 footer{border-top:1px solid var(--line);padding:38px 0;color:var(--mut);font-size:14px}
 .f-grid{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
 footer a{text-decoration:none}
@@ -297,14 +300,14 @@ footer a:hover{color:var(--tx)}
    <div class="tt">
     <span class="k">Orçamento</span>
     <h2>Conte o que você precisa ensinar.</h2>
-    <p class="lead">Respondemos em até um dia útil com escopo, prazo e valor.</p>
+    <p class="lead">Preencha e o pedido abre pronto no WhatsApp — é só apertar enviar. Respondemos no mesmo dia.</p>
    </div>
   </div>
   <div class="two">
    <div>
     <span class="subt">Contato direto</span>
     <ul class="clean">
-     <li><a href="mailto:contato@gilelegames.com">contato@gilelegames.com</a></li>
+     <li><a href="https://wa.me/5562984118113" target="_blank" rel="noopener">WhatsApp (62) 98411-8113</a> — resposta no mesmo dia</li>
      <li>Goiânia, GO — atendemos o Brasil inteiro, remoto</li>
     </ul>
    </div>
@@ -327,7 +330,7 @@ footer a:hover{color:var(--tx)}
     </select>
     <label for="m">O que o jogo precisa ensinar?</label>
     <textarea id="m" placeholder="Ex.: tabuada para o 4º ano / procedimento de bloqueio e etiquetagem para 120 eletricistas"></textarea>
-    <button class="btn btn-p" style="margin-top:18px;width:100%;justify-content:center" type="submit">Enviar pedido</button>
+    <button class="btn btn-p" style="margin-top:18px;width:100%;justify-content:center" type="submit">Enviar pelo WhatsApp</button>
     <div class="ok" id="ok"></div>
    </form>
   </div>
@@ -341,6 +344,8 @@ footer a:hover{color:var(--tx)}
   <div>© 2026 Gilelê Games</div>
  </div>
 </footer>
+
+<a class="wpp" href="https://wa.me/5562984118113?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Gilel%C3%AA%20Games%20e%20quero%20falar%20sobre%20um%20jogo%20sob%20medida." target="_blank" rel="noopener" aria-label="Falar no WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.54-3.7 8.24-8.25 8.24a8.22 8.22 0 0 1-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.26-8.24zm-2.4 4.1c-.17 0-.45.07-.69.32-.24.25-.9.88-.9 2.15s.92 2.49 1.05 2.66c.13.17 1.8 2.75 4.37 3.75.61.26 1.09.42 1.46.54.61.19 1.17.17 1.61.1.49-.07 1.51-.62 1.73-1.22.21-.6.21-1.11.15-1.22-.06-.1-.24-.17-.49-.3-.25-.12-1.51-.74-1.74-.83-.23-.08-.4-.12-.57.13-.17.25-.65.82-.8.99-.15.17-.3.19-.54.07-.25-.13-1.07-.4-2.03-1.26-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.38.11-.5.11-.11.25-.3.37-.45.12-.15.16-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.55-1.37-.77-1.87-.2-.48-.41-.42-.56-.42l-.48-.01z"/></svg>WhatsApp</a>
 
 <script>
 const JOGOS=[
@@ -389,17 +394,24 @@ document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==b.dataset.seg);
 });
 
-// Sem servidor: o pedido é montado e aberto no programa de e-mail do visitante.
+// Sem servidor: o formulário monta a mensagem e abre o WhatsApp já preenchido.
+const WA = "5562984118113";
 document.getElementById('f').addEventListener('submit',ev=>{
  ev.preventDefault();
  const v=id=>document.getElementById(id).value.trim();
- const corpo=[`Nome: ${v('n')}`,`Escola/empresa: ${v('o')}`,`E-mail: ${v('e')}`,`Telefone: ${v('tel')}`,
-   `Público: ${v('p')}`,'',`O que o jogo precisa ensinar:`,v('m')].join('\n');
- const href='mailto:contato@gilelegames.com?subject='+encodeURIComponent('Pedido de orçamento — '+v('o'))+'&body='+encodeURIComponent(corpo);
+ const linhas=[
+  'Olá! Vim pelo site da Gilelê Games e quero um orçamento.','',
+  'Nome: '+v('n'),
+  'Escola/empresa: '+v('o'),
+  'E-mail: '+v('e'),
+ ];
+ if(v('tel')) linhas.push('Telefone: '+v('tel'));
+ linhas.push('Público: '+v('p'),'','O que o jogo precisa ensinar:',v('m')||'(vou explicar por aqui)');
+ const href='https://wa.me/'+WA+'?text='+encodeURIComponent(linhas.join('\n'));
  const ok=document.getElementById('ok');
  ok.classList.add('on');
- ok.innerHTML='Pedido montado. <a href="'+href+'" style="color:var(--am);font-weight:700">Toque aqui para enviar</a> pelo seu e-mail — ou copie e mande para contato@gilelegames.com.';
- location.href=href;
+ ok.innerHTML='Abrindo o WhatsApp com o seu pedido… Se não abrir sozinho, <a href="'+href+'" target="_blank" rel="noopener" style="color:var(--am);font-weight:700">toque aqui</a>.';
+ window.open(href,'_blank','noopener');
 });
 </script>
 </body>
