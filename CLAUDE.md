@@ -44,6 +44,7 @@
   - `engine/turn.js` = conta do TURN (Metered, app "gilele", **chave pública** — nunca a `sk_`). `engine/ice.js` = `iceServers()`, que busca as credenciais temporárias, guarda por 1 h em `localStorage "gilele:ice"` e, se falhar, devolve só o STUN (o multijogador continua como antes).
   - `engine/net.js`: entra na sala com 20 s + uma nova tentativa (era 12 s e desistia); `peer.reconnect()` quando cai o servidor de sinalização; e reconexão automática do convidado (3 tentativas, 1,2/2,4/3,6 s) antes de avisar "anfitrião saiu".
   - HTML avulsos: mesma coisa à mão no bloco `RTC`. **O canal de dados era `{reliable:false}`** — era o que derrubava presença e o sincronismo de modo (jogadores conectados não se viam); agora é `{reliable:true}`.
+  - Vale para os três HTML avulsos: `games/parkour-tabuada`, `games/ez-obby` (cópia do monorepo) e o repositório antigo `mico-droid/ez-obby`. Mudou a rede num → replicar nos três.
   - `installNotes()` (ui.js): avisos do Android (abrir no Chrome, "Instalar assim mesmo" do Play Protect, aprovação do Family Link). Entra sozinho na tela "Como instalar" de todo jogo via `gameLinks()`; nos HTML avulsos (Tabuada, Parkour, EZ Obby) o texto está no `pwaHow`/`installAndroid`.
 - Instruções com várias etapas (cartões, "Como jogar", intros): além de "Próximo ▶" sempre ter "◀ Voltar" para reler a anterior (`pagedScreen` em `sobrevivencia/menu.js` já faz; string `backP`).
 
