@@ -3,7 +3,7 @@
 import {
   THREE, createWorld, createPhysics, createRoads, createTraffic, createVehicle, createFirstPersonCamera, Character,
   loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openSettings, installButton, gameLinks, registerPWA, track, initGTM,
-  isTouch, isMobile, createStore, getLang, VERSION,
+  isTouch, isMobile, createStore, getLang, VERSION, onAppHide,
 } from "../../engine/ez.js";
 import "./strings.js";
 import { buildMapDef, decorate } from "./map.js";
@@ -577,6 +577,7 @@ function pause() {
   ], { dim: true });
 }
 function resume() { playing = true; world.setPaused(false); car.enableSound(); }
+onAppHide(() => pause());   // trocar de aba / minimizar: pausa e cala a música
 
 // ---------------------------------------------------------------- loop
 function frame(dt) {

@@ -4,7 +4,7 @@ import {
   THREE, createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot,
   createRoom, createRemotePlayers, loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openAvatarEditor,
   openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks, createAvatarPreview, registerPWA,
-  track, initGTM, isTouch, isMobile, createStore, VERSION, part, getMat, addGround, addLabel, Character,
+  track, initGTM, isTouch, isMobile, createStore, VERSION, part, getMat, addGround, addLabel, Character, onAppHide,
 } from "../../engine/ez.js";
 import "./strings.js";
 import { setupSocial } from "./social.js";
@@ -337,8 +337,8 @@ function openMenu(build) {
     card.replaceChildren(h("h2", d.title), ...(d.info || []).filter(Boolean).map((p) => (p instanceof Node ? p : d.who ? h("p.say", h("b", "🗣️ " + d.who + ": "), p) : h("p", p))),
       ...(d.who && (d.opts || []).some(Boolean) ? [h("p.say.you", h("b", t("youSay")))] : []),
       h("div.ez-col", { style: { marginTop: "10px" } },
-        ...(d.opts || []).filter(Boolean).map((o) => h("button.ez-btn.wide" + (o.cls || ""), { disabled: o.dis ? true : null, style: o.dis ? { opacity: 0.45 } : null, onclick: () => { if (o.dis) return; Audio.play("click"); const r = o.fn(); if (r === "close") close(); else if (scr.el.isConnected) draw(); } }, o.label)),
-        d.noClose ? null : h("button.ez-btn.gray.wide", { onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || u("leave"))));
+        ...(d.opts || []).filter(Boolean).map((o) => h("button.ez-btn.wide" + (o.cls || ""), { "data-k": o.k || null, disabled: o.dis ? true : null, style: o.dis ? { opacity: 0.45 } : null, onclick: () => { if (o.dis) return; Audio.play("click"); const r = o.fn(); if (r === "close") close(); else if (scr.el.isConnected) draw(); } }, o.label)),
+        d.noClose ? null : h("button.ez-btn" + (d.closeLabel ? ".ok" : ".gray") + ".wide", { "data-k": d.closeLabel ? "next" : null, onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || u("leave"))));
   }
   draw(); scr = screen([card], { dim: true });
   addX(h, scr, close);
@@ -671,7 +671,7 @@ const topEl = h("div.ez-top", progPill, roomPill(room), h("div.ez-spacer"),
 const guideEl = h("div.sv-guide.ez-hidden", h("span.arr", "⬆"), h("span.txt"));
 const hud = h("div.ez-hud.ez-hidden", topEl, lessonEl, prompt, guideEl);
 document.body.appendChild(hud);
-function openHow() { const ps = ["how1", "how2", "howL3", "howL4", "howL5"].map((k) => t(k)); let i = 0; openMenu(() => ({ title: t("howTitle") + ` · ${i + 1}/${ps.length}`, info: [h("p", { style: { fontSize: "18px" } }, ps[i])], opts: [i < ps.length - 1 ? { label: u("next"), fn: () => { i++; } } : null, i > 0 ? { label: t("backP"), cls: ".gray", fn: () => { i--; } } : null], noClose: i < ps.length - 1, closeLabel: t("gotIt") })); }
+function openHow() { const ps = ["how1", "how2", "howL3", "howL4", "howL5"].map((k) => t(k)); let i = 0; openMenu(() => ({ title: t("howTitle") + ` · ${i + 1}/${ps.length}`, info: [h("p", { style: { fontSize: "18px" } }, ps[i])], opts: [i < ps.length - 1 ? { label: u("next"), k: "next", fn: () => { i++; } } : null, i > 0 ? { label: t("backP"), cls: ".gray", k: "back", fn: () => { i--; } } : null], noClose: i < ps.length - 1, closeLabel: t("gotIt") })); }
 let stepsSeen = { id: null, n: 0 };
 function updHud() {
   progPill.textContent = u("title") + " · " + u("progress", { d: P.done.length, n: LESSONS.length });
@@ -727,6 +727,7 @@ function pause(showMenu = true) {
   addX(h, scr, () => { scr.close(); resume(); });
 }
 function resume() { start(); }
+onAppHide(() => { if (playing) pause(); });   // trocar de aba / minimizar: pausa e cala a música
 input.onAction("pause", () => { if (playing && !menuOpen) pause(); });
 addEventListener("keydown", (e) => {
   if (!playing || menuOpen) return;

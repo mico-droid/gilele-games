@@ -55,8 +55,8 @@ export function pagedScreen(h, screen, { title, text, nextLabel, endLabel, backL
   addX(h, scr, () => { scr.close(); onEnd(); });
   const draw = () => body.replaceChildren(h("p", { style: { fontSize: "18px", minHeight: "70px" } }, ps[i]), h("p.ez-msg", { style: { textAlign: "center" } }, `${i + 1}/${ps.length}`),
     h("div.ez-row", { style: { gap: "8px" } },
-      i > 0 ? h("button.ez-btn.gray", { onclick: () => { i--; draw(); } }, backLabel) : null,
-      h("button.ez-btn", { style: { flex: "1" }, onclick: () => { if (i < ps.length - 1) { i++; draw(); } else { scr.close(); onEnd(); } } }, i < ps.length - 1 ? nextLabel : endLabel)));
+      i > 0 ? h("button.ez-btn.gray", { "data-k": "back", onclick: () => { i--; draw(); } }, backLabel) : null,
+      h("button.ez-btn" + (i < ps.length - 1 ? "" : ".ok"), { "data-k": "next", style: { flex: "1" }, onclick: () => { if (i < ps.length - 1) { i++; draw(); } else { scr.close(); onEnd(); } } }, i < ps.length - 1 ? nextLabel : endLabel)));
   draw();
 }
 

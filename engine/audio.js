@@ -169,6 +169,9 @@ export const Audio = {
   get musicOn() { return musicOn; },
   get sfxOn() { return sfxOn; },
   get ctx() { return ctx; },
+  /** Cala tudo sem mexer na preferência do jogador (usado ao pausar / sair da tela). */
+  suspend() { try { if (ctx && ctx.state === "running") ctx.suspend(); } catch (e) {} },
+  resume() { try { if (ctx && ctx.state === "suspended") ctx.resume(); } catch (e) {} },
   /** Continuous sound (engine hum, wind…): returns {set(freq, vol), stop()} */
   loop(type = "sawtooth", freq = 80, vol = 0) {
     if (!ctx) return { set() {}, stop() {} };

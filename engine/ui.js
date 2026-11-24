@@ -22,8 +22,13 @@ export function h(sel, attrs, ...kids) {
     else if (v !== false && v != null) el.setAttribute(k, v === true ? "" : v);
   }
   for (const c of kids.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  const kk = attrs && attrs["data-k"];
+  if (kk && KEYHINT[kk] && !COARSE) el.append(h("span.ez-kbd", KEYHINT[kk]));
   return el;
 }
+// Atalhos de teclado no PC: botões com data-k="next" | "back" | "ok" ganham a dica e respondem à tecla (ver screen()).
+const COARSE = matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
+const KEYHINT = { next: "⏎", ok: "⏎", back: "←" };
 export const $ = (id) => document.getElementById(id);
 
 let toastEl = null, toastTimer = 0;
@@ -35,11 +40,23 @@ export function toast(msg, ms = 1800, big = false) {
 
 /** Full-screen overlay with a card. Returns { el, card, close() }. */
 /** x: true → ✕ no canto superior direito que fecha a tela; x: função → ✕ chama a função (ex.: cancelar). */
-export function screen(content, { dim = false, onClose, x } = {}) {
+export function screen(content, { dim = false, onClose, x, keys = true } = {}) {
   const card = h("div.ez-card", content);
   const el = h("div.ez-screen" + (dim ? ".dim" : ""), card);
   document.body.appendChild(el);
-  const api = { el, card, close() { el.remove(); onClose && onClose(); } };
+  const api = { el, card, close() { document.removeEventListener("keydown", onKey, true); el.remove(); onClose && onClose(); } };
+  function onKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const tag = e.target && e.target.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    const all = document.querySelectorAll(".ez-screen");
+    if (all[all.length - 1] !== el) return;                       // só a tela de cima responde
+    const hit = (k) => { const b = card.querySelector('[data-k="' + k + '"]:not([disabled])'); if (!b) return false; e.preventDefault(); b.click(); return true; };
+    if (e.code === "Enter" || e.code === "NumpadEnter" || e.code === "Space" || e.code === "ArrowRight") hit("next") || hit("ok");
+    else if (e.code === "ArrowLeft" || e.code === "Backspace") hit("back");
+    else if (e.code === "Escape") { if (!hit("back") && x) { e.preventDefault(); typeof x === "function" ? x() : api.close(); } }
+  }
+  if (keys) document.addEventListener("keydown", onKey, true);
   if (x) { card.classList.add("has-x"); card.appendChild(h("button.ez-x", { "aria-label": "✕", onclick: () => (typeof x === "function" ? x() : api.close()) }, "✕")); }
   return api;
 }
@@ -107,7 +124,7 @@ export function openAvatarEditor(look, onSave, { onCancel } = {}) {
 export function openSettings({ world, onClose } = {}) {
   const body = h("div.ez-col");
   let draw = function () {
-    body.replaceChildren(
+    body.replaceChildren(...[
       h("h3", t("language")), chips(LANGS, getLang(), (l) => LANG_NAMES[l], (l) => { setLang(l); draw(); }),
       h("h3", t("music") + " / " + t("sfx")),
       h("div.ez-row",
@@ -117,7 +134,7 @@ export function openSettings({ world, onClose } = {}) {
       world ? chips(["auto", "low", "medium", "high"], world.quality, (q) => t("q_" + q), (q) => { world.setQuality(q); draw(); }) : null,
       world ? h("p", { style: { opacity: ".75", margin: "4px 0 0", fontSize: "12px" } }, t("q_note")) : null,
       installButton(),
-    );
+    ].filter(Boolean));
   };
   const title = h("h2"), closeBtn = h("button.ez-btn.wide", { style: { marginTop: "16px" }, onclick: () => scr.close() });
   const draw0 = draw;

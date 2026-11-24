@@ -83,6 +83,11 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   body.touch #hint{display:none}
   body.touch #chatWrap{left:auto;right:12px;transform:none;bottom:278px;align-items:flex-end}
   body.touch #chatRow{max-width:70vw}
+  /* celular deitado (tela baixa): o chat sai de baixo para o alto da tela e rola, senão some no topo */
+  @media (max-height:560px){
+    body.touch #chatWrap{bottom:auto;top:52px;flex-direction:column-reverse;max-height:calc(100dvh - 64px)}
+    body.touch #chatRow{max-height:calc(100dvh - 110px);overflow:auto}
+  }
   body.touch #topbar{right:10px}
   body.touch #board{top:auto;bottom:16px;right:auto;left:50%;transform:translateX(-50%);font-size:12px;min-width:120px;padding:5px 10px;display:none}
   body.touch .pill{font-size:13px;padding:5px 10px}
@@ -636,7 +641,7 @@ const Snd=(function(){
       if(bar===3&&s===8){const o=ctx.createOscillator(),g=ctx.createGain(),lfo=ctx.createOscillator(),lg=ctx.createGain();o.frequency.value=2300;lfo.frequency.value=28;lg.gain.value=180;lfo.connect(lg);lg.connect(o.frequency);g.gain.setValueAtTime(0.0001,tm);g.gain.exponentialRampToValueAtTime(0.08,tm+0.02);g.gain.exponentialRampToValueAtTime(0.0001,tm+0.45);o.connect(g);g.connect(musicG);o.start(tm);lfo.start(tm);o.stop(tm+0.5);lfo.stop(tm+0.5);}}}
   };
   function init(){
-    if(ctx){if(ctx.state==="suspended")ctx.resume().catch(()=>{});return;}
+    if(ctx){if(ctx.state==="suspended"&&!paused)ctx.resume().catch(()=>{});return;}
     const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
     try{ctx=new AC();}catch(e){ctx=null;return;}
     master=ctx.createGain();master.gain.value=0.9;master.connect(ctx.destination);
@@ -723,7 +728,9 @@ const Snd=(function(){
   }
   function setMusic(v){musicOn=v;store("ezobby_music",v?"1":"0");if(musicG)musicG.gain.setTargetAtTime(v?0.13:0,ctx.currentTime,0.05);}
   function setSfx(v){sfxOn=v;store("ezobby_sfx",v?"1":"0");if(sfxG)sfxG.gain.setTargetAtTime(v?0.55:0,ctx.currentTime,0.05);}
-  return {init,play,setMusic,setSfx,setSong,rumble,get musicOn(){return musicOn},get sfxOn(){return sfxOn}};
+  function suspend(){try{if(ctx&&ctx.state==="running")ctx.suspend();}catch(e){}}
+  function resume(){try{if(ctx&&ctx.state==="suspended")ctx.resume();}catch(e){}}
+  return {init,play,setMusic,setSfx,setSong,rumble,suspend,resume,get musicOn(){return musicOn},get sfxOn(){return sfxOn}};
 })();
 ["pointerdown","keydown"].forEach(ev=>addEventListener(ev,()=>Snd.init(),{capture:true}));
 
@@ -2864,9 +2871,13 @@ function currentTheme(z){let s=0;for(let i=1;i<stageZ.length;i++)if(z>=stageZ[i]
 function lerpAngle(a,b,k){let d=((b-a+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;return a+d*k;}
 function setPause(v){
   if(v===paused)return;
-  if(v){if(!playing)return;paused=true;pauseT0=performance.now();for(const k in keys)keys[k]=false;$("pausePts").textContent="⭐ "+pts+" "+t("pts");$("pause").classList.remove("hidden");Snd.rumble(false);}
-  else{paused=false;if(startT)startT+=performance.now()-pauseT0;last=performance.now();$("pause").classList.add("hidden");if(boulder.state==="roll")Snd.rumble(true);}
+  if(v){if(!playing)return;paused=true;Snd.suspend();pauseT0=performance.now();for(const k in keys)keys[k]=false;$("pausePts").textContent="⭐ "+pts+" "+t("pts");$("pause").classList.remove("hidden");Snd.rumble(false);}
+  else{paused=false;Snd.resume();if(startT)startT+=performance.now()-pauseT0;last=performance.now();$("pause").classList.add("hidden");if(boulder.state==="roll")Snd.rumble(true);}
 }
+// trocar de aba, minimizar ou apagar a tela: pausa e cala a música
+function onAppHide(){ if(playing&&!paused) setPause(true); else Snd.suspend(); }
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) onAppHide(); });
+addEventListener("blur",onAppHide);
 function frame(now){
   requestAnimationFrame(frame);
   if(paused){gfxUpdate(0);renderer.render(scene,camera);return;}

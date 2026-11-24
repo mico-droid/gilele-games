@@ -5,7 +5,7 @@ import {
   createRoom, createRemotePlayers, loadLook, randomLook, Audio, addStrings, t, onLangChange, applyDom,
   h, toast, screen, openAvatarEditor, openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks,
   addGround, addTree, addCloud, addTrampoline, addSign, createCoins, addCheckpoint, addMover, createAvatarPreview,
-  registerPWA, track, initGTM, isTouch, VERSION, createThrowables, GEO, getMat, createScenery,
+  registerPWA, track, initGTM, isTouch, VERSION, createThrowables, GEO, getMat, createScenery, onAppHide,
 } from "../../engine/ez.js";
 
 const GAME_ID = "demo";
@@ -241,6 +241,7 @@ function pause(showMenu = true) {
   ], { dim: true });
 }
 function resume() { start(); }
+onAppHide(() => { if (playing) pause(); });   // trocar de aba / minimizar: pausa e cala a música
 onLangChange(() => { updCoins(); updHits(); });
 
 // ---------------------------------------------------------------- loop

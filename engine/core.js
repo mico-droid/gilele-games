@@ -2,6 +2,7 @@
 import * as THREE from "./three.js";
 import { shared } from "./storage.js";
 import { addSky } from "./sky.js";
+import { Audio } from "./audio.js";
 const { GFX } = THREE;
 
 export const isTouch = matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
@@ -132,7 +133,7 @@ export function createWorld(opt = {}) {
     get paused() { return paused; },
     get quality() { return quality; },
     setQuality,
-    setPaused(b) { paused = !!b; },
+    setPaused(b) { paused = !!b; if (paused) Audio.suspend(); else Audio.resume(); },
     onUpdate(fn) { updates.push(fn); return () => updates.splice(updates.indexOf(fn), 1); },
     onResize(fn) { resizeFns.push(fn); },
     /** Runs every frame (even paused) right before / after the main render — e.g. mirrors, overlays. */
@@ -143,4 +144,27 @@ export function createWorld(opt = {}) {
     followSun(x, y, z) { sun.position.set(x + sunOffset.x, y + sunOffset.y, z + sunOffset.z); sun.target.position.set(x, y, z); },
     resize,
   };
+}
+
+// ---------------------------------------------------------------- sair da tela / minimizar
+// Todo jogo deve pausar e calar a música quando o jogador troca de aba, minimiza ou atende o telefone.
+const hideFns = [];
+let hideWired = false, lastHide = 0;
+function appHidden() {
+  const now = Date.now();
+  if (now - lastHide < 300) return;                 // visibilitychange + blur chegam juntos
+  lastHide = now;
+  Audio.suspend();
+  for (const fn of hideFns) { try { fn(); } catch (e) {} }
+}
+/** onAppHide(fn): chama fn() quando a aba/app sai da frente (trocar de aba, minimizar, apagar a tela). */
+export function onAppHide(fn) {
+  hideFns.push(fn);
+  if (!hideWired) {
+    hideWired = true;
+    document.addEventListener("visibilitychange", () => { if (document.hidden) appHidden(); });
+    addEventListener("blur", appHidden);
+    addEventListener("pagehide", appHidden);
+  }
+  return () => hideFns.splice(hideFns.indexOf(fn), 1);
 }

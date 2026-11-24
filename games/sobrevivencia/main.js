@@ -4,7 +4,7 @@ import {
   THREE, createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot,
   createRoom, createRemotePlayers, loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openAvatarEditor,
   openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks, createAvatarPreview, registerPWA,
-  track, initGTM, isTouch, isMobile, createStore, VERSION,
+  track, initGTM, isTouch, isMobile, createStore, VERSION, onAppHide,
 } from "../../engine/ez.js";
 import { tx, setKidMode } from "./strings.js";
 import { setupSocial } from "./social.js";
@@ -157,7 +157,7 @@ function showNextTip() {
 function pagedMenu(title, ps) {
   let i = 0;
   openMenu(() => ({ title: title + (ps.length > 1 ? ` · ${i + 1}/${ps.length}` : ""), info: [h("p", { style: { fontSize: "18px" } }, ps[i])],
-    opts: [i < ps.length - 1 ? { label: t("nextP"), fn: () => { i++; } } : null, i > 0 ? { label: t("backP"), cls: ".gray", fn: () => { i--; } } : null], noClose: i < ps.length - 1, closeLabel: t("gotIt") }));
+    opts: [i < ps.length - 1 ? { label: t("nextP"), k: "next", fn: () => { i++; } } : null, i > 0 ? { label: t("backP"), cls: ".gray", k: "back", fn: () => { i--; } } : null], noClose: i < ps.length - 1, closeLabel: t("gotIt") }));
 }
 
 // ---------------------------------------------------------------- notícias e eventos
@@ -263,14 +263,14 @@ function openMenu(build) {
   const close = () => { scr.el.remove(); menuOpen = false; if (playing) input.setVisible(true); updHud(); };
   function draw() {
     const d = build(close);
-    card.replaceChildren(
+    card.replaceChildren(...[
       h("h2", d.title),
       ...(d.info || []).filter(Boolean).map((p) => (p instanceof Node ? p : d.who ? h("p.say", h("b", "🗣️ " + d.who + ": "), p) : h("p", p))),
       ...(d.who && (d.opts || []).some(Boolean) ? [h("p.say.you", h("b", t("youSay")))] : []),
       h("div.ez-col", { style: { marginTop: "10px" } },
-        ...(d.opts || []).filter(Boolean).map((o) => h("button.ez-btn.wide" + (o.cls || ""), { disabled: o.dis ? true : null, style: o.dis ? { opacity: 0.45 } : null, onclick: () => { if (o.dis) return; Audio.play("click"); const r = o.fn(); if (r === "close") close(); else if (scr.el.isConnected) draw(); } }, o.label)),
-        d.noClose ? null : (h("button.ez-btn.gray.wide", { onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || t("a_leave")))),
-    );
+        ...(d.opts || []).filter(Boolean).map((o) => h("button.ez-btn.wide" + (o.cls || ""), { "data-k": o.k || null, disabled: o.dis ? true : null, style: o.dis ? { opacity: 0.45 } : null, onclick: () => { if (o.dis) return; Audio.play("click"); const r = o.fn(); if (r === "close") close(); else if (scr.el.isConnected) draw(); } }, o.label)),
+        d.noClose ? null : (h("button.ez-btn" + (d.closeLabel ? ".ok" : ".gray") + ".wide", { "data-k": d.closeLabel ? "next" : null, onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || t("a_leave")))),
+    ].filter(Boolean));
   }
   draw();
   scr = screen([card], { dim: true });
@@ -821,7 +821,7 @@ function showSetup() {
   const chip = (group, val, label, dis) => h("button.ez-chip" + (cfg[group] === val ? ".sel" : ""), { disabled: dis ? true : null, style: dis ? { opacity: 0.45 } : null, onclick: () => { if (dis) return; cfg[group] = val; Audio.play("click"); draw(); } }, label + (dis ? " (" + t("soon") + ")" : ""));
   let scr = null;
   function draw() {
-    body.replaceChildren(
+    body.replaceChildren(...[
       h("h3", t("map")), h("div.ez-row", chip("map", "gyn", t("map_gyn")), chip("map", "rio", t("map_rio"), true), room.connected ? null : chip("map", "osm", t("map_osm"))),
       cfg.map === "osm" && !room.connected ? osmBox() : null,
       h("h3", t("age")), h("div.ez-row", chip("age", "kid", t("age_kid")), chip("age", "teen", t("age_teen"))),
@@ -836,7 +836,7 @@ function showSetup() {
         scr.close(); load(newState(cfg)); showIntro();
       } }, "▶ " + t("start")),
       h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("back")),
-    );
+    ].filter(Boolean));
   }
   function choose() {
     scr.close();
@@ -880,6 +880,7 @@ function pause(showMenu = true) {
   addX(h, scr, () => { scr.close(); resume(); });
 }
 function resume() { start(); }
+onAppHide(() => { if (playing) pause(); });   // trocar de aba / minimizar: pausa e cala a música
 function save() { if (st && !st.ended) { st.pos = { x: me.x, z: me.z }; store.setJSON("save", st); } }
 onLangChange(() => updHud());
 addEventListener("pagehide", save);

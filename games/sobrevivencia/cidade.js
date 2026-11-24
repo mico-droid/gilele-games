@@ -3,7 +3,7 @@
 //   Usado pelo Apagão Real (main.js, mapa "📍 Minha cidade") e pelo modo de testes ?modo=cidade (runExplorer).
 import {
   createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot, loadLook, randomLook,
-  Audio, t, h, screen, openSettings, gameLinks, registerPWA, track, initGTM, isMobile, createStore, addStrings,
+  Audio, t, h, screen, openSettings, gameLinks, registerPWA, track, initGTM, isMobile, createStore, addStrings, onAppHide,
 } from "../../engine/ez.js";
 import "./strings.js";
 import { parseInput, geocode, loadPack, CATS, CAT_ORDER, U, dirFrom } from "./geo.js";
@@ -303,6 +303,7 @@ export function runExplorer() {
       ], { x: back });
     });
   }
+  onAppHide(() => { if (playing) openMenu(); });   // trocar de aba / minimizar: pausa e cala a música
   function openBigMap() {
     if (!pack) return;
     pauseFor((resume) => {

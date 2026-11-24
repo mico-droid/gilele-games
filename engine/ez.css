@@ -47,9 +47,11 @@ input { font-family: inherit; }
 .ez-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ez-accent-dark); }
 .ez-btn.blue { background: var(--ez-blue); box-shadow: 0 4px 0 #1d4ed8; }
 .ez-btn.gray { background: #64748b; box-shadow: 0 4px 0 #334155; }
+.ez-btn.ok { background: #22c55e; box-shadow: 0 4px 0 #15803d; }   /* confirmação final ("Entendi", "Jogar"): sempre verde */
 .ez-btn.warn { background: var(--ez-warn); box-shadow: 0 4px 0 #b45309; }
 .ez-btn.small { font-size: 15px; padding: 8px 12px; }
 .ez-btn.wide { width: 100%; }
+.ez-kbd { display: inline-block; margin-left: 7px; font-size: 11px; font-weight: 700; opacity: 0.8; background: rgba(255, 255, 255, 0.22); border-radius: 5px; padding: 0 5px; vertical-align: middle; }
 .ez-chip { background: #e2e8f0; color: var(--ez-ink); font-weight: 600; font-size: 14px; padding: 7px 11px; border-radius: 999px; }
 .ez-chip.sel { background: var(--ez-blue); color: #fff; }
 .ez-sw { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; }
@@ -87,6 +89,7 @@ input { font-family: inherit; }
 .ez-chat button { white-space: nowrap; background: #fff; color: var(--ez-ink); border-radius: 10px; padding: 7px 9px; font-weight: 600; font-size: 14px; }
 @media (max-width: 420px) { .ez-rbtn { width: 36px; height: 36px; font-size: 16px; } .ez-pill { font-size: 13px; padding: 5px 10px; } }
 @media (max-width: 520px) { .ez-chat { grid-template-columns: repeat(2, auto); bottom: auto; top: 60px; } }
+@media (max-height: 560px) { .ez-chat { bottom: auto; top: 52px; max-height: calc(100dvh - 64px); overflow-y: auto; } }   /* celular deitado */
 
 /* ✕ de fechar no canto superior direito das telas */
 .ez-card.has-x { position: relative; }
