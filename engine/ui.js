@@ -41,9 +41,9 @@ export function toast(msg, ms = 1800, big = false) {
 
 /** Full-screen overlay with a card. Returns { el, card, close() }. */
 /** x: true → ✕ no canto superior direito que fecha a tela; x: função → ✕ chama a função (ex.: cancelar). */
-export function screen(content, { dim = false, onClose, x, keys = true } = {}) {
-  const card = h("div.ez-card", content);
-  const el = h("div.ez-screen" + (dim ? ".dim" : ""), card);
+export function screen(content, { dim = false, onClose, x, keys = true, bare = false } = {}) {
+  const card = h(bare ? "div.ez-bare" : "div.ez-card", content);
+  const el = h("div.ez-screen" + (dim ? ".dim" : "") + (bare ? ".bare" : ""), card);
   document.body.appendChild(el);
   const api = { el, card, close() { document.removeEventListener("keydown", onKey, true); el.remove(); onClose && onClose(); } };
   function onKey(e) {
@@ -261,40 +261,81 @@ export function gameLinks(gameName, { portal = "../../jogos.html" } = {}) {
  * @param o.note                 texto pequeno no fim (ajuda do teclado, versão…)
  * @returns a tela (screen) — .close() já para a animação do boneco
  */
+/**
+ * TELA INICIAL DE TODOS OS JOGOS 3D (refeita em 25/11/2026, no estilo Fall Guys / Rocket League).
+ * Não tem painel: o cenário 3D do próprio jogo fica aparecendo atrás, o boneco fica no meio dando
+ * pulinhos enquanto a "câmera" dá a volta nele, o título flutua em cima, os botões ficam na base e
+ * os utilitários nos cantos. Sem rolagem.
+ *
+ *   topo:    idiomas (esquerda) · 📲 Instalar · ⚙️ (direita)
+ *   meio:    título · subtítulo · boneco · nome do personagem com ✏️ ao lado
+ *   base:    os botões do jogo (`buttons`) + 👥 Multijogador
+ *   rodapé:  📤 Compartilhar · 🏠 Gilelê Games · 🔒 Privacidade
+ *
+ * @param o.buttons  botões do jogo (array). O principal pode vir com a classe .main (fica maior).
+ * @param o.look/onLook  visual do boneco e o que fazer quando o editor salvar
+ * @param o.reopen   como voltar para esta tela depois de um submenu
+ */
 export function homeScreen(o = {}) {
-  const { icon = "🎮", title = "", subtitle = "", look, onLook, body = [], room, onRoom, roomActions, reopen, note, portal = "../../jogos.html", world } = o;
-  const cv = h("canvas.ez-mini");
-  const pv = createAvatarPreview(cv);
+  const { icon = "", title = "", subtitle = "", look, onLook, buttons, body = [], extra, room, onRoom, roomActions, reopen, note, portal = "../../jogos.html", world } = o;
+  const btns = (buttons || body).filter(Boolean);
+  const cv = h("canvas.ez-hero");
+  const pv = createAvatarPreview(cv, { hero: true });
+  // Câmera de vitrine: enquanto a tela inicial está aberta, a câmera do jogo dá a volta devagar
+  // num ponto bonito do cenário (o cenário é o fundo da tela). Nenhum jogo mexe na câmera com o
+  // menu aberto, então dá para assumir o controle e devolver tudo no final.
+  let stopScenic = null;
+  if (world && world.camera && o.scenic !== false) {
+    const cam = world.camera, at = o.scenicAt || { x: cam.position.x, y: cam.position.y - 2, z: cam.position.z - 12 };
+    const keep = { x: cam.position.x, y: cam.position.y, z: cam.position.z, q: cam.quaternion.clone() };
+    const R = o.scenicDist || 30, HI = o.scenicUp || 21;
+    let ang = Math.random() * Math.PI * 2, alive = true;
+    const off = world.onUpdate((dt) => {
+      if (!alive) return;
+      ang += (o.scenicSpeed || 0.055) * Math.min(dt, 0.05);
+      cam.position.set(at.x + Math.cos(ang) * R, (at.y || 0) + HI, at.z + Math.sin(ang) * R);
+      cam.lookAt(at.x, (at.y || 0) + 2, at.z);   // vista de cima, como uma maquete: nunca entra dentro de parede
+    });
+    stopScenic = () => {
+      alive = false; if (off) off();
+      cam.position.set(keep.x, keep.y, keep.z); cam.quaternion.copy(keep.q);
+    };
+  }
   const lk = sanitizeLook(look || {});
   pv.set(lk); pv.start();
   let scr = null;
   const back = () => { if (reopen) reopen(); };
-  const close = () => { pv.stop(); scr.close(); };
+  const close = () => { pv.stop(); if (stopScenic) stopScenic(); scr.close(); };
   const parts = gameLinkParts(title, { portal, world, onSettings: () => { close(); openSettings({ world, onClose: back }); } });
   const langRow = h("div.ez-row.ez-langs");
   LANGS.forEach((l) => langRow.appendChild(h("button.ez-chip" + (l === getLang() ? ".sel" : ""), { onclick: () => { setLang(l); close(); back(); } }, l.toUpperCase())));
   const charName = (lk.n || "").trim() || t("namePh");
   const editChar = () => { close(); openAvatarEditor(lk, (nw) => { onLook && onLook(nw); back(); }, { onCancel: back }); };
-  scr = screen([
-    h("div.ez-hometop", langRow, h("div.ez-row.ez-hometools", parts.share, parts.install, parts.settings)),
-    h("h1", (icon ? icon + " " : "") + title),
-    subtitle ? h("p.ez-sub", subtitle) : null,
-    h("div.ez-hochar",
-      h("button.ez-charbtn", { title: t("editChar"), onclick: editChar }, cv),
-      h("div.ez-col.ez-charinfo",
-        h("b.ez-charname", charName),
-        h("button.ez-btn.blue.small", { onclick: editChar }, "✏️ " + t("editChar")))),
-    h("div.ez-col.ez-homebody", ...body.filter(Boolean)),
-    room || onRoom ? h("button.ez-btn.blue.wide", { style: { marginTop: "10px" }, onclick: () => {
+  if (room || onRoom) {
+    btns.push(h("button.ez-btn.blue", { onclick: () => {
       close();
       if (onRoom) { onRoom(); return; }
       openRoomPanel(room, { onClose: back, actions: roomActions });
-    } }, "👥 " + t("mp")) : null,
-    h("div.ez-row.ez-links", { style: { justifyContent: "center", flexWrap: "wrap", marginTop: "10px" } }, parts.portal, parts.privacy),
-    note ? h("p.ez-msg", { style: { textAlign: "center" } }, note) : null,
-  ].filter(Boolean));
+    } }, "👥 " + t("mp")));
+  }
+  scr = screen([
+    h("div.ez-home-top",
+      langRow,
+      h("div.ez-row.ez-home-tools", parts.install, parts.settings)),
+    h("div.ez-home-mid",
+      h("h1.ez-home-title", (icon ? icon + " " : "") + title),
+      subtitle ? h("p.ez-home-sub", subtitle) : null,
+      cv,
+      h("div.ez-home-name",
+        h("b", charName),
+        h("button.ez-editpill", { title: t("editChar"), "aria-label": t("editChar"), onclick: editChar }, "✏️"))),
+    extra ? h("div.ez-home-extra", extra) : null,
+    h("div.ez-home-base", ...btns),
+    h("div.ez-home-foot", parts.share, parts.portal, parts.privacy),
+    note ? h("p.ez-home-note", note) : null,
+  ].filter(Boolean), { bare: true });
   const base = scr.close;
-  scr.close = () => { pv.stop(); base(); };
+  scr.close = () => { pv.stop(); if (stopScenic) stopScenic(); base(); };
   return scr;
 }
 

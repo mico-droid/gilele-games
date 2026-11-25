@@ -2,7 +2,7 @@
 //   ▶ Continuar jogo anterior  → só aparece se houver jogo salvo (Aulas e/ou Apagão Real)
 //   🆕 Novo jogo               → 📚 Aprendizado (primeiro) e 🌑 Apagão Real
 // Trocar de modo recarrega a página com ?modo=…&acao=cont|novo; consumeAction() lê a ação pedida.
-import { h, t, THREE, part, toast } from "../../engine/ez.js";
+import { h, t, screen, THREE, part, toast } from "../../engine/ez.js";
 import { LESSONS } from "./lessons.js";
 
 const here = new URLSearchParams(location.search).get("modo") === "aprender" ? "learn" : "real";
@@ -19,24 +19,53 @@ export function consumeAction() {
  * @param store  createStore("apagao")
  * @param on     { contReal, newReal, contLearn, newLearn } — ações quando o modo é o desta página
  */
-export function modeMenu(store, on) {
+export function modeMenu(store, on, { fromHome = false } = {}) {
   const real = store.getJSON("save", null), learn = store.getJSON("learn", null);
   const hasReal = !!(real && !real.ended), hasLearn = !!(learn && ((learn.done && learn.done.length) || learn.cur));
   const run = (mode, k, acao) => () => (here === mode ? on[k]() : go(mode, acao));
-  const desc = (k) => h("p.ez-msg", { style: { margin: "-4px 0 4px", textAlign: "center" } }, t(k));
+  const desc = (k) => h("p.ez-msg", { style: { margin: "0 0 4px", textAlign: "center" } }, t(k));
   const sec = (k) => h("h3", { style: { margin: "10px 0 2px", textAlign: "center" } }, t(k));
   const newLearn = () => { if (hasLearn && !confirm(t("confirmNewL"))) return; store.setJSON("learn", {}); run("learn", "newLearn", "novo")(); };
   const newReal = () => { if (hasReal && !confirm(t("confirmNewR"))) return; run("real", "newReal", "novo")(); };
   return [
-    hasReal || hasLearn ? sec("secCont") : null,
-    hasLearn ? h("button.ez-btn.wide", { onclick: run("learn", "contLearn", "cont") }, t("contLearn", { d: learn.done.length, n: LESSONS.length })) : null,
-    hasReal ? h("button.ez-btn.wide", { onclick: run("real", "contReal", "cont") }, t("contReal", { d: t("day", { d: Math.floor((17 + real.T) / 24) }) })) : null,
-    sec("secNew"),
+    !fromHome && (hasReal || hasLearn) ? sec("secCont") : null,
+    !fromHome && hasLearn ? h("button.ez-btn.wide", { onclick: run("learn", "contLearn", "cont") }, t("contLearn", { d: learn.done.length, n: LESSONS.length })) : null,
+    !fromHome && hasReal ? h("button.ez-btn.wide", { onclick: run("real", "contReal", "cont") }, t("contReal", { d: t("day", { d: Math.floor((17 + real.T) / 24) }) })) : null,
+    fromHome ? null : sec("secNew"),
     h("button.ez-btn.blue.wide", { onclick: newLearn }, t("m_learn")), desc("learnDesc"),
     h("button.ez-btn.blue.wide", { onclick: newReal }, t("m_real")), desc("realDesc"),
     sec("secTest"),
     h("button.ez-btn.gray.wide", { onclick: () => { location.href = "?modo=cidade"; } }, t("m_city")), desc("cityDescM"),
   ];
+}
+
+/**
+ * Botões compactos da TELA INICIAL NOVA (25/11/2026): cabem na base da tela, sem rolagem.
+ *   ▶ Continuar  (principal, só se houver jogo salvo)   ·   🆕 Novo jogo (abre a lista de modos)
+ * A lista completa (Aprendizado, Apagão Real, Explorar a cidade) continua sendo a `modeMenu`,
+ * agora dentro de uma caixa que abre no "Novo jogo".
+ * @param reopen  como voltar para a tela inicial se o jogador fechar a caixa
+ */
+export function modeHome(store, on, { reopen, close } = {}) {
+  const real = store.getJSON("save", null), learn = store.getJSON("learn", null);
+  const hasReal = !!(real && !real.ended), hasLearn = !!(learn && ((learn.done && learn.done.length) || learn.cur));
+  const out = [];
+  if (hasReal || hasLearn) {
+    const toReal = hasReal && (here === "real" || !hasLearn);
+    const label = toReal ? t("contReal", { d: t("day", { d: Math.floor((17 + real.T) / 24) }) })
+                         : t("contLearn", { d: learn ? learn.done.length : 0, n: LESSONS.length });
+    out.push(h("button.ez-btn.ok.main", { onclick: () => {
+      if (toReal) { here === "real" ? on.contReal() : go("real", "cont"); }
+      else { here === "learn" ? on.contLearn() : go("learn", "cont"); }
+    } }, label));
+  }
+  out.push(h("button.ez-btn" + (hasReal || hasLearn ? ".blue" : ".ok.main"), { onclick: () => {
+    close && close();
+    const scr = screen([h("h2", t("secNew")), ...modeMenu(store, on, { fromHome: true }),
+      h("button.ez-btn.gray.wide", { style: { marginTop: "10px" }, "data-k": "back", onclick: () => { scr.close(); reopen && reopen(); } }, t("back"))],
+      { dim: true, x: () => { scr.close(); reopen && reopen(); } });
+  } }, t("newGame")));
+  return out;
 }
 
 /** Escala de distância mostrada ao jogador: 1 unidade do mundo ≈ 1 passo do boneco ≈ 0,5 m. */

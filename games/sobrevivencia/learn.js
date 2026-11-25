@@ -9,7 +9,7 @@ import {
 import "./strings.js";
 import { setupSocial } from "./social.js";
 import { ERAS, LESSONS, byId, ITEMS, itName, L } from "./lessons.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom, makeSign, installMusic } from "./menu.js";
+import { modeMenu, modeHome, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom, makeSign, installMusic } from "./menu.js";
 
 const GAME_ID = "sobrevivencia-aprender";
 registerPWA("../../sw.js");
@@ -703,8 +703,10 @@ function showTitle() {
     icon: "🔦", title: t("title"), subtitle: u("title") + " · " + u("sub") + " · v" + VERSION,
     look: me.ch.look, onLook: (lk) => me.setLook(lk),
     world, room, reopen: showTitle, roomActions: roomActions(room, store, enterGame),
+    scenicAt: me.body ? { x: me.body.x, y: me.body.y, z: me.body.z } : null,
     note: isTouch ? null : L(T("WASD/setas: andar · Shift: correr · J: interagir · I: mochila · T: manual · B: construir · Arraste: câmera", "WASD/arrows: move · Shift: run · J: interact · I: backpack · T: manual · B: build · Drag: camera", "WASD/flechas: mover · Shift: correr · J: interactuar · I: mochila · T: manual · B: construir · Arrastra: cámara")),
-    body: [ageRow, ...modeMenu(store, { contLearn: () => { close(); start(); }, newLearn: () => { close(); P = structuredClone(P0); save(); location.href = "?modo=aprender&acao=novo"; } })],
+    buttons: modeHome(store, { contLearn: () => { close(); start(); }, newLearn: () => { close(); P = structuredClone(P0); save(); location.href = "?modo=aprender&acao=novo"; } }, { reopen: showTitle, close }),
+    extra: ageRow,
   });
 }
 function enterGame() { if (!P.done.length && !P.cur) intro(); else start(); }

@@ -14,9 +14,9 @@ export const SKINS = ["#f9d7b9", "#f4c095", "#e0a878", "#c68642", "#a0673f", "#6
 export const HAIRCOLS = ["#1f1a17", "#5b3a1e", "#a0673f", "#e8c15a", "#c2410c", "#ec4899", "#3b82f6", "#e5e7eb"];
 export const KINDS = ["m", "f", "fox", "et", "horse", "smiley", "zombie"];
 // Acessórios: os três primeiros vêm liberados; o resto é desbloqueado jogando (ver engine/unlocks.js).
-export const ACCS = ["none", "hat", "cap", "glasses", "crown", "headphones", "cape", "afro", "pet", "catears", "emo", "helmet", "halo", "horns"];
+export const ACCS = ["none", "hat", "cap", "glasses", "crown", "headphones", "cape", "afro", "pet", "catears", "emo", "halo", "horns"];
 /** Acessórios que ocupam o lugar do cabelo (não dá para usar junto). */
-export const ACC_HAIR = ["afro", "emo", "helmet"];
+export const ACC_HAIR = ["afro", "emo"];
 export const FACES = ["normal", "happy", "smug", "sigma"];
 export const HAIRS = { m: ["short", "spiky", "curly", "none"], f: ["long", "ponytail", "pigtails", "bob", "curly", "none"] };
 export const ALLHAIR = ["none", "short", "spiky", "curly", "long", "ponytail", "pigtails", "bob"];
@@ -251,14 +251,6 @@ export function buildAvatar(lk) {
     const gold = "#fde047", y0 = 0.72 + up;
     for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; part(0.11, 0.07, 0.11, gold, Math.cos(a) * 0.3 * hd, y0, Math.sin(a) * 0.3 * hd, head, false); }
   }
-  else if (lk.a === "helmet") {
-    const sh = c[1];
-    part(0.86 * hd, 0.52, 0.86 * hd, sh, 0, 0.26, 0, head);
-    part(0.9 * hd, 0.2, 0.9 * hd, sh, 0, 0.02, 0, head);
-    part(0.74 * hd, 0.26, 0.12, "#0ea5e9", 0, 0.1, 0.4 * hd, head, false);     // viseira
-    part(0.94 * hd, 0.08, 0.3, "#1f2937", 0, 0.46, 0.2 * hd, head, false);      // aba
-    [-1, 1].forEach((s) => part(0.08, 0.34, 0.5, sh, s * 0.42 * hd, 0.04, -0.08, head));
-  }
   else if (lk.a === "afro") {
     const f = lk.hc;
     for (let i = 0; i < 22; i++) { const a = (i / 22) * Math.PI * 2; part(0.34, 0.34, 0.34, f, Math.cos(a) * 0.5 * hd, 0.12 + (i % 2) * 0.08, Math.sin(a) * 0.5 * hd, head); }   // volume em volta
@@ -374,21 +366,64 @@ export class Character {
 }
 
 /** Small 3D preview renderer for menus (rotating avatar on a grass disc). */
-export function createAvatarPreview(canvas) {
+/**
+ * Bonequinho girando num canvas.
+ *   opt.hero = true  → versão da TELA INICIAL (25/11/2026): fundo transparente (aparece o cenário 3D do
+ *   jogo atrás), sem o disquinho de grama, boneco maior, girando devagar como se a câmera desse a volta,
+ *   e parado ele respira e dá pulinhos de vez em quando.
+ */
+export function createAvatarPreview(canvas, opt = {}) {
+  const hero = !!opt.hero;
   const r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   const sc = new THREE.Scene();
-  sc.add(new THREE.HemisphereLight(0xffffff, 0x88aa99, 2.6));
-  const l = new THREE.DirectionalLight(0xffffff, 2.2); l.position.set(3, 5, 7); sc.add(l);
-  const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 50); cam.position.set(0, 1.9, 8.2); cam.lookAt(0, 1.6, 0);
-  const ground = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.15, 24), getMat(0x6cc04a)); ground.position.y = -0.08; sc.add(ground);
-  let av = null, raf = 0, spin = 0, drag = null;
+  sc.add(new THREE.HemisphereLight(0xffffff, 0x88aa99, hero ? 2.9 : 2.6));
+  const l = new THREE.DirectionalLight(0xffffff, hero ? 2.6 : 2.2); l.position.set(3, 5, 7); sc.add(l);
+  const cam = new THREE.PerspectiveCamera(hero ? 26 : 30, 1, 0.1, 50); cam.position.set(0, 1.9, hero ? 9.4 : 8.2); cam.lookAt(0, hero ? 1.45 : 1.6, 0);
+  if (!hero) { const ground = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.15, 24), getMat(0x6cc04a)); ground.position.y = -0.08; sc.add(ground); }
+  let av = null, raf = 0, spin = 0, drag = null, t0 = performance.now(), lastW = 0, lastH = 0;
   canvas.style.touchAction = "none";
   canvas.addEventListener("pointerdown", (e) => { drag = e.clientX; canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener("pointermove", (e) => { if (drag !== null) { spin += (e.clientX - drag) * 0.02; drag = e.clientX; } });
+  canvas.addEventListener("pointermove", (e) => { if (drag !== null) { spin += (e.clientX - drag) * (hero ? 0.01 : 0.02); drag = e.clientX; } });
   canvas.addEventListener("pointerup", () => (drag = null));
-  function size() { const w = canvas.clientWidth || 160, h = canvas.clientHeight || 220; r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
-  function loop() { raf = requestAnimationFrame(loop); if (drag === null) spin += 0.012; if (av) av.g.rotation.y = Math.sin(spin) * 0.9; r.render(sc, cam); }
+  function size() {
+    const w = canvas.clientWidth || 160, hh = canvas.clientHeight || 220;
+    lastW = w; lastH = hh; r.setSize(w, hh, false); cam.aspect = w / hh; cam.updateProjectionMatrix();
+  }
+  /** Idle da tela inicial: respira, balança os braços e pula de vez em quando. */
+  function idle(now) {
+    if (!av) return;
+    const cyc = now % 3.6;
+    if (cyc < 0.66) {                                   // pulinho
+      const p = cyc / 0.66, up = Math.sin(p * Math.PI);
+      av.g.position.y = up * 0.85;
+      av.g.scale.set(1 + up * 0.04, 1 - up * 0.05, 1 + up * 0.04);
+      if (av.legL) { av.legL.rotation.x = 0.4 * up; av.legR.rotation.x = -0.4 * up; }
+      if (av.armL) { av.armL.rotation.x = -2.4 * up; av.armR.rotation.x = -2.4 * up; av.armL.rotation.z = -0.2 * up; av.armR.rotation.z = 0.2 * up; }
+    } else {
+      const b = Math.sin(now * 2.2);
+      av.g.position.y = 0.02 + b * 0.02;
+      av.g.scale.set(1, 1 + b * 0.012, 1);
+      if (av.legL) { av.legL.rotation.x = 0; av.legR.rotation.x = 0; }
+      if (av.armL) { av.armL.rotation.x = b * 0.12; av.armR.rotation.x = -b * 0.12; av.armL.rotation.z = 0.06; av.armR.rotation.z = -0.06; }
+    }
+    if (av.cape) av.cape.rotation.x = 0.12 + Math.sin(now * 2.6) * 0.08;
+    if (av.pet) { av.pet.position.y = 0.3 + Math.abs(Math.sin(now * 5)) * 0.1; if (av.petTail) av.petTail.rotation.z = Math.sin(now * 9) * 0.6; }
+  }
+  function loop() {
+    raf = requestAnimationFrame(loop);
+    const now = (performance.now() - t0) / 1000;
+    if (canvas.clientWidth !== lastW || canvas.clientHeight !== lastH) size();   // a tela inicial muda de tamanho
+    if (hero) {
+      if (drag === null) spin += 0.0045;                                          // a "câmera" dá a volta devagar
+      if (av) av.g.rotation.y = spin * 2;
+      idle(now);
+    } else {
+      if (drag === null) spin += 0.012;
+      if (av) av.g.rotation.y = Math.sin(spin) * 0.9;
+    }
+    r.render(sc, cam);
+  }
   return {
     set(lk) { if (av) sc.remove(av.g); av = buildAvatar(lk); sc.add(av.g); size(); },
     start() { size(); if (!raf) loop(); },

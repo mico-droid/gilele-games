@@ -539,17 +539,17 @@ function chooseGearbox(then) {
 function showTitle() {
   playing = false; world.setPaused(false); cockpit.setOverlay(false); hud.classList.add("ez-hidden"); tc.classList.add("ez-hidden");
   if (mode && mode.dispose) mode.dispose(); mode = null; rain.set(false);
-  const card = (emoji, key, onclick) => h("button.ae-mode", { onclick }, h("span.e", emoji), h("b", t(key)), h("small", t(key + "_d")));
+  const card = (emoji, key, onclick, main) => h("button.ez-btn" + (main ? ".ok.main" : ".blue"), { onclick }, emoji + " " + t(key));
   titleScr = homeScreen({
     icon: "🚗", title: t("title"), subtitle: t("sub"),
     look: driver.look, onLook: (lk) => driver.setLook(lk),
     world, reopen: showTitle,
     note: t("disclaimer") + " · Gilelê Engine v" + VERSION,
-    body: [h("div.ae-modes",
-      card("🎓", "m_learn", () => { titleScr.close(); showList("lessons"); }),
+    buttons: [
+      card("🎓", "m_learn", () => { titleScr.close(); showList("lessons"); }, true),
       card("📋", "m_exam", () => { titleScr.close(); chooseGearbox(() => startMode(createExam)); }),
       card("⚠️", "m_hard", () => { titleScr.close(); showList("scenarios"); }),
-      card("🗺️", "m_free", () => { titleScr.close(); chooseGearbox(() => startMode(createFree)); }))],
+      card("🗺️", "m_free", () => { titleScr.close(); chooseGearbox(() => startMode(createFree)); })],
   });
 }
 function showList(kind) {

@@ -9,7 +9,7 @@ import {
 import { tx, setKidMode } from "./strings.js";
 import { setupSocial } from "./social.js";
 import { buildCity, HOME, BED, ZONES } from "./city.js";
-import { modeMenu, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom, installMusic } from "./menu.js";
+import { modeMenu, modeHome, consumeAction, M_PER_UNIT, parts, pagedScreen, addX, confetti, bagBadge, wearPack, roomActions, bootRoom, installMusic } from "./menu.js";
 import { openPicker, exitText, shortLabel } from "./cidade.js";
 import { pinPack, pinnedPack, fitHome } from "./geo.js";
 import { buildOsmCity, drawMap } from "./osmcity.js";
@@ -810,11 +810,12 @@ function showTitle() {
     icon: "🔦", title: t("title"), subtitle: t("tagline") + " · v" + VERSION,
     look: me.ch.look, onLook: (lk) => me.setLook(lk),
     world, room, reopen: showTitle, roomActions: roomActions(room, store, enterGame),
+    scenicAt: me.body ? { x: me.body.x, y: me.body.y, z: me.body.z } : null,
     note: isTouch ? null : t("help"),
-    body: modeMenu(store, {
+    buttons: modeHome(store, {
       contReal: () => { close(); if (!mapOk(saved)) { location.href = "?acao=cont"; return; } load(saved); start(); },
       newReal: () => { close(); showSetup(); },
-    }),
+    }, { reopen: showTitle, close }),
   });
 }
 /** Entra no jogo a partir da tela de amigos: continua o jogo salvo ou abre o "novo jogo". */

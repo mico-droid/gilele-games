@@ -101,19 +101,41 @@ input { font-family: inherit; }
 
 .ez-tbtn.on { background: rgba(245, 158, 11, 0.9); border-color: #fff; }
 
-/* Casca padrão da tela inicial (homeScreen) — mesmo topo em todos os jogos 3D (25/11/2026) */
-.ez-hometop { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: -4px 0 10px; }
-.ez-hometop .ez-hometools { margin-left: auto; gap: 6px; flex-wrap: nowrap; }
-.ez-langs { gap: 4px; }
-.ez-langs .ez-chip { padding: 5px 9px; font-size: 13px; letter-spacing: 0.5px; }
+/* ---- TELA INICIAL (homeScreen): cenário 3D do jogo ao fundo, sem painel (25/11/2026) ---- */
+.ez-screen.bare { background: none; backdrop-filter: none; padding: 0; overflow: hidden; align-items: stretch; }
+.ez-bare { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; color: #fff; }
+/* véus de cima e de baixo: o texto precisa ser legível sobre qualquer cenário */
+.ez-bare::before, .ez-bare::after { content: ""; position: absolute; left: 0; right: 0; pointer-events: none; }
+.ez-bare::before { top: 0; height: 34%; background: linear-gradient(rgba(3, 18, 32, 0.62), rgba(3, 18, 32, 0)); }
+.ez-bare::after { bottom: 0; height: 46%; background: linear-gradient(rgba(3, 18, 32, 0), rgba(3, 18, 32, 0.72)); }
+.ez-bare > * { position: relative; z-index: 1; }
+.ez-home-top { display: flex; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) 12px 0; }
+.ez-home-top .ez-home-tools { margin-left: auto; gap: 6px; flex-wrap: nowrap; }
+.ez-bare .ez-langs { gap: 4px; }
+.ez-bare .ez-chip { background: rgba(8, 25, 40, 0.55); color: #fff; backdrop-filter: blur(6px); padding: 6px 10px; font-size: 13px; }
+.ez-bare .ez-chip.sel { background: var(--ez-blue); }
+.ez-bare .ez-btn.gray { background: rgba(8, 25, 40, 0.55); box-shadow: none; backdrop-filter: blur(6px); }
+.ez-home-mid { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 4px 12px 0; }
+.ez-home-title { margin: 2px 0 0; font-size: clamp(26px, 7vw, 44px); font-weight: 800; letter-spacing: -0.02em; text-align: center; text-shadow: 0 3px 14px rgba(0, 0, 0, 0.6); }
+.ez-home-sub { margin: 4px 0 0; font-size: clamp(13px, 3.4vw, 17px); opacity: 0.92; text-align: center; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+canvas.ez-hero { flex: 1; min-height: 120px; width: min(460px, 100%); display: block; touch-action: none; }
+.ez-home-name { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.92); color: var(--ez-ink);
+  border-radius: 999px; padding: 5px 6px 5px 15px; font-size: 16px; font-weight: 800; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); max-width: 80vw; }
+.ez-home-name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ez-editpill { width: 30px; height: 30px; border-radius: 50%; background: var(--ez-blue); color: #fff; font-size: 14px; line-height: 1; flex: none; }
+.ez-home-extra { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 10px 12px 0; }
+.ez-home-extra .ez-chip { background: rgba(8, 25, 40, 0.55); color: #fff; }
+.ez-home-extra .ez-chip.sel { background: var(--ez-blue); }
+.ez-home-extra b { align-self: center; font-size: 14px; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+.ez-home-base { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; align-items: stretch; padding: 12px 12px 0; }
+.ez-home-base .ez-btn { font-size: 16px; padding: 11px 16px; }
+.ez-home-base .ez-btn.main { font-size: 19px; padding: 14px 26px; order: -1; }
+.ez-home-base .ez-btn small { display: block; font-size: 12px; font-weight: 600; opacity: 0.85; }
+.ez-home-foot { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 12px 12px calc(10px + env(safe-area-inset-bottom)); }
+.ez-home-foot .ez-btn { font-size: 13px; padding: 7px 11px; background: rgba(8, 25, 40, 0.5); box-shadow: none; backdrop-filter: blur(6px); }
+.ez-home-note { margin: 0 12px 8px; text-align: center; font-size: 12px; opacity: 0.8; }
+.ez-chip.locked { opacity: 0.38; filter: grayscale(0.7); }
 .ez-slot { display: contents; }
 .ez-card .ez-sub { text-align: center; opacity: 0.7; margin: 0 0 12px; font-size: 15px; }
-.ez-hochar { display: flex; align-items: center; gap: 14px; justify-content: center; margin: 2px 0 6px; }
-.ez-charbtn { background: radial-gradient(circle at 50% 38%, #e0f2fe, #bae6fd); border-radius: 16px; padding: 4px; line-height: 0; }
-.ez-charbtn:active { transform: scale(0.97); }
-canvas.ez-mini { width: 110px; height: 150px; display: block; touch-action: none; }
-.ez-charinfo { align-items: flex-start; gap: 8px; min-width: 0; }
-.ez-charname { font-size: 20px; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ez-homebody { margin-top: 6px; }
-.ez-chip.locked { opacity: 0.38; filter: grayscale(0.7); }
-@media (max-width: 420px) { .ez-hochar { gap: 10px; } canvas.ez-mini { width: 92px; height: 128px; } .ez-charname { font-size: 18px; } }
+@media (min-width: 720px) { .ez-home-base .ez-btn.main { order: 0; } }
+@media (max-height: 560px) { .ez-home-title { font-size: 22px; } .ez-home-sub { display: none; } canvas.ez-hero { min-height: 90px; } }

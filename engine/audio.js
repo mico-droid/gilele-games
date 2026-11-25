@@ -78,31 +78,50 @@ const SONGS = {
     },
   },
   // ANIMADA e mais grave — trilha padrão dos jogos (baixo marcado + sub-grave)
+  // AVENTURA — rock/metal animado (pedido do dono, 25/11/2026): guitarra "abafada" em semicolcheia,
+  // bateria batendo forte e um riff pentatônico por cima. Não há distorção de verdade no Web Audio,
+  // então a guitarra é feita de serra + quinta + oitava com notas curtas — de longe soa como palhetada.
   adventure: {
-    bpm: 126, len: 128,
+    bpm: 152, len: 128,
     play(s, tm, k) {
       const bar = Math.floor(s / 16) % 8, st = s % 16;
-      // I - vi - IV - V em Dó, repetido com variação na segunda metade
-      const roots = [48, 45, 41, 43, 48, 45, 41, 43][bar];
-      const third = [4, 3, 4, 4, 4, 3, 4, 4][bar];
-      // bateria: bumbo seco, caixa no 5 e 13, chimbal em colcheia
-      if (st === 0 || st === 6 || st === 10) { k.tone("sine", 120, tm, 0.2, 0.6, musicG, 38); k.tone("triangle", 62, tm, 0.26, 0.34, musicG, 34); }
-      if (st === 4 || st === 12) { k.noise(tm, 0.1, 0.22, musicG, 1800); k.tone("triangle", 190, tm, 0.06, 0.2, musicG, 140); }
-      if (st % 2 === 0) k.noise(tm, 0.03, 0.07, musicG, 9000);
-      if (st === 14 && bar % 4 === 3) { k.noise(tm, 0.06, 0.16, musicG, 2600); k.noise(tm + 0.08, 0.06, 0.2, musicG, 2200); }
-      // baixo: oitava grave pulsando em colcheias (o "peso" que o jogo pedia)
-      if (st % 2 === 0) {
-        const walk = [0, 0, 7, 0, 0, 0, 5, 7][st >> 1];
-        k.tone("triangle", mtof(roots - 12 + walk), tm, 0.16, 0.46, musicG);
-        k.tone("sine", mtof(roots - 24 + walk), tm, 0.22, 0.3, musicG);
+      // Lá menor: i - VI - III - VII (Am - Fá - Dó - Sol), a marcha clássica de aventura
+      const root = [45, 41, 48, 43, 45, 41, 48, 43][bar];
+      const f0 = mtof(root), f5 = mtof(root + 7), f8 = mtof(root + 12);
+      // --- bateria
+      const KICK = [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0];                 // bumbo sincopado
+      if (KICK[st]) { k.tone("sine", 125, tm, 0.14, 0.62, musicG, 40); k.tone("triangle", 70, tm, 0.1, 0.3, musicG, 36); }
+      if (st === 4 || st === 12) { k.noise(tm, 0.13, 0.3, musicG, 1500); k.noise(tm, 0.06, 0.2, musicG, 400); k.tone("triangle", 200, tm, 0.07, 0.22, musicG, 150); }
+      k.noise(tm, st % 2 ? 0.02 : 0.035, st % 4 === 0 ? 0.11 : 0.06, musicG, 8200);  // chimbal em semicolcheia
+      if (st === 0 && bar % 4 === 0) k.noise(tm, 0.6, 0.2, musicG, 5200);            // prato no começo da frase
+      if (bar === 7 && st >= 12) { k.noise(tm, 0.09, 0.26, musicG, 900 + (15 - st) * 300); k.tone("triangle", 150 - (st - 12) * 18, tm, 0.1, 0.26, musicG); }  // virada
+      // --- guitarra abafada: serra curta em semicolcheia, acento nas batidas
+      const open = st === 0 || st === 8;
+      if (open) {                                                                     // acorde aberto, deixa soar
+        [f0, f5, f8].forEach((f, n) => k.tone("sawtooth", f, tm, 0.34, n === 2 ? 0.07 : 0.1, musicG));
+        k.tone("square", f8, tm, 0.3, 0.05, musicG);
+      } else if (st % 2 === 0 || st === 7 || st === 11 || st === 15) {                // palhetada curta
+        const v = KICK[st] ? 0.1 : 0.062;
+        k.tone("sawtooth", f0, tm, 0.055, v, musicG);
+        k.tone("sawtooth", f5, tm, 0.05, v * 0.8, musicG);
+        k.tone("square", f8, tm, 0.04, v * 0.4, musicG);
       }
-      // acordes curtos no contratempo
-      if (st === 3 || st === 7 || st === 11 || st === 15) [0, third, 7].forEach((n) => k.tone("square", mtof(roots + 12 + n), tm, 0.08, 0.11, musicG));
-      // melodia alegre e saltitante
-      const mel = [[0, 7, 12, 7, 16, 12, 7, 12], [0, 7, 12, 14, 12, 7, 4, 7], [0, 4, 9, 12, 9, 7, 4, 0], [2, 7, 11, 14, 11, 7, 2, 7]][bar % 4];
-      const nt = mel[st >> 1];
-      if (st % 2 === 0 && !(bar === 3 && st > 11)) k.tone("square", mtof(roots + 12 + nt), tm, 0.13, 0.19, musicG);
-      if (st === 8 && bar % 2 === 1) k.tone("triangle", mtof(roots + 24 + nt), tm, 0.2, 0.12, musicG);
+      // --- baixo: oitava abaixo, seguindo o bumbo
+      if (st % 2 === 0 || KICK[st]) { k.tone("triangle", mtof(root - 12), tm, 0.12, 0.42, musicG); k.tone("sine", mtof(root - 24), tm, 0.16, 0.26, musicG); }
+      // --- riff pentatônico (Lá menor) por cima, com uma "puxada" de corda no fim da frase
+      const RIFF = [
+        [12, null, 15, null, 17, null, 15, null, 12, null, 10, null, 12, null, null, null],
+        [12, null, 15, 17, 19, null, 17, null, 15, null, 12, null, 10, null, 12, null],
+        [19, null, 17, null, 15, null, 17, null, 19, null, 22, null, 19, null, 17, null],
+        [17, null, 15, null, 12, null, 15, null, 17, null, 19, null, 17, 15, 12, null],
+      ][bar % 4];
+      const nt = RIFF[st];
+      if (nt !== null && nt !== undefined) {
+        const f = mtof(45 + nt);
+        const bend = (bar % 4 === 3 && st === 10) ? mtof(45 + nt + 2) : 0;            // puxada de corda
+        k.tone("sawtooth", f, tm, bend ? 0.42 : 0.17, 0.17, musicG, bend || undefined);
+        k.tone("square", f * 2, tm, 0.1, 0.05, musicG);                               // brilho da guitarra
+      }
     },
   },
   // PERIGO / evento difícil — grave pulsante, menor com trítono (composição original)

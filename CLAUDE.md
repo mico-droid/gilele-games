@@ -92,3 +92,23 @@
   o multijogador de código continua exatamente como estava. Trocar por lista de verdade quando existir o Worker.
   Aviso de segurança (ECA): a sala pública é anunciada como "pode entrar gente que você não conhece" e o chat
   continua sendo só frases prontas.
+- **Tela inicial refeita (25/11/2026, 2ª rodada)** — o dono achou a casca anterior "pouco profissional" e
+  pediu o estilo Fall Guys / Rocket League: **o cenário 3D do jogo É a tela inicial**, sem painel e sem rolagem.
+  - Motor: `homeScreen()` agora usa `screen(..., { bare: true })` (sem `.ez-card`), com véus de gradiente em
+    cima e embaixo para o texto ser legível sobre qualquer cenário. Layout: idiomas + 📲 + ⚙️ nos cantos de
+    cima · título e subtítulo flutuando · boneco no meio (`createAvatarPreview(cv, { hero: true })`: fundo
+    transparente, sem o disquinho de grama, respira e dá pulinhos, girando devagar) · pílula com o nome e ✏️ ·
+    botões do jogo na base (`buttons`, o principal com a classe `.main`) · rodapé 📤 🏠 🔒.
+  - **Câmera de vitrine**: com a tela inicial aberta, `homeScreen` assume a câmera do jogo e dá a volta
+    devagar num ponto do cenário (`scenicAt`, padrão = posição do jogador; `scenicDist` 30, `scenicUp` 21 —
+    vista de maquete, de cima, que nunca entra dentro de parede; ângulos baixos entravam em casas e placas).
+    Devolve a câmera ao fechar. Nenhum jogo mexe na câmera com o menu aberto, por isso dá para assumir.
+  - Apagão/Aprendizado: `modeHome()` (em `menu.js`) dá os botões compactos — ▶ Continuar (principal) e
+    🆕 Novo jogo, que abre a `modeMenu` de sempre numa caixa. `extra:` serve para a linha de faixa etária.
+  - HTML avulsos: o `#menu` virou tela cheia transparente com o mesmo desenho, e o boneco do meio é o
+    **personagem do jogo mesmo** (já existia uma câmera de menu; agora ela gira mais devagar, de cpt 0.42 e
+    cd 13, e o boneco dá pulinhos). O editor ficou dono do `#pvWrap` — não há mais troca de lugar do canvas.
+- Trilha **adventure** virou **rock/metal** (152 bpm, Lá menor, guitarra abafada em semicolcheia + riff
+  pentatônico). O acessório **capacete saiu** da lista (o dono quis evitar a linha sobrando no editor).
+- `jogos.html`: o logo do topo apontava para `./` (a página comercial) — era o "voltar" que levava o dono
+  para o lugar errado. Agora fica na própria página; e a barra ganhou **🏫 Para escolas e empresas**.

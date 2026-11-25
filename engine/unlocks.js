@@ -9,7 +9,7 @@ import { shared } from "./storage.js";
 /** Acessórios livres desde o começo. */
 export const ACC_FREE = ["none", "glasses", "hat"];
 /** Ordem de desbloqueio (um por grande vitória). */
-export const ACC_CHAIN = ["headphones", "cape", "afro", "pet", "catears", "cap", "emo", "helmet", "halo", "horns", "crown"];
+export const ACC_CHAIN = ["headphones", "cape", "afro", "pet", "catears", "cap", "emo", "halo", "horns", "crown"];
 
 const num = (v, d = 0) => (Number.isFinite(+v) ? Math.max(0, Math.floor(+v)) : d);
 

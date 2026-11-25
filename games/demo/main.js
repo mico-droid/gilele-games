@@ -211,8 +211,9 @@ function showTitle() {
     icon: "🎮", title: t("title"), subtitle: t("sub") + " · v" + VERSION,
     look: me.ch.look, onLook: (lk) => me.setLook(lk),
     world, room, reopen: showTitle,
+    scenicAt: me.body ? { x: me.body.x, y: me.body.y, z: me.body.z } : null,
     note: isTouch ? null : t("help"),
-    body: [h("button.ez-btn.ok.wide", { "data-k": "next", onclick: () => { titleScr.close(); start(); } }, "▶ " + t("play"))],
+    buttons: [h("button.ez-btn.ok.main", { "data-k": "next", onclick: () => { titleScr.close(); start(); } }, "▶ " + t("play"))],
   });
 }
 function start() {

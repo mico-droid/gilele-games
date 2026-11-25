@@ -104,6 +104,43 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   .chips button.sel,.langs button.sel{background:#2563eb;color:#fff}
   .top{display:flex;gap:12px;align-items:stretch}
   /* casca padrão da tela inicial (25/11/2026) */
+  /* TELA INICIAL (25/11/2026): o cenário 3D é o fundo; o boneco que aparece no meio é o do jogo
+     mesmo, não um desenho. Sem cartão, sem rolagem. */
+  #menu{background:none;padding:0;overflow:hidden;align-items:stretch}
+  #menu>.card{background:none;box-shadow:none;border-radius:0;width:100%;max-height:none;padding:0;overflow:hidden;
+    display:flex;flex-direction:column;color:#fff;position:relative}
+  #menu>.card::before,#menu>.card::after{content:"";position:absolute;left:0;right:0;pointer-events:none}
+  #menu>.card::before{top:0;height:32%;background:linear-gradient(rgba(3,18,32,.6),rgba(3,18,32,0))}
+  #menu>.card::after{bottom:0;height:48%;background:linear-gradient(rgba(3,18,32,0),rgba(3,18,32,.75))}
+  #menu>.card>*{position:relative;z-index:1}
+  .homemid{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding:2px 12px 0}
+  .hometitle{margin:2px 0 0;font-size:clamp(26px,7vw,44px);font-weight:900;letter-spacing:-.02em;text-align:center;
+    text-shadow:0 3px 14px rgba(0,0,0,.6);color:#fff}
+  .homesub{margin:4px 0 0;font-size:clamp(13px,3.4vw,17px);text-align:center;color:#eaf2f8;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+  .homename{display:flex;align-items:center;gap:8px;align-self:center;background:rgba(255,255,255,.93);color:#1f2937;
+    border-radius:999px;padding:5px 6px 5px 15px;font-size:16px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:80vw}
+  .homename b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .editpill{width:30px;height:30px;border-radius:50%;background:#2563eb;color:#fff;font-size:14px;padding:0;flex:none}
+  #menu .modes{display:flex;flex-direction:row;flex-wrap:wrap;gap:9px;justify-content:center;align-items:stretch;padding:12px 12px 0;margin:0}
+  #menu .modes button{font-size:16px;padding:11px 16px;margin:0}
+  #menu .modes button.main{font-size:19px;padding:14px 26px}
+  #menu .modes .mode{width:auto;max-width:46vw;text-align:center}
+  #menu .modes .mode.atk{max-width:none}
+  #menu .modes .mode small{font-size:12px;opacity:.9}
+  #menu .modes #tabPick{width:100%;background:rgba(8,25,40,.72);backdrop-filter:blur(8px);border-radius:16px;padding:12px}
+  #menu .modes #tabPick .l2{color:#fff}
+  #menu .logo.hometitle{color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.6)}
+  #menu .logo.hometitle span{color:#fde047}
+  #menu .info{color:#dce9f2;text-shadow:0 2px 8px rgba(0,0,0,.6);text-align:center;padding:0 12px;font-size:11.5px;line-height:1.35}
+  #menu #mpInfo{display:none}   /* texto longo: fica só dentro de 👥 Multijogador */
+  #menu #gLinks{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+  .foota{background:rgba(8,25,40,.5);color:#fff;font-weight:700;border-radius:12px;padding:7px 11px;font-size:13px;
+    text-decoration:none;backdrop-filter:blur(6px);white-space:nowrap}
+  #menu .hometop{padding:calc(8px + env(safe-area-inset-top)) 12px 0}
+  #menu .tbtn{background:rgba(8,25,40,.55);backdrop-filter:blur(6px)}
+  #menu .langs button{background:rgba(8,25,40,.55);color:#fff;backdrop-filter:blur(6px)}
+  #menu .langs button.sel{background:#2563eb}
+  @media (max-height:560px){.hometitle{font-size:22px}.homesub{display:none}}
   .hometop{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
   .hometop .langs{margin:0}
   .hometools{margin-left:auto;display:flex;gap:6px}
@@ -220,22 +257,19 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
 
 <div id="menu" class="overlay">
   <div class="card">
-    <h1 class="logo">EZ <span>Obby</span></h1>
     <div class="hometop">
       <div class="langs" id="langs"></div>
       <div class="hometools">
-        <button id="gShare" class="tbtn"></button>
         <button id="pwaBtn" class="tbtn hidden"></button>
         <button id="cfgBtn" class="tbtn">⚙️</button>
       </div>
     </div>
-    <p class="sub" id="subLine"></p>
-    <div id="pwaIos" class="hidden" style="background:#fff7ed;border:3px solid #f59e0b;border-radius:14px;padding:10px;margin:6px auto;font-weight:700;color:#7c2d12;font-size:14px;max-width:420px"></div>
-    <div class="hochar">
-      <button id="charBtn" class="charbtn"><span id="pvHome"><div id="pvWrap"><canvas id="preview"></canvas></div></span></button>
-      <div class="charinfo"><b id="charName"></b><button class="sec" id="editChar" style="margin:0"></button></div>
+    <div class="homemid">
+      <h1 class="logo hometitle">EZ <span>Obby</span></h1>
+      <p class="homesub" id="subLine"></p>
+      <div id="pwaIos" class="hidden" style="background:#fff7ed;border:3px solid #f59e0b;border-radius:14px;padding:10px;margin:6px auto;font-weight:700;color:#7c2d12;font-size:14px;max-width:420px"></div>
     </div>
-    <label class="l" data-i="playTitle" style="font-size:16px"></label>
+    <div class="homename"><b id="charName"></b><button id="editChar" class="editpill" aria-label="✏️">✏️</button></div>
     <div class="modes">
       <button class="mode atk" id="playBtn"></button>
       <button class="sec hidden" id="restartBtn" data-i="restart" style="margin-top:0"></button>
@@ -245,9 +279,10 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
     </div>
     <div class="info" id="ctrlInfo"></div>
     <div class="info" id="mpInfo"></div>
-    <div id="gLinks" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px auto 0">
-      <a id="gPortal" href="../../jogos.html" style="background:#475569;color:#fff;font-weight:800;border-radius:14px;padding:9px 14px;text-decoration:none;font-size:15px">🏠 Gilelê Games</a>
-      <a id="gPriv" href="../../privacidade.html" style="background:#475569;color:#fff;font-weight:800;border-radius:14px;padding:9px 14px;text-decoration:none;font-size:15px">🔒 Privacidade</a>
+    <div id="gLinks">
+      <button id="gShare" class="foota"></button>
+      <a id="gPortal" class="foota" href="../../jogos.html">🏠 Gilelê Games</a>
+      <a id="gPriv" class="foota" href="../../privacidade.html">🔒 Privacidade</a>
     </div>
   </div>
 </div>
@@ -258,7 +293,7 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
     <button class="ovx" id="charX" aria-label="✕">✕</button>
     <h2 id="charTitle" style="margin:0 0 10px;color:#2563eb;font-size:24px"></h2>
     <div class="top">
-      <span id="pvSlot"></span>
+      <span id="pvSlot"><div id="pvWrap"><canvas id="preview"></canvas></div></span>
       <div class="tcol">
         <label class="l" data-i="name" for="nameIn"></label>
         <input id="nameIn" maxlength="14" autocomplete="off">
@@ -463,7 +498,7 @@ const T = {
       hair:"Cabelo", hairColor:"Cor do cabelo", h_none:"Sem cabelo", h_short:"Curto", h_spiky:"Espetado", h_curly:"Cacheado", h_long:"Longo", h_ponytail:"Rabo de cavalo", h_pigtails:"Maria-chiquinha", h_bob:"Chanel",
       head:"Pele", headFur:"Pelo", torso:"Detalhe", arms:"Mangas", legs:"Calça", acc:"Acessório",
       a_none:"Nenhum", a_hat:"🎩 Cartola", a_cap:"🧢 Boné", a_glasses:"🕶 Óculos",
-      a_crown:"👑 Coroa", a_headphones:"🎧 Fone", a_cape:"🦸 Capa de herói", a_afro:"💈 Black power", a_pet:"🐶 Bichinho", a_catears:"🐱 Orelha de gato", a_emo:"🖤 Cabelo emo", a_helmet:"🏍 Capacete", a_halo:"😇 Auréola", a_horns:"🐂 Chifre de boi",
+      a_crown:"👑 Coroa", a_headphones:"🎧 Fone", a_cape:"🦸 Capa de herói", a_afro:"💈 Black power", a_pet:"🐶 Bichinho", a_catears:"🐱 Orelha de gato", a_emo:"🖤 Cabelo emo", a_halo:"😇 Auréola", a_horns:"🐂 Chifre de boi",
       lockHint:"Ganhe um item novo a cada grande vitória: terminar o jogo ou passar 2 fases difíceis.", unlockNew:"🎁 Item novo no personagem: {a}!", editChar:"✏️ Editar personagem", charTitle:"Personagem", partyWin:"🏆 Você conseguiu!",
       options:"Opções", gfx:"Gráficos", gfx_auto:"Auto", gfx_low:"Leve", gfx_medium:"Equilibrado", gfx_high:"Realista", botsOn:"🤖 Bots: ligados", botsOff:"🤖 Bots: desligados", musicOn:"♫ Música: sim", musicOff:"♫ Música: não", sfxOn:"🔊 Sons: sim", sfxOff:"🔊 Sons: não", instShort:"Instalar", shareShort:"Enviar", saveChar:"Salvar",
       play:"JOGAR", cont:"▶ CONTINUAR (Fase {n})", restart:"Recomeçar do início", stage:"Fase", tutorial:"Tutorial",
@@ -485,7 +520,7 @@ const T = {
       hair:"Hair", hairColor:"Hair color", h_none:"No hair", h_short:"Short", h_spiky:"Spiky", h_curly:"Curly", h_long:"Long", h_ponytail:"Ponytail", h_pigtails:"Pigtails", h_bob:"Bob",
       head:"Skin", headFur:"Fur", torso:"Trim", arms:"Sleeves", legs:"Pants", acc:"Accessory",
       a_none:"None", a_hat:"🎩 Top hat", a_cap:"🧢 Cap", a_glasses:"🕶 Shades",
-      a_crown:"👑 Crown", a_headphones:"🎧 Headphones", a_cape:"🦸 Hero cape", a_afro:"💈 Afro", a_pet:"🐶 Pet", a_catears:"🐱 Cat ears", a_emo:"🖤 Emo hair", a_helmet:"🏍 Helmet", a_halo:"😇 Halo", a_horns:"🐂 Bull horns",
+      a_crown:"👑 Crown", a_headphones:"🎧 Headphones", a_cape:"🦸 Hero cape", a_afro:"💈 Afro", a_pet:"🐶 Pet", a_catears:"🐱 Cat ears", a_emo:"🖤 Emo hair", a_halo:"😇 Halo", a_horns:"🐂 Bull horns",
       lockHint:"You unlock a new item on every big win: finishing the game or clearing 2 hard stages.", unlockNew:"🎁 New character item: {a}!", editChar:"✏️ Edit character", charTitle:"Character", partyWin:"🏆 You made it!",
       options:"Options", gfx:"Graphics", gfx_auto:"Auto", gfx_low:"Fast", gfx_medium:"Balanced", gfx_high:"Realistic", botsOn:"🤖 Bots: on", botsOff:"🤖 Bots: off", musicOn:"♫ Music: on", musicOff:"♫ Music: off", sfxOn:"🔊 Sound: on", sfxOff:"🔊 Sound: off", instShort:"Install", shareShort:"Share", saveChar:"Save",
       play:"PLAY", cont:"▶ CONTINUE (Stage {n})", restart:"Start over", stage:"Stage", tutorial:"Tutorial",
@@ -507,7 +542,7 @@ const T = {
       hair:"Pelo", hairColor:"Color del pelo", h_none:"Sin pelo", h_short:"Corto", h_spiky:"Puntiagudo", h_curly:"Rizado", h_long:"Largo", h_ponytail:"Coleta", h_pigtails:"Dos coletas", h_bob:"Bob",
       head:"Piel", headFur:"Pelaje", torso:"Detalle", arms:"Mangas", legs:"Pantalón", acc:"Accesorio",
       a_none:"Ninguno", a_hat:"🎩 Chistera", a_cap:"🧢 Gorra", a_glasses:"🕶 Gafas",
-      a_crown:"👑 Corona", a_headphones:"🎧 Audífonos", a_cape:"🦸 Capa de héroe", a_afro:"💈 Afro", a_pet:"🐶 Mascota", a_catears:"🐱 Orejas de gato", a_emo:"🖤 Pelo emo", a_helmet:"🏍 Casco", a_halo:"😇 Aureola", a_horns:"🐂 Cuernos de toro",
+      a_crown:"👑 Corona", a_headphones:"🎧 Audífonos", a_cape:"🦸 Capa de héroe", a_afro:"💈 Afro", a_pet:"🐶 Mascota", a_catears:"🐱 Orejas de gato", a_emo:"🖤 Pelo emo", a_halo:"😇 Aureola", a_horns:"🐂 Cuernos de toro",
       lockHint:"Ganas un objeto nuevo en cada gran victoria: terminar el juego o pasar 2 fases difíciles.", unlockNew:"🎁 ¡Objeto nuevo del personaje: {a}!", editChar:"✏️ Editar personaje", charTitle:"Personaje", partyWin:"🏆 ¡Lo lograste!",
       options:"Opciones", gfx:"Gráficos", gfx_auto:"Auto", gfx_low:"Ligero", gfx_medium:"Equilibrado", gfx_high:"Realista", botsOn:"🤖 Bots: sí", botsOff:"🤖 Bots: no", musicOn:"♫ Música: sí", musicOff:"♫ Música: no", sfxOn:"🔊 Sonido: sí", sfxOff:"🔊 Sonido: no", instShort:"Instalar", shareShort:"Enviar", saveChar:"Guardar",
       play:"JUGAR", cont:"▶ CONTINUAR (Fase {n})", restart:"Empezar de nuevo", stage:"Fase", tutorial:"Tutorial",
@@ -648,17 +683,31 @@ const Snd=(function(){
   const FUNK_BASS=[38,38,36,36];
   const SONGS={
     // trilha animada e mais grave (pedido do dono) — baixo em colcheias + sub-grave
-    adventure:{bpm:126,len:128,play(st,tm){
+    /* AVENTURA — rock/metal animado (25/11/2026). Guitarra "abafada" em semicolcheia, bateria forte e
+       riff pentatônico. Não há distorção no Web Audio: a guitarra é serra + quinta + oitava em notas
+       curtas. Igual ao engine/audio.js — mudou num, mudar nos dois. */
+    adventure:{bpm:152,len:128,play(st,tm){
       const bar=Math.floor(st/16)%8,s=st%16;
-      const roots=[48,45,41,43,48,45,41,43][bar],third=[4,3,4,4,4,3,4,4][bar];
-      if(s===0||s===6||s===10){tone("sine",120,tm,0.2,0.6,musicG,38);tone("triangle",62,tm,0.26,0.34,musicG,34);}
-      if(s===4||s===12){noise(tm,0.1,0.22,musicG,1800);tone("triangle",190,tm,0.06,0.2,musicG,140);}
-      if(s%2===0)noise(tm,0.03,0.07,musicG,9000);
-      if(s%2===0){const walk=[0,0,7,0,0,0,5,7][s>>1];
-        tone("triangle",mtof(roots-12+walk),tm,0.16,0.46,musicG);tone("sine",mtof(roots-24+walk),tm,0.22,0.3,musicG);}
-      if(s===3||s===7||s===11||s===15)[0,third,7].forEach(n=>tone("square",mtof(roots+12+n),tm,0.08,0.11,musicG));
-      const mel=[[0,7,12,7,16,12,7,12],[0,7,12,14,12,7,4,7],[0,4,9,12,9,7,4,0],[2,7,11,14,11,7,2,7]][bar%4];
-      if(s%2===0)tone("square",mtof(roots+12+mel[s>>1]),tm,0.13,0.19,musicG);}},
+      const root=[45,41,48,43,45,41,48,43][bar];
+      const f0=mtof(root),f5=mtof(root+7),f8=mtof(root+12);
+      const KICK=[1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0];
+      if(KICK[s]){tone("sine",125,tm,0.14,0.62,musicG,40);tone("triangle",70,tm,0.1,0.3,musicG,36);}
+      if(s===4||s===12){noise(tm,0.13,0.3,musicG,1500);noise(tm,0.06,0.2,musicG,400);tone("triangle",200,tm,0.07,0.22,musicG,150);}
+      noise(tm,s%2?0.02:0.035,s%4===0?0.11:0.06,musicG,8200);
+      if(s===0&&bar%4===0)noise(tm,0.6,0.2,musicG,5200);
+      if(bar===7&&s>=12){noise(tm,0.09,0.26,musicG,900+(15-s)*300);tone("triangle",150-(s-12)*18,tm,0.1,0.26,musicG);}
+      if(s===0||s===8){[f0,f5,f8].forEach((f,n)=>tone("sawtooth",f,tm,0.34,n===2?0.07:0.1,musicG));tone("square",f8,tm,0.3,0.05,musicG);}
+      else if(s%2===0||s===7||s===11||s===15){const v=KICK[s]?0.1:0.062;
+        tone("sawtooth",f0,tm,0.055,v,musicG);tone("sawtooth",f5,tm,0.05,v*0.8,musicG);tone("square",f8,tm,0.04,v*0.4,musicG);}
+      if(s%2===0||KICK[s]){tone("triangle",mtof(root-12),tm,0.12,0.42,musicG);tone("sine",mtof(root-24),tm,0.16,0.26,musicG);}
+      const RIFF=[[12,null,15,null,17,null,15,null,12,null,10,null,12,null,null,null],
+                  [12,null,15,17,19,null,17,null,15,null,12,null,10,null,12,null],
+                  [19,null,17,null,15,null,17,null,19,null,22,null,19,null,17,null],
+                  [17,null,15,null,12,null,15,null,17,null,19,null,17,15,12,null]][bar%4];
+      const nt=RIFF[s];
+      if(nt!==null&&nt!==undefined){const f=mtof(45+nt),bend=(bar%4===3&&s===10)?mtof(45+nt+2):0;
+        tone("sawtooth",f,tm,bend?0.42:0.17,0.17,musicG,bend||undefined);
+        tone("square",f*2,tm,0.1,0.05,musicG);}}},
     // trecho difícil: grave pulsante, menor com trítono (composição original)
     castle:{bpm:132,len:128,play(st,tm){
       const bar=Math.floor(st/16)%8,s=st%16;
@@ -819,9 +868,9 @@ const HAIRCOLS=["#1f1a17","#5b3a1e","#a0673f","#e8c15a","#c2410c","#ec4899","#3b
    Mesma lista e mesma ordem do motor (engine/avatar.js + engine/unlocks.js) — mudou num, mudar nos dois.
    O progresso fica em "gilele:unlocks" e vale para TODOS os jogos do portal (mesma origem). */
 const ACC_FREE=["none","glasses","hat"];
-const ACC_CHAIN=["headphones","cape","afro","pet","catears","cap","emo","helmet","halo","horns","crown"];
+const ACC_CHAIN=["headphones","cape","afro","pet","catears","cap","emo","halo","horns","crown"];
 const ACCS=ACC_FREE.concat(ACC_CHAIN);
-const ACC_HAIR=["afro","emo","helmet"];   /* ocupam o lugar do cabelo */
+const ACC_HAIR=["afro","emo"];   /* ocupam o lugar do cabelo */
 function unlockCount(){const v=parseInt(load("gilele:unlocks")||"0",10);return Math.min(ACC_CHAIN.length,isFinite(v)&&v>0?Math.floor(v):0);}
 function accUnlocked(a){return ACC_FREE.includes(a)||ACC_CHAIN.indexOf(a)<unlockCount();}
 function openAccs(){return ACC_FREE.concat(ACC_CHAIN.slice(0,unlockCount()));}
@@ -1718,10 +1767,6 @@ function buildAvatar(lk){
       const tip=part(0.12,0.24,0.12,bone,s*0.52*hd,0.65+up,0,head);tip.rotation.z=s*0.15;});}
   else if(lk.a==="halo"){const gold="#fde047",y0=0.72+up;
     for(let i=0;i<12;i++){const a=(i/12)*Math.PI*2;part(0.11,0.07,0.11,gold,Math.cos(a)*0.3*hd,y0,Math.sin(a)*0.3*hd,head,false);}}
-  else if(lk.a==="helmet"){const sh=c[1];
-    part(0.86*hd,0.52,0.86*hd,sh,0,0.26,0,head);part(0.9*hd,0.2,0.9*hd,sh,0,0.02,0,head);
-    part(0.74*hd,0.26,0.12,"#0ea5e9",0,0.1,0.4*hd,head,false);part(0.94*hd,0.08,0.3,"#1f2937",0,0.46,0.2*hd,head,false);
-    [-1,1].forEach(s=>part(0.08,0.34,0.5,sh,s*0.42*hd,0.04,-0.08,head));}
   else if(lk.a==="afro"){const f=lk.hc;
     for(let i=0;i<22;i++){const a=(i/22)*Math.PI*2;part(0.34,0.34,0.34,f,Math.cos(a)*0.5*hd,0.12+(i%2)*0.08,Math.sin(a)*0.5*hd,head);}
     for(let i=0;i<10;i++){const a=(i/10)*Math.PI*2+0.3;part(0.32,0.32,0.32,f,Math.cos(a)*0.32*hd,0.44,Math.sin(a)*0.32*hd,head);}
@@ -2282,7 +2327,7 @@ function buildMenu(){
   });
   $("lockInfo").textContent=t("lockHint");
   $("charName").textContent=(look.n||"").trim()||t("namePh");
-  $("editChar").textContent=t("editChar");
+  $("editChar").title=t("editChar");
   $("charTitle").textContent="🧍 "+t("charTitle");$("charOk").textContent="✔ "+t("saveChar");
   $("cfgTitle").textContent="⚙️ "+t("options");$("cfgOk").textContent=t("back");
   const O=$("opts");O.innerHTML="";
@@ -2313,12 +2358,11 @@ function buildMenu(){
 }
 function saveLook(){store("ezobby_look2",JSON.stringify(look));meChar.setLook(look);refreshPreview();sendLook();}
 /* ---- editor do personagem (abre só no botão) e configurações ---- */
-function charOpen(){const w=$("pvWrap");$("pvSlot").appendChild(w);$("charOv").classList.remove("hidden");resizePreview();}
-function charClose(){const w=$("pvWrap");$("pvHome").appendChild(w);$("charOv").classList.add("hidden");resizePreview();buildMenu();}
+function charOpen(){$("charOv").classList.remove("hidden");resizePreview();}
+function charClose(){$("charOv").classList.add("hidden");buildMenu();}
 function cfgOpen(){buildMenu();$("cfgOv").classList.remove("hidden");}
 function cfgClose(){$("cfgOv").classList.add("hidden");}
 setTimeout(()=>{
-  $("charBtn").onclick=()=>{Snd.play("click");charOpen();};
   $("editChar").onclick=()=>{Snd.play("click");charOpen();};
   $("charX").onclick=()=>{Snd.play("click");charClose();};
   $("charOk").onclick=()=>{Snd.play("ok");charClose();};
@@ -3252,9 +3296,18 @@ function frame(now){
   const inMenu=!playing&&!$("menu").classList.contains("hidden");
   camTarget.lerp(tmpV.set(me.x,me.y+2.2,me.z),1-Math.exp(-10*dt));
   let cyw=yaw,cpt=pitch,cd=dist;
-  if(inMenu){cyw=Math.sin(now*0.0004)*0.8;cpt=0.3;cd=9;camTarget.set(me.x,me.y+1.8,me.z);meChar.av.g.rotation.y=0;}
-  if(inMenu&&innerWidth>=900)camera.setViewOffset(innerWidth,innerHeight,-innerWidth*0.2,0,innerWidth,innerHeight);
-  else if(camera.view&&camera.view.enabled)camera.clearViewOffset();
+  if(inMenu){
+    /* tela inicial: a câmera dá a volta devagar e o boneco fica no meio dando pulinhos (25/11/2026) */
+    cyw=now*0.00011;cpt=0.42;cd=13;camTarget.set(me.x,me.y+1.3,me.z);
+    meChar.av.g.rotation.y=cyw+Math.PI;                       // sempre de frente para a câmera
+    const cyc=(now/1000)%3.6;
+    if(cyc<0.66){const p=cyc/0.66,up=Math.sin(p*Math.PI);
+      meChar.root.position.y=me.y+up*0.85;
+      if(meChar.av.legL){meChar.av.legL.rotation.x=0.4*up;meChar.av.legR.rotation.x=-0.4*up;}
+      if(meChar.av.armL){meChar.av.armL.rotation.x=-2.4*up;meChar.av.armR.rotation.x=-2.4*up;}
+    }else{meChar.root.position.y=me.y+Math.sin(now*0.0022)*0.02;}
+  }
+  if(camera.view&&camera.view.enabled)camera.clearViewOffset();
   camera.position.set(camTarget.x+Math.sin(cyw)*Math.cos(cpt)*cd,camTarget.y+Math.sin(cpt)*cd,camTarget.z+Math.cos(cyw)*Math.cos(cpt)*cd);
   camera.lookAt(camTarget);
   const flyP=fly.on?flyStep(dt):null;
