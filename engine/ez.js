@@ -2,7 +2,7 @@
 //   import { THREE, createWorld, createPhysics, createBody, Character, ... } from "../../engine/ez.js";
 import * as THREE from "./three.js";
 export { THREE };
-export const VERSION = "0.5.1";
+export const VERSION = "0.5.2";
 export * from "./core.js";
 export * from "./storage.js";
 export * from "./i18n.js";
@@ -22,3 +22,5 @@ export * from "./vehicle.js";
 export * from "./road.js";
 export * from "./traffic.js";
 export * from "./throw.js";
+export * from "./unlocks.js";
+export * from "./party.js";

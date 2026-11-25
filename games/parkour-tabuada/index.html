@@ -103,6 +103,21 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   .chips button,.langs button{background:#e2e8f0;color:#334155;border-radius:999px;padding:5px 11px;font-weight:600;font-size:13px}
   .chips button.sel,.langs button.sel{background:#2563eb;color:#fff}
   .top{display:flex;gap:12px;align-items:stretch}
+  /* casca padrão da tela inicial (25/11/2026) */
+  .hometop{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .hometop .langs{margin:0}
+  .hometools{margin-left:auto;display:flex;gap:6px}
+  .tbtn{background:#475569;color:#fff;font-weight:800;border-radius:12px;padding:8px 11px;font-size:14px;white-space:nowrap}
+  .hochar{display:flex;align-items:center;justify-content:center;gap:14px;margin:4px 0 10px}
+  .charbtn{background:transparent;padding:0;line-height:0;border-radius:16px}
+  .charbtn:active{transform:scale(.97)}
+  #charBtn #pvWrap{width:104px;height:140px}
+  .charinfo{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+  #charName{font-size:20px;font-weight:800;color:#1f2937;max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chips button.locked{opacity:.38;filter:grayscale(.7)}
+  .ovx{position:absolute;top:8px;right:10px;background:#e2e8f0;color:#334155;width:34px;height:34px;border-radius:50%;font-size:16px;font-weight:800}
+  #charOv .card,#cfgOv .card{position:relative}
+  #charOv,#cfgOv{z-index:30}
   #pvWrap{flex:none;width:132px;height:178px;border-radius:16px;background:linear-gradient(#bae6fd,#e0f2fe 70%,#bbf7d0);position:relative;overflow:hidden}
   #preview{width:100%;height:100%;display:block}
   .tcol{flex:1;min-width:0}
@@ -174,9 +189,9 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
 <div id="hud" class="hidden">
   <div id="topbar">
     <button class="rbtn hidden" id="menuBtn" title="Menu">⚙</button>
-    <button class="rbtn" id="musicBtn" title="Música">♫</button>
-    <button class="rbtn" id="sfxBtn" title="Sons">🔊</button>
-    <button class="rbtn" id="pauseBtn" title="Pausa">⏸</button>
+    <button class="rbtn hidden" id="musicBtn" title="Música">♫</button>
+    <button class="rbtn hidden" id="sfxBtn" title="Sons">🔊</button>
+    <button class="rbtn" id="pauseBtn" title="Pausa">✕</button>
     <div class="pill" id="stageLbl">Tutorial</div>
     <div class="pill" id="ptsLbl">⭐ 0</div>
     <div class="pill" id="net"><span class="dot"></span><span id="netTxt">...</span></div>
@@ -206,18 +221,44 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
 <div id="menu" class="overlay">
   <div class="card">
     <h1 class="logo">Parkour <span>Tabuada</span></h1>
+    <div class="hometop">
+      <div class="langs" id="langs"></div>
+      <div class="hometools">
+        <button id="gShare" class="tbtn"></button>
+        <button id="pwaBtn" class="tbtn hidden"></button>
+        <button id="cfgBtn" class="tbtn">⚙️</button>
+      </div>
+    </div>
     <p class="sub" id="subLine"></p>
-    <button id="pwaBtn" class="hidden" style="background:linear-gradient(90deg,#f59e0b,#ef4444);color:#fff;font-weight:900;font-size:18px;border-radius:16px;padding:12px 18px;margin:6px auto;box-shadow:0 5px 0 #b45309;animation:pwaPulse 1.6s ease-in-out infinite"></button>
     <div id="pwaIos" class="hidden" style="background:#fff7ed;border:3px solid #f59e0b;border-radius:14px;padding:10px;margin:6px auto;font-weight:700;color:#7c2d12;font-size:14px;max-width:420px"></div>
-    <div id="gLinks" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px auto">
+    <div class="hochar">
+      <button id="charBtn" class="charbtn"><span id="pvHome"><div id="pvWrap"><canvas id="preview"></canvas></div></span></button>
+      <div class="charinfo"><b id="charName"></b><button class="sec" id="editChar" style="margin:0"></button></div>
+    </div>
+    <label class="l" data-i="playTitle" style="font-size:16px"></label>
+    <div class="modes">
+      <button class="mode atk hidden" id="playBtn"></button>
+      <button class="sec hidden" id="restartBtn" data-i="restart" style="margin-top:0"></button>
+      <button class="mode tab hidden" id="tabBtn"></button>
+      <div id="tabPick"><div class="l2" data-i="tabOpLbl"></div><div class="chips" id="opChips"></div><div class="l2" data-i="tabFrom" style="margin-top:10px"></div><div class="chips" id="tabChips"></div><button class="play" id="tabGo" data-i="tabGo" style="margin-top:12px;background:#f59e0b;box-shadow:0 5px 0 #b45309"></button><button class="play" id="tabMpBtn" data-i="tabMp" style="margin-top:10px;font-size:18px;background:#2563eb;box-shadow:0 5px 0 #1e40af"></button></div>
+      <button class="mode mp hidden" id="mpBtn"></button>
+    </div>
+    <div class="info" id="ctrlInfo"></div>
+    <div class="info" id="mpInfo"></div>
+    <div id="gLinks" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px auto 0">
       <a id="gPortal" href="../../jogos.html" style="background:#475569;color:#fff;font-weight:800;border-radius:14px;padding:9px 14px;text-decoration:none;font-size:15px">🏠 Gilelê Games</a>
-      <button id="gShare" style="background:#2563eb;color:#fff;font-weight:800;border-radius:14px;padding:9px 14px;font-size:15px"></button>
       <a id="gPriv" href="../../privacidade.html" style="background:#475569;color:#fff;font-weight:800;border-radius:14px;padding:9px 14px;text-decoration:none;font-size:15px">🔒 Privacidade</a>
     </div>
-    <style>@keyframes pwaPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}</style>
-    <div class="langs" id="langs"></div>
+  </div>
+</div>
+
+<!-- Editor do personagem: fica FECHADO por padrão (o dono pediu, 25/11/2026) e abre no botão ✏️ -->
+<div id="charOv" class="overlay hidden">
+  <div class="card">
+    <button class="ovx" id="charX" aria-label="✕">✕</button>
+    <h2 id="charTitle" style="margin:0 0 10px;color:#2563eb;font-size:24px"></h2>
     <div class="top">
-      <div id="pvWrap"><canvas id="preview"></canvas></div>
+      <span id="pvSlot"></span>
       <div class="tcol">
         <label class="l" data-i="name" for="nameIn"></label>
         <input id="nameIn" maxlength="14" autocomplete="off">
@@ -236,18 +277,19 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
     <div id="colorRows"></div>
     <label class="l" data-i="acc"></label>
     <div class="chips" id="accs"></div>
-    <label class="l" data-i="options"></label>
+    <div class="info" id="lockInfo" style="margin-top:6px"></div>
+    <button class="play" id="charOk" style="margin-top:12px"></button>
+  </div>
+</div>
+
+<!-- Configurações (música, sons, gráficos, bots): no ⚙️ da tela inicial e dentro do botão de fechar do jogo -->
+<div id="cfgOv" class="overlay hidden">
+  <div class="card">
+    <button class="ovx" id="cfgX" aria-label="✕">✕</button>
+    <h2 id="cfgTitle" style="margin:0 0 10px;color:#2563eb;font-size:24px"></h2>
     <div class="chips" id="opts"></div>
-    <label class="l" data-i="playTitle" style="font-size:16px"></label>
-    <div class="modes">
-      <button class="mode atk hidden" id="playBtn"></button>
-      <button class="sec hidden" id="restartBtn" data-i="restart" style="margin-top:0"></button>
-      <button class="mode tab hidden" id="tabBtn"></button>
-      <div id="tabPick"><div class="l2" data-i="tabOpLbl"></div><div class="chips" id="opChips"></div><div class="l2" data-i="tabFrom" style="margin-top:10px"></div><div class="chips" id="tabChips"></div><button class="play" id="tabGo" data-i="tabGo" style="margin-top:12px;background:#f59e0b;box-shadow:0 5px 0 #b45309"></button><button class="play" id="tabMpBtn" data-i="tabMp" style="margin-top:10px;font-size:18px;background:#2563eb;box-shadow:0 5px 0 #1e40af"></button></div>
-      <button class="mode mp hidden" id="mpBtn"></button>
-    </div>
-    <div class="info" id="ctrlInfo"></div>
-    <div class="info" id="mpInfo"></div>
+    <div class="chips" id="opts2" style="margin-top:8px"></div>
+    <button class="play" id="cfgOk" style="margin-top:14px"></button>
   </div>
 </div>
 
@@ -322,6 +364,7 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
     <h2 data-i="paused" style="margin:4px 0 6px;color:#2563eb;font-size:30px"></h2>
     <div id="pausePts" style="font-weight:700;font-size:20px;color:#ca8a04"></div>
     <button class="play" id="resumeBtn" data-i="resume"></button>
+    <button class="sec" id="pCfgBtn"></button>
     <button class="sec" id="pMenuBtn" data-i="toMenu"></button>
   </div>
 </div>
@@ -416,7 +459,9 @@ const T = {
       hair:"Cabelo", hairColor:"Cor do cabelo", h_none:"Sem cabelo", h_short:"Curto", h_spiky:"Espetado", h_curly:"Cacheado", h_long:"Longo", h_ponytail:"Rabo de cavalo", h_pigtails:"Maria-chiquinha", h_bob:"Chanel",
       head:"Pele", headFur:"Pelo", torso:"Detalhe", arms:"Mangas", legs:"Calça", acc:"Acessório",
       a_none:"Nenhum", a_hat:"🎩 Cartola", a_cap:"🧢 Boné", a_glasses:"🕶 Óculos",
-      options:"Opções", gfx:"Gráficos", gfx_auto:"Auto", gfx_low:"Leve", gfx_medium:"Equilibrado", gfx_high:"Realista", botsOn:"🤖 Bots: ligados", botsOff:"🤖 Bots: desligados", musicOn:"♫ Música: sim", musicOff:"♫ Música: não",
+      a_crown:"👑 Coroa", a_headphones:"🎧 Fone", a_cape:"🦸 Capa de herói", a_afro:"💈 Black power", a_pet:"🐶 Bichinho", a_catears:"🐱 Orelha de gato", a_emo:"🖤 Cabelo emo", a_helmet:"🏍 Capacete", a_halo:"😇 Auréola", a_horns:"🐂 Chifre de boi",
+      lockHint:"Ganhe um item novo a cada grande vitória: terminar o jogo ou passar 2 fases difíceis.", unlockNew:"🎁 Item novo no personagem: {a}!", editChar:"✏️ Editar personagem", charTitle:"Personagem", partyWin:"🏆 Você conseguiu!",
+      options:"Opções", gfx:"Gráficos", gfx_auto:"Auto", gfx_low:"Leve", gfx_medium:"Equilibrado", gfx_high:"Realista", botsOn:"🤖 Bots: ligados", botsOff:"🤖 Bots: desligados", musicOn:"♫ Música: sim", musicOff:"♫ Música: não", sfxOn:"🔊 Sons: sim", sfxOff:"🔊 Sons: não", instShort:"Instalar", shareShort:"Enviar", saveChar:"Salvar",
       play:"JOGAR", cont:"▶ CONTINUAR (Fase {n})", restart:"Recomeçar do início", stage:"Fase", tutorial:"Tutorial",
       themes:["Parquinho","Céu","Gelo","Contas","Floresta","Pedra Gigante","Neon","Lava"],
       ctrlPc:"<b>PC:</b> WASD/setas andam · Espaço pula · arraste o mouse para girar a câmera · roda = zoom · R volta ao checkpoint · <b>T</b> abre o chat (1-8 manda direto) · M liga/desliga música",
@@ -436,7 +481,9 @@ const T = {
       hair:"Hair", hairColor:"Hair color", h_none:"No hair", h_short:"Short", h_spiky:"Spiky", h_curly:"Curly", h_long:"Long", h_ponytail:"Ponytail", h_pigtails:"Pigtails", h_bob:"Bob",
       head:"Skin", headFur:"Fur", torso:"Trim", arms:"Sleeves", legs:"Pants", acc:"Accessory",
       a_none:"None", a_hat:"🎩 Top hat", a_cap:"🧢 Cap", a_glasses:"🕶 Shades",
-      options:"Options", gfx:"Graphics", gfx_auto:"Auto", gfx_low:"Fast", gfx_medium:"Balanced", gfx_high:"Realistic", botsOn:"🤖 Bots: on", botsOff:"🤖 Bots: off", musicOn:"♫ Music: on", musicOff:"♫ Music: off",
+      a_crown:"👑 Crown", a_headphones:"🎧 Headphones", a_cape:"🦸 Hero cape", a_afro:"💈 Afro", a_pet:"🐶 Pet", a_catears:"🐱 Cat ears", a_emo:"🖤 Emo hair", a_helmet:"🏍 Helmet", a_halo:"😇 Halo", a_horns:"🐂 Bull horns",
+      lockHint:"You unlock a new item on every big win: finishing the game or clearing 2 hard stages.", unlockNew:"🎁 New character item: {a}!", editChar:"✏️ Edit character", charTitle:"Character", partyWin:"🏆 You made it!",
+      options:"Options", gfx:"Graphics", gfx_auto:"Auto", gfx_low:"Fast", gfx_medium:"Balanced", gfx_high:"Realistic", botsOn:"🤖 Bots: on", botsOff:"🤖 Bots: off", musicOn:"♫ Music: on", musicOff:"♫ Music: off", sfxOn:"🔊 Sound: on", sfxOff:"🔊 Sound: off", instShort:"Install", shareShort:"Share", saveChar:"Save",
       play:"PLAY", cont:"▶ CONTINUE (Stage {n})", restart:"Start over", stage:"Stage", tutorial:"Tutorial",
       themes:["Playground","Sky","Ice","Math","Forest","Giant Boulder","Neon","Lava"],
       ctrlPc:"<b>PC:</b> WASD/arrows move · Space jumps · drag the mouse to turn the camera · wheel = zoom · R back to checkpoint · <b>T</b> opens chat (1-8 send directly) · M toggles music",
@@ -456,7 +503,9 @@ const T = {
       hair:"Pelo", hairColor:"Color del pelo", h_none:"Sin pelo", h_short:"Corto", h_spiky:"Puntiagudo", h_curly:"Rizado", h_long:"Largo", h_ponytail:"Coleta", h_pigtails:"Dos coletas", h_bob:"Bob",
       head:"Piel", headFur:"Pelaje", torso:"Detalle", arms:"Mangas", legs:"Pantalón", acc:"Accesorio",
       a_none:"Ninguno", a_hat:"🎩 Chistera", a_cap:"🧢 Gorra", a_glasses:"🕶 Gafas",
-      options:"Opciones", gfx:"Gráficos", gfx_auto:"Auto", gfx_low:"Ligero", gfx_medium:"Equilibrado", gfx_high:"Realista", botsOn:"🤖 Bots: sí", botsOff:"🤖 Bots: no", musicOn:"♫ Música: sí", musicOff:"♫ Música: no",
+      a_crown:"👑 Corona", a_headphones:"🎧 Audífonos", a_cape:"🦸 Capa de héroe", a_afro:"💈 Afro", a_pet:"🐶 Mascota", a_catears:"🐱 Orejas de gato", a_emo:"🖤 Pelo emo", a_helmet:"🏍 Casco", a_halo:"😇 Aureola", a_horns:"🐂 Cuernos de toro",
+      lockHint:"Ganas un objeto nuevo en cada gran victoria: terminar el juego o pasar 2 fases difíciles.", unlockNew:"🎁 ¡Objeto nuevo del personaje: {a}!", editChar:"✏️ Editar personaje", charTitle:"Personaje", partyWin:"🏆 ¡Lo lograste!",
+      options:"Opciones", gfx:"Gráficos", gfx_auto:"Auto", gfx_low:"Ligero", gfx_medium:"Equilibrado", gfx_high:"Realista", botsOn:"🤖 Bots: sí", botsOff:"🤖 Bots: no", musicOn:"♫ Música: sí", musicOff:"♫ Música: no", sfxOn:"🔊 Sonido: sí", sfxOff:"🔊 Sonido: no", instShort:"Instalar", shareShort:"Enviar", saveChar:"Guardar",
       play:"JUGAR", cont:"▶ CONTINUAR (Fase {n})", restart:"Empezar de nuevo", stage:"Fase", tutorial:"Tutorial",
       themes:["Parque","Cielo","Hielo","Cuentas","Bosque","Roca Gigante","Neón","Lava"],
       ctrlPc:"<b>PC:</b> WASD/flechas para moverte · Espacio salta · arrastra el ratón para girar la cámara · rueda = zoom · R vuelve al checkpoint · <b>T</b> abre el chat (1-8 envía directo) · M música",
@@ -578,6 +627,10 @@ const Snd=(function(){
   let musicOn=load("ezobby_music")!=="0",sfxOn=load("ezobby_sfx")!=="0";
   const _=0;
   const mtof=m=>440*Math.pow(2,(m-69)/12);
+  /* Volume da trilha: subiu de 0,13 para 0,28 em 25/11/2026 (o dono achou a música baixa perto
+     do som do pulo). Junto com isso o médio das trilhas ficou mais forte e o sub-grave mais fraco:
+     alto-falante de celular não toca abaixo de ~200 Hz, o grave só gastava volume sem ser ouvido. */
+  const MUSIC_VOL=0.28;
   const HAPPY_MEL=[
     [76,_,79,_,84,_,79,_,76,_,74,_,72,_,74,_],[74,_,79,_,83,_,79,_,74,_,_,_,71,_,74,_],
     [72,_,76,_,81,_,76,_,72,_,76,_,81,_,79,_],[81,_,77,_,72,_,77,_,81,_,79,_,76,_,74,_],
@@ -594,28 +647,45 @@ const Snd=(function(){
     adventure:{bpm:126,len:128,play(st,tm){
       const bar=Math.floor(st/16)%8,s=st%16;
       const roots=[48,45,41,43,48,45,41,43][bar],third=[4,3,4,4,4,3,4,4][bar];
-      if(s===0||s===6||s===10){tone("sine",120,tm,0.2,0.75,musicG,38);tone("triangle",62,tm,0.26,0.5,musicG,34);}
+      if(s===0||s===6||s===10){tone("sine",120,tm,0.2,0.6,musicG,38);tone("triangle",62,tm,0.26,0.34,musicG,34);}
       if(s===4||s===12){noise(tm,0.1,0.22,musicG,1800);tone("triangle",190,tm,0.06,0.2,musicG,140);}
       if(s%2===0)noise(tm,0.03,0.07,musicG,9000);
       if(s%2===0){const walk=[0,0,7,0,0,0,5,7][s>>1];
-        tone("triangle",mtof(roots-12+walk),tm,0.16,0.55,musicG);tone("sine",mtof(roots-24+walk),tm,0.22,0.45,musicG);}
-      if(s===3||s===7||s===11||s===15)[0,third,7].forEach(n=>tone("square",mtof(roots+12+n),tm,0.08,0.045,musicG));
+        tone("triangle",mtof(roots-12+walk),tm,0.16,0.46,musicG);tone("sine",mtof(roots-24+walk),tm,0.22,0.3,musicG);}
+      if(s===3||s===7||s===11||s===15)[0,third,7].forEach(n=>tone("square",mtof(roots+12+n),tm,0.08,0.11,musicG));
       const mel=[[0,7,12,7,16,12,7,12],[0,7,12,14,12,7,4,7],[0,4,9,12,9,7,4,0],[2,7,11,14,11,7,2,7]][bar%4];
-      if(s%2===0)tone("square",mtof(roots+12+mel[s>>1]),tm,0.13,0.085,musicG);}},
+      if(s%2===0)tone("square",mtof(roots+12+mel[s>>1]),tm,0.13,0.19,musicG);}},
     // trecho difícil: grave pulsante, menor com trítono (composição original)
     castle:{bpm:132,len:128,play(st,tm){
       const bar=Math.floor(st/16)%8,s=st%16;
       const root=[38,38,37,37,38,38,44,43][bar];
       const pat=[0,0,1,0,0,0,1,0,0,0,1,0,3,0,1,0];
       tone("sawtooth",mtof(root-12+pat[s]),tm,0.085,0.42,musicG);
-      if(s%4===0)tone("sine",mtof(root-24),tm,0.3,0.7,musicG,mtof(root-24)*0.9);
-      if(s===0||s===10)tone("triangle",96,tm,0.34,0.6,musicG,48);
+      if(s%4===0)tone("sine",mtof(root-24),tm,0.3,0.42,musicG,mtof(root-24)*0.9);
+      if(s===0||s===10)tone("triangle",96,tm,0.34,0.5,musicG,48);
       if(s===6||s===14)noise(tm,0.14,0.2,musicG,900);
-      if(s===0||s===8)[0,3,6].forEach(n=>tone("sawtooth",mtof(root+n),tm,0.28,0.07,musicG));
+      if(s===0||s===8)[0,3,6].forEach(n=>tone("sawtooth",mtof(root+n),tm,0.28,0.17,musicG));
       const th=[[0,null,3,null,6,null,5,null],[3,null,2,null,1,null,0,null],[0,null,1,null,3,null,1,null],[6,null,5,null,3,null,0,null]][bar%4];
       const nt=th[s>>1];
-      if(s%2===0&&nt!==null){tone("square",mtof(root+12+nt),tm,0.22,0.055,musicG);tone("sawtooth",mtof(root+nt),tm,0.22,0.04,musicG);}
-      if(bar%4===3&&(s===12||s===14))tone("triangle",mtof(root+24+(s===12?6:7)),tm,0.3,0.05,musicG);}},
+      if(s%2===0&&nt!==null){tone("square",mtof(root+12+nt),tm,0.22,0.17,musicG);tone("sawtooth",mtof(root+nt),tm,0.22,0.11,musicG);}
+      if(bar%4===3&&(s===12||s===14))tone("triangle",mtof(root+24+(s===12?6:7)),tm,0.3,0.14,musicG);}},
+    /* COMEMORAÇÃO — fanfarra em Dó maior para a vitória final (25/11/2026) */
+    victory:{bpm:140,len:128,play(st,tm){
+      const bar=Math.floor(st/16)%8,s=st%16;
+      const root=[48,48,53,55,48,45,50,55][bar];
+      const MEL=[[72,null,76,null,79,null,84,null,79,null,76,null,72,null,76,null],
+                 [74,null,77,null,81,null,86,null,81,null,77,null,74,null,79,null],
+                 [76,null,79,null,84,null,88,null,84,null,79,null,76,null,72,null],
+                 [79,null,83,null,86,null,91,null,86,null,83,null,79,null,84,null]][bar%4];
+      if(s%4===0)tone("sine",130,tm,0.18,0.6,musicG,42);
+      if(s%4===2)noise(tm,0.1,0.26,musicG,1700);
+      if(s%2===1)noise(tm,0.03,0.1,musicG,9000);
+      if(s===15&&bar%2===1){noise(tm,0.08,0.22,musicG,2400);noise(tm+0.07,0.1,0.26,musicG,1900);}
+      if(s%2===0)tone("triangle",mtof(root-12+(s%4===2?7:0)),tm,0.14,0.42,musicG);
+      if(s===0||s===8)[0,4,7,12].forEach(n=>tone("sawtooth",mtof(root+n),tm,0.3,0.1,musicG));
+      const nt=MEL[s];
+      if(nt!==null&&nt!==undefined){tone("square",mtof(nt),tm,0.2,0.2,musicG);tone("triangle",mtof(nt+12),tm,0.16,0.09,musicG);}
+      if(s%4===2)tone("triangle",mtof(84+((s+bar)%3)*4),tm,0.12,0.08,musicG);}},
     happy:{bpm:112,len:128,play(st,tm){
       const bar=Math.floor(st/16),s=st%16,ch=bar%4;const m=HAPPY_MEL[bar][s];
       if(m){tone("square",mtof(m),tm,bar<4?0.17:0.45,0.18,musicG);tone("triangle",mtof(m+12),tm,0.12,0.05,musicG);}
@@ -645,7 +715,7 @@ const Snd=(function(){
     const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
     try{ctx=new AC();}catch(e){ctx=null;return;}
     master=ctx.createGain();master.gain.value=0.9;master.connect(ctx.destination);
-    musicG=ctx.createGain();musicG.gain.value=musicOn?0.13:0;musicG.connect(master);
+    musicG=ctx.createGain();musicG.gain.value=musicOn?MUSIC_VOL:0;musicG.connect(master);
     sfxG=ctx.createGain();sfxG.gain.value=sfxOn?0.55:0;sfxG.connect(master);
     const ws=ctx.createWaveShaper();const cv=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/512-1;cv[i]=Math.tanh(x*4);}ws.curve=cv;
     const lp=ctx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2200;
@@ -693,6 +763,10 @@ const Snd=(function(){
     ok(){const n=now();[79,84,88].forEach((m,i)=>tone("square",mtof(m),n+i*0.07,0.16,0.2,sfxG));tone("triangle",mtof(91),n+0.21,0.4,0.2,sfxG);},
     wrong(){const n=now();tone("square",190,n,0.16,0.25,sfxG,170);tone("square",150,n+0.2,0.3,0.25,sfxG,120);},
     win(){const n=now();[[72,0],[76,.12],[79,.24],[84,.36],[79,.6],[84,.72]].forEach(([m,d])=>{tone("square",mtof(m),n+d,d>0.5?0.5:0.16,0.22,sfxG);tone("triangle",mtof(m-12),n+d,0.3,0.25,sfxG);});},
+    /* comemoração (25/11/2026): fanfarra grande, gritaria e fogos */
+    fanfare(){const n=now();[[72,0],[76,.1],[79,.2],[84,.3],[88,.45],[84,.62],[91,.74]].forEach(([m,d],i)=>{tone("square",mtof(m),n+d,i>=5?0.6:0.16,0.24,sfxG);tone("triangle",mtof(m-12),n+d,0.3,0.2,sfxG);tone("sawtooth",mtof(m+12),n+d,0.14,0.07,sfxG);});[0,.25,.5,.78].forEach(d=>noise(n+d,0.12,0.2,sfxG,1500));},
+    cheer(){const n=now();noise(n,0.5,0.16,sfxG,1200);noise(n+0.08,0.45,0.12,sfxG,2600);[84,88,91].forEach((m,i)=>tone("triangle",mtof(m),n+i*0.08,0.2,0.14,sfxG));},
+    firework(){const n=now();tone("sine",900,n,0.22,0.12,sfxG,2200);noise(n+0.24,0.5,0.3,sfxG,900);noise(n+0.26,0.3,0.2,sfxG,3000);},
     push(){const n=now();noise(n,0.12,0.35,sfxG,600);tone("square",220,n,0.12,0.2,sfxG,90);},
     boing(){const n=now();tone("sine",700,n,0.32,0.4,sfxG,140);tone("square",350,n,0.12,0.1,sfxG,120);},
     pop(){const n=now();tone("sine",880,n,0.07,0.25,sfxG);tone("sine",1320,n+0.06,0.08,0.2,sfxG);},
@@ -726,18 +800,29 @@ const Snd=(function(){
       rumbleG=ctx.createGain();rumbleG.gain.value=0.0001;rumbleG.gain.exponentialRampToValueAtTime(1.6,ctx.currentTime+0.4);rumbleSrc.connect(f);f.connect(rumbleG);rumbleG.connect(sfxG);rumbleSrc.start();}
     else if(!on&&rumbleSrc){const s=rumbleSrc;rumbleG.gain.setTargetAtTime(0.0001,ctx.currentTime,0.1);setTimeout(()=>{try{s.stop();}catch(e){}},500);rumbleSrc=null;}
   }
-  function setMusic(v){musicOn=v;store("ezobby_music",v?"1":"0");if(musicG)musicG.gain.setTargetAtTime(v?0.13:0,ctx.currentTime,0.05);}
+  function setMusic(v){musicOn=v;store("ezobby_music",v?"1":"0");if(musicG)musicG.gain.setTargetAtTime(v?MUSIC_VOL:0,ctx.currentTime,0.05);}
   function setSfx(v){sfxOn=v;store("ezobby_sfx",v?"1":"0");if(sfxG)sfxG.gain.setTargetAtTime(v?0.55:0,ctx.currentTime,0.05);}
   function suspend(){try{if(ctx&&ctx.state==="running")ctx.suspend();}catch(e){}}
   function resume(){try{if(ctx&&ctx.state==="suspended")ctx.resume();}catch(e){}}
-  return {init,play,setMusic,setSfx,setSong,rumble,suspend,resume,get musicOn(){return musicOn},get sfxOn(){return sfxOn}};
+  return {init,play,setMusic,setSfx,setSong,rumble,suspend,resume,song(){return pending||song},get musicOn(){return musicOn},get sfxOn(){return sfxOn}};
 })();
 ["pointerdown","keydown"].forEach(ev=>addEventListener(ev,()=>Snd.init(),{capture:true}));
 
 /* ================= look / customization ================= */
 const PALETTE=["#f4c095","#a0673f","#6b4226","#ffd23f","#f97316","#ef4444","#ec4899","#a855f7","#3b82f6","#22c55e","#ffffff","#94a3b8","#1f2937"];
 const HAIRCOLS=["#1f1a17","#5b3a1e","#a0673f","#e8c15a","#c2410c","#ec4899","#3b82f6","#e5e7eb"];
-const ACCS=["none","hat","cap","glasses"];
+/* Acessórios (25/11/2026): os 3 primeiros vêm liberados; o resto é desbloqueado jogando.
+   Mesma lista e mesma ordem do motor (engine/avatar.js + engine/unlocks.js) — mudou num, mudar nos dois.
+   O progresso fica em "gilele:unlocks" e vale para TODOS os jogos do portal (mesma origem). */
+const ACC_FREE=["none","glasses","hat"];
+const ACC_CHAIN=["headphones","cape","afro","pet","catears","cap","emo","helmet","halo","horns","crown"];
+const ACCS=ACC_FREE.concat(ACC_CHAIN);
+const ACC_HAIR=["afro","emo","helmet"];   /* ocupam o lugar do cabelo */
+function unlockCount(){const v=parseInt(load("gilele:unlocks")||"0",10);return Math.min(ACC_CHAIN.length,isFinite(v)&&v>0?Math.floor(v):0);}
+function accUnlocked(a){return ACC_FREE.includes(a)||ACC_CHAIN.indexOf(a)<unlockCount();}
+function openAccs(){return ACC_FREE.concat(ACC_CHAIN.slice(0,unlockCount()));}
+/* Registra uma grande vitória (terminar o jogo) e devolve o item ganho, ou null. */
+function addWin(){const n=unlockCount();if(n>=ACC_CHAIN.length)return null;store("gilele:unlocks",String(n+1));return ACC_CHAIN[n];}
 const KINDS=["m","f","fox","et","horse","smiley","zombie"];
 const FACES=["normal","smug"];
 const HAIRS={m:["short","spiky","curly","none"],f:["long","ponytail","pigtails","bob","curly","none"]};
@@ -752,7 +837,15 @@ function sanitizeLook(o){
     g:KINDS.includes(o.g)?o.g:(o.f==="horse"||o.f==="smiley"?o.f:"m"),h:ALLHAIR.includes(o.h)?o.h:"none",hc:okColor(o.hc)?o.hc:DEF.hc,c,a:ACCS.includes(o.a)?o.a:"none",f:FACES.includes(o.f)?o.f:"normal"};
 }
 let look=Object.assign({},DEF,{c:DEF.c.slice()});
-try{const s=JSON.parse(load("ezobby_look2")||"null");if(s)look=sanitizeLook(s);}catch(e){}
+let lookWasSaved=false;
+try{const s=JSON.parse(load("ezobby_look2")||"null");if(s){look=sanitizeLook(s);lookWasSaved=true;}}catch(e){}
+if(!lookWasSaved){                                    // primeira vez: sorteia o boneco e já guarda
+  const pk=a=>a[Math.floor(Math.random()*a.length)];
+  const g=Math.random()<0.8?pk(["m","f"]):pk(KINDS);
+  const skin=KIND_SKIN[g]||pk(PALETTE.slice(0,3));
+  look=sanitizeLook({n:"",g,h:pk(HAIRS[g==="f"?"f":"m"]),hc:pk(HAIRCOLS),c:[skin,pk(PALETTE),skin,pk(PALETTE)],a:Math.random()<0.6?"none":pk(openAccs()),f:pk(FACES)});
+  try{store("ezobby_look2",JSON.stringify(look));}catch(e){}
+}
 let botsOn=load("ezobby_bots")!=="0";
 
 /* ================= three setup ================= */
@@ -1598,13 +1691,54 @@ function buildAvatar(lk){
     else if(fox){if(lk.a!=="glasses"){part(0.1,0.14,0.03,INK,-0.15,0.1,0.355,head,false);part(0.1,0.14,0.03,INK,0.15,0.1,0.355,head,false);}}
     else if(et){[-1,1].forEach(s=>{const e=part(0.28,0.17,0.03,"#0b0b0b",s*0.16,0.04,0.355,head,false);e.rotation.z=s*0.4;part(0.05,0.05,0.02,"#ffffff",s*0.12,0.08,0.372,head,false);});part(0.12,0.03,0.03,"#14532d",0,-0.2,0.355,head,false);}
     else faceNormal(head,lk);
-    if(!fox&&!et&&!zom){buildHair(head,lk);up=lk.h!=="none"?(lk.h==="curly"&&girl?0.2:0.08):0;}
+    if(!fox&&!et&&!zom&&!ACC_HAIR.includes(lk.a)){buildHair(head,lk);up=lk.h!=="none"?(lk.h==="curly"&&girl?0.2:0.08):0;}
   }
   const hd=kind==="smiley"?1.55:1;
   if(lk.a==="hat"){part(0.98*hd,0.06,0.98*hd,"#1f2937",0,0.38+up,0,head);part(0.64*hd,0.55,0.64*hd,"#1f2937",0,0.68+up,0,head);part(0.66*hd,0.1,0.66*hd,c[1],0,0.47+up,0,head);}
   else if(lk.a==="cap"){part(0.78*hd,0.24,0.78*hd,c[1],0,0.46+up,0,head);part(0.66*hd,0.06,0.42,c[1],0,0.37+up,0.54*hd,head);}
   else if(lk.a==="glasses"&&kind!=="horse"){const gy=kind==="smiley"?0.36:0.07,gz=kind==="smiley"?0.57:0.37,gx=kind==="smiley"?0.2:0.15;
     part(0.25,0.17,0.04,INK,-gx,gy,gz,head,false);part(0.25,0.17,0.04,INK,gx,gy,gz,head,false);part(gx*2+0.42,0.04,0.04,INK,0,gy+0.05,gz,head,false);}
+  /* ---- itens desbloqueados jogando (25/11/2026) — iguais aos do motor ---- */
+  else if(lk.a==="crown"){const y0=0.42+up,gold="#facc15";
+    part(0.72*hd,0.16,0.72*hd,gold,0,y0,0,head);
+    [[-1,-1],[1,-1],[-1,1],[1,1],[0,1],[0,-1],[1,0],[-1,0]].forEach(([x,z])=>part(0.12,0.18,0.12,gold,x*0.3*hd,y0+0.16,z*0.3*hd,head));
+    part(0.1,0.1,0.04,"#ef4444",0,y0,0.37*hd,head,false);}
+  else if(lk.a==="headphones"&&kind!=="horse"){const w=0.39*hd,y=kind==="smiley"?0.25:0.02;
+    part(0.84*hd,0.08,0.14,INK,0,0.44+up*0.6,0,head);
+    [-1,1].forEach(s=>{part(0.08,0.4,0.12,INK,s*(w+0.02),0.25,0,head);part(0.12,0.3,0.3,"#ef4444",s*w,y,0,head);});}
+  else if(lk.a==="catears"){const fur=lk.hc;
+    [-1,1].forEach(s=>{const e=part(0.3*hd,0.38,0.16,fur,s*0.23*hd,0.54+up,-0.02,head);e.rotation.z=s*0.26;part(0.15,0.2,0.06,"#f9a8d4",s*0.23*hd,0.52+up,0.07,head,false);});}
+  else if(lk.a==="horns"){const bone="#e7e5e4";
+    part(0.62*hd,0.16,0.34,"#a8a29e",0,0.3+up,0,head);
+    [-1,1].forEach(s=>{part(0.3,0.17,0.17,bone,s*0.42*hd,0.28+up,0,head);
+      const mid=part(0.18,0.3,0.18,bone,s*0.56*hd,0.45+up,0,head);mid.rotation.z=s*-0.3;
+      const tip=part(0.12,0.24,0.12,bone,s*0.52*hd,0.65+up,0,head);tip.rotation.z=s*0.15;});}
+  else if(lk.a==="halo"){const gold="#fde047",y0=0.72+up;
+    for(let i=0;i<12;i++){const a=(i/12)*Math.PI*2;part(0.11,0.07,0.11,gold,Math.cos(a)*0.3*hd,y0,Math.sin(a)*0.3*hd,head,false);}}
+  else if(lk.a==="helmet"){const sh=c[1];
+    part(0.86*hd,0.52,0.86*hd,sh,0,0.26,0,head);part(0.9*hd,0.2,0.9*hd,sh,0,0.02,0,head);
+    part(0.74*hd,0.26,0.12,"#0ea5e9",0,0.1,0.4*hd,head,false);part(0.94*hd,0.08,0.3,"#1f2937",0,0.46,0.2*hd,head,false);
+    [-1,1].forEach(s=>part(0.08,0.34,0.5,sh,s*0.42*hd,0.04,-0.08,head));}
+  else if(lk.a==="afro"){const f=lk.hc;
+    for(let i=0;i<22;i++){const a=(i/22)*Math.PI*2;part(0.34,0.34,0.34,f,Math.cos(a)*0.5*hd,0.12+(i%2)*0.08,Math.sin(a)*0.5*hd,head);}
+    for(let i=0;i<10;i++){const a=(i/10)*Math.PI*2+0.3;part(0.32,0.32,0.32,f,Math.cos(a)*0.32*hd,0.44,Math.sin(a)*0.32*hd,head);}
+    part(0.86*hd,0.36,0.86*hd,f,0,0.32,0,head);part(0.78*hd,0.1,0.08,f,0,0.2,0.36*hd,head,false);}
+  else if(lk.a==="emo"){const f=lk.hc;
+    part(0.8*hd,0.22,0.8*hd,f,0,0.34,0,head);
+    const fringe=part(0.52*hd,0.4,0.12,f,-0.11*hd,0.15,0.36*hd,head,false);fringe.rotation.z=0.38;
+    part(0.34*hd,0.26,0.1,f,0.25*hd,0.26,0.36*hd,head,false);
+    part(0.8*hd,0.66,0.16,f,0,0.02,-0.36*hd,head);
+    [-1,1].forEach(s=>part(0.12,0.56,0.46,f,s*0.38*hd,0.06,-0.02,head));}
+  if(lk.a==="cape"){const cp=new THREE.Group();cp.position.set(0,1.92,-0.26);cp.rotation.x=0.12;body.add(cp);
+    part(1.12,1.5,0.08,c[1],0,-0.72,0,cp);part(1.2,0.16,0.14,"#fde047",0,0.02,0.02,cp,false);part(0.9,0.3,0.07,"#fde047",0,-1.4,-0.02,cp,false);
+    ret.cape=cp;}
+  if(lk.a==="pet"){const pet=new THREE.Group();pet.position.set(-0.95,0.3,-0.5);g.add(pet);const fur=lk.hc;
+    part(0.5,0.34,0.7,fur,0,0,0,pet);part(0.36,0.34,0.34,fur,0,0.26,0.4,pet);
+    [-1,1].forEach(s=>part(0.12,0.16,0.1,fur,s*0.12,0.46,0.38,pet));
+    part(0.12,0.08,0.1,INK,0,0.2,0.58,pet,false);
+    [[-0.17,0.26],[0.17,0.26],[-0.17,-0.26],[0.17,-0.26]].forEach(([x,z])=>part(0.12,0.3,0.12,fur,x,-0.3,z,pet));
+    const tail=part(0.1,0.34,0.1,fur,0,0.18,-0.38,pet);tail.rotation.x=-0.5;
+    ret.pet=pet;ret.petTail=tail;}
   return ret;
 }
 function makeTextSprite(text,opt){
@@ -1650,6 +1784,9 @@ class Character{
     else if(grounded){this.phase+=dt*(4+speed*1.2);const s=Math.sin(this.phase)*0.9*amt;a.legL.rotation.x=s;a.legR.rotation.x=-s;a.armL.rotation.x=-s;a.armR.rotation.x=s;a.armL.rotation.z=0;a.armR.rotation.z=0;}
     else{a.legL.rotation.x=0.35;a.legR.rotation.x=-0.35;a.armL.rotation.x=-2.6;a.armR.rotation.x=-2.6;a.armL.rotation.z=-0.15;a.armR.rotation.z=0.15;}
     if(a.zombie&&grounded&&!sit&&!this.fxM.fz){a.armL.rotation.x=-1.45+a.armL.rotation.x*0.12;a.armR.rotation.x=-1.45+a.armR.rotation.x*0.12;}
+    const tmN=performance.now();
+    if(a.cape)a.cape.rotation.x=0.12+Math.min(0.5,speed*0.06)+Math.sin(tmN/260)*(0.05+amt*0.1);   /* capa balança */
+    if(a.pet){a.pet.position.y=0.3+Math.abs(Math.sin(tmN/190))*0.12*(0.4+amt);a.pet.rotation.y=Math.sin(tmN/700)*0.25;if(a.petTail)a.petTail.rotation.z=Math.sin(tmN/120)*0.6;}
     if(this.bubble){this.bubbleT-=dt;if(this.bubbleT<=0){disposeSprite(this.bubble);this.bubble=null;}}
   }
   dispose(){disposeSprite(this.label);disposeSprite(this.bubble);disposeSprite(this.iconSp);scene.remove(this.root);}
@@ -1736,7 +1873,7 @@ const EV_MAP={ez_play:"game_start",ez_finish:"game_end",ez_stage:"level_complete
 function track(ev,params){TRK(EV_MAP[ev]||ev,params);}
 function reachCp(i,silent){if(!silent&&mode==="atk"&&i>0)track("ez_stage",{stage:i,stage_name:stageKey[i]||"",difficulty:SPEC.diff==null?1:SPEC.diff});
   me.cp=i;setFlag(i);
-  if(!silent){toast(t("cp"));Snd.play("cp");addPts(100);}
+  if(!silent){toast(t("cp"));Snd.play("cp");addPts(100);if(i>0)celebrate(false);}   // comemoração 3x mais longa
   if(i>=1&&!startT){startT=performance.now();}
   if(i>=1&&i<=NSTAGE){savedCp=i;store("ezobby_cp",String(i));}
   updateSkip();sendState(true);
@@ -2025,6 +2162,81 @@ const $=id=>document.getElementById(id);
 let toastTimer=0;
 function toast(msg,ms,big){const el=$("toast");el.textContent=msg;el.classList.toggle("big",!!big);el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),ms||1400);}
 function fmtTime(s){const m=Math.floor(s/60),r=Math.floor(s%60),c=Math.floor((s%1)*10);return m+":"+String(r).padStart(2,"0")+"."+c;}
+/* ================= comemoração (25/11/2026) =================
+   Vitória final: ~22 s de festa (10x o que era) com a trilha "victory".
+   Vitória parcial (bandeira/checkpoint/tabuada): ~6,6 s (3x o que era).
+   Cópia do engine/party.js — mudou num, mudar nos dois. */
+const PARTY_COLS=["#f59e0b","#22c55e","#3b82f6","#ef4444","#a855f7","#fde047","#ec4899","#06b6d4"];
+let partyStyled=false;
+function partyCss(){
+  if(partyStyled)return;partyStyled=true;
+  const st=document.createElement("style");
+  st.textContent=".ez-party{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}"
+   +".ez-party i{position:absolute;top:-6vh;border-radius:2px;animation:ezFall linear forwards}"
+   +"@keyframes ezFall{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:.15}}"
+   +".ez-party b{position:absolute;width:10px;height:10px;border-radius:50%;animation:ezBoom .9s ease-out forwards}"
+   +"@keyframes ezBoom{0%{transform:translate(0,0) scale(.5);opacity:1}100%{transform:translate(var(--bx),var(--by)) scale(1.1);opacity:0}}"
+   +".ez-party s{position:absolute;font-size:28px;text-decoration:none;animation:ezRise 1.6s ease-out forwards}"
+   +"@keyframes ezRise{0%{transform:translateY(0) scale(.6);opacity:0}25%{opacity:1}100%{transform:translateY(-26vh) scale(1.25);opacity:0}}"
+   +"@media (prefers-reduced-motion:reduce){.ez-party{display:none}}";
+  document.head.appendChild(st);
+}
+function partyWave(box,n){
+  for(let i=0;i<(n||46);i++){
+    const d=document.createElement("i");
+    d.style.cssText="left:"+(Math.random()*100)+"%;background:"+PARTY_COLS[i%PARTY_COLS.length]
+      +";--dx:"+((Math.random()-0.5)*60)+"vw;--dy:"+(80+Math.random()*40)+"vh;--r:"+((Math.random()-0.5)*1600)
+      +"deg;animation-duration:"+(2+Math.random()*1.6)+"s;animation-delay:"+(Math.random()*0.4)+"s;width:"
+      +(7+Math.random()*8)+"px;height:"+(9+Math.random()*10)+"px";
+    box.appendChild(d);setTimeout(()=>d.remove(),4200);
+  }
+}
+function partyBoom(box){
+  const x=12+Math.random()*76,y=14+Math.random()*42;
+  for(let i=0;i<18;i++){
+    const a=(i/18)*Math.PI*2,r=12+Math.random()*14,p=document.createElement("b");
+    p.style.cssText="left:"+x+"%;top:"+y+"%;background:"+PARTY_COLS[(i+Math.floor(x))%PARTY_COLS.length]
+      +";--bx:"+(Math.cos(a)*r)+"vmin;--by:"+(Math.sin(a)*r)+"vmin";
+    box.appendChild(p);setTimeout(()=>p.remove(),1100);
+  }
+  Snd.play("firework");
+}
+function partyEmoji(box,list){
+  const e=document.createElement("s");
+  e.textContent=list[Math.floor(Math.random()*list.length)];
+  e.style.cssText="left:"+(10+Math.random()*80)+"%;top:"+(55+Math.random()*25)+"%";
+  box.appendChild(e);setTimeout(()=>e.remove(),1800);
+}
+function celebrate(big,ms){
+  partyCss();
+  const box=document.createElement("div");box.className="ez-party";document.body.appendChild(box);
+  const dur=ms||(big?22000:6600),ids=[];
+  const prev=Snd.song?Snd.song():null;
+  if(big){
+    Snd.setSong("victory");Snd.play("fanfare");
+    partyWave(box,80);partyBoom(box);
+    ids.push(setInterval(()=>partyWave(box,34),1300));
+    ids.push(setInterval(()=>partyBoom(box),1700));
+    ids.push(setInterval(()=>partyEmoji(box,["🎉","🏆","⭐","🎊","🥳","✨","🎈"]),420));
+    ids.push(setTimeout(()=>Snd.play("cheer"),1200));
+  }else{
+    Snd.play("cheer");partyWave(box,40);
+    ids.push(setInterval(()=>{partyWave(box,26);Snd.play("pop");},1500));
+    ids.push(setInterval(()=>partyEmoji(box,["🎉","⭐","✨","👏"]),650));
+  }
+  let over=false;
+  function stop(keepSong){
+    if(over)return;over=true;
+    ids.forEach(id=>{clearInterval(id);clearTimeout(id);});
+    setTimeout(()=>box.remove(),4300);
+    if(big&&!keepSong&&prev&&prev!=="victory")Snd.setSong(prev);
+  }
+  ids.push(setTimeout(()=>stop(),dur));
+  return {stop:stop};
+}
+/* Grande vitória: desbloqueia o próximo item do boneco e avisa. */
+function grantWin(){const got=addWin();if(got)setTimeout(()=>toast(t("unlockNew").replace("{a}",t("a_"+got)),5200,true),1400);return got;}
+
 function chip(parent,label,sel,fn){const b=document.createElement("button");b.textContent=label;if(sel)b.className="sel";b.onclick=()=>{Snd.play("click");fn();};parent.appendChild(b);}
 function swatches(parent,cols,cur,fn){cols.forEach(col=>{const b=document.createElement("button");b.style.background=col;if(cur===col)b.className="sel";b.onclick=()=>{Snd.play("click");fn(col);};parent.appendChild(b);});}
 function setKind(k){
@@ -2057,11 +2269,25 @@ function buildMenu(){
     const sw=document.createElement("div");sw.className="sws";swatches(sw,PALETTE,look.c[i],c=>{look.c[i]=c;saveLook();buildMenu();});
     row.appendChild(sw);CR.appendChild(row);
   });
-  const A=$("accs");A.innerHTML="";ACCS.forEach(a=>chip(A,t("a_"+a),look.a===a,()=>{look.a=a;saveLook();buildMenu();}));
+  const A=$("accs");A.innerHTML="";
+  ACCS.forEach(a=>{                                   // trancados ficam translúcidos com 🔒 (25/11/2026)
+    const open=accUnlocked(a);
+    const b=document.createElement("button");b.textContent=(open?"":"🔒 ")+t("a_"+a);
+    b.className=(look.a===a?"sel":"")+(open?"":" locked");
+    b.onclick=()=>{ if(open){Snd.play("click");look.a=a;saveLook();buildMenu();} else {Snd.play("wrong");toast("🔒 "+t("lockHint"),3200);} };
+    A.appendChild(b);
+  });
+  $("lockInfo").textContent=t("lockHint");
+  $("charName").textContent=(look.n||"").trim()||t("namePh");
+  $("editChar").textContent=t("editChar");
+  $("charTitle").textContent="🧍 "+t("charTitle");$("charOk").textContent="✔ "+t("saveChar");
+  $("cfgTitle").textContent="⚙️ "+t("options");$("cfgOk").textContent=t("back");
   const O=$("opts");O.innerHTML="";
   chip(O,botsOn?t("botsOn"):t("botsOff"),botsOn,()=>{botsOn=!botsOn;store("ezobby_bots",botsOn?"1":"0");buildMenu();});
   chip(O,Snd.musicOn?t("musicOn"):t("musicOff"),Snd.musicOn,()=>{toggleMusic();buildMenu();});
-  chip(O,"🎨 "+t("gfx")+": "+t("gfx_"+GFX.q),GFX.q!=="auto",()=>GFX.cycle()); // muda e reabre o jogo
+  chip(O,Snd.sfxOn?t("sfxOn"):t("sfxOff"),Snd.sfxOn,()=>{Snd.init();Snd.setSfx(!Snd.sfxOn);updateAudioBtns();buildMenu();});
+  const O2=$("opts2");O2.innerHTML="";
+  chip(O2,"🎨 "+t("gfx")+": "+t("gfx_"+GFX.q),GFX.q!=="auto",()=>GFX.cycle()); // muda e reabre o jogo
   const resume=me.cp===0&&savedCp>=1;
   const contN=me.cp>=1?me.cp:(resume?savedCp:0);
   $("playBtn").innerHTML=t("mAtk")+"<small>"+(contN?"▶ "+t("contShort").replace("{n}",contN):t("mAtkSub").replace("{n}",NSTAGE))+"</small>";
@@ -2070,6 +2296,7 @@ function buildMenu(){
   const OC=$("opChips");OC.innerHTML="";OPS.forEach(o=>chip(OC,t("op_"+o),o===tabOp,()=>{tabOp=o;store("pktab_op",o);tabPickSel=tabSavedOf(o);buildMenu();}));
   const TC=$("tabChips");TC.innerHTML="";for(let k=2;k<=9;k++)chip(TC,String(k)+(k<tabSavedOf(tabOp)?" ✅":""),k===tabPickSel,()=>{tabPickSel=k;buildMenu();});
   $("menuBtn").title=t("ttMenu");$("musicBtn").title=t("ttMusic");$("sfxBtn").title=t("ttSfx");$("pauseBtn").title=t("ttPause");
+  if($("pCfgBtn"))$("pCfgBtn").textContent="⚙️ "+t("options");
   $("mpSteps").innerHTML=t("mpSteps").map(x=>"<li>"+x+"</li>").join("");
   $("restartBtn").classList.add("hidden");
   $("ctrlInfo").innerHTML=isTouch?t("ctrlTouch"):t("ctrlPc");
@@ -2083,6 +2310,20 @@ function buildMenu(){
   updateNetLabel();updateAudioBtns();try{rtcTexts();}catch(e){}if(typeof renderInv==="function"&&$("slots"))try{renderInv();}catch(e){}
 }
 function saveLook(){store("ezobby_look2",JSON.stringify(look));meChar.setLook(look);refreshPreview();sendLook();}
+/* ---- editor do personagem (abre só no botão) e configurações ---- */
+function charOpen(){const w=$("pvWrap");$("pvSlot").appendChild(w);$("charOv").classList.remove("hidden");resizePreview();}
+function charClose(){const w=$("pvWrap");$("pvHome").appendChild(w);$("charOv").classList.add("hidden");resizePreview();buildMenu();}
+function cfgOpen(){buildMenu();$("cfgOv").classList.remove("hidden");}
+function cfgClose(){$("cfgOv").classList.add("hidden");}
+setTimeout(()=>{
+  $("charBtn").onclick=()=>{Snd.play("click");charOpen();};
+  $("editChar").onclick=()=>{Snd.play("click");charOpen();};
+  $("charX").onclick=()=>{Snd.play("click");charClose();};
+  $("charOk").onclick=()=>{Snd.play("ok");charClose();};
+  $("cfgBtn").onclick=()=>{Snd.play("click");cfgOpen();};
+  $("cfgX").onclick=()=>{Snd.play("click");cfgClose();};
+  $("cfgOk").onclick=()=>{Snd.play("click");cfgClose();};
+},0);
 function toggleMusic(){Snd.init();Snd.setMusic(!Snd.musicOn);updateAudioBtns();}
 function updateAudioBtns(){$("musicBtn").classList.toggle("off",!Snd.musicOn);$("sfxBtn").classList.toggle("off",!Snd.sfxOn);}
 $("musicBtn").onclick=()=>toggleMusic();
@@ -2144,11 +2385,18 @@ $("restartBtn").onclick=()=>{leaveTab();resetCoins();savedCp=0;store("ezobby_cp"
 $("menuBtn").onclick=()=>{playing=false;for(const k in keys)keys[k]=false;$("menu").classList.remove("hidden");$("hud").classList.add("hidden");buildMenu();resizePreview();};
 $("chatBtn").onclick=()=>$("chatRow").classList.toggle("hidden");
 $("pauseBtn").onclick=()=>setPause(true);
+setTimeout(()=>{$("pCfgBtn").onclick=()=>{Snd.play("click");cfgOpen();};},0);
 $("resumeBtn").onclick=()=>setPause(false);
 $("pMenuBtn").onclick=()=>{setPause(false);$("menuBtn").onclick();};
-function showWin(){track("ez_finish",{time_s:Math.round(me.winTime||0),difficulty:SPEC.diff==null?1:SPEC.diff});$("winTime").textContent=t("time")+": "+fmtTime(me.winTime);$("win").classList.remove("hidden");playing=false;Snd.play("win");store("ezobby_cp","1");savedCp=1;}
-$("againBtn").onclick=()=>{$("win").classList.add("hidden");resetCoins();me.won=false;me.cp=1;setFlag(1);spawnAt(1);startT=performance.now();elapsed=0;playing=true;sendState(true);};
-$("stayBtn").onclick=()=>{$("win").classList.add("hidden");playing=true;};
+let winParty=null;
+function showWin(){track("ez_finish",{time_s:Math.round(me.winTime||0),difficulty:SPEC.diff==null?1:SPEC.diff});$("winTime").textContent=t("time")+": "+fmtTime(me.winTime);$("win").classList.remove("hidden");playing=false;Snd.play("win");store("ezobby_cp","1");savedCp=1;
+  if(winParty)winParty.stop();                      // festa grande: ~22 s com a trilha de vitória (25/11/2026)
+  winParty=celebrate(true);
+  grantWin();                                      // terminar o jogo = item novo no boneco
+}
+function stopWinParty(){if(winParty){winParty.stop();winParty=null;}}
+$("againBtn").onclick=()=>{stopWinParty();$("win").classList.add("hidden");resetCoins();me.won=false;me.cp=1;setFlag(1);spawnAt(1);startT=performance.now();elapsed=0;playing=true;sendState(true);};
+$("stayBtn").onclick=()=>{stopWinParty();$("win").classList.add("hidden");playing=true;};
 
 /* ================= multiplayer (room) ================= */
 let room=null,myPeer=null,netState="connecting";const remotes=new Map();let chatSeq=0,pushSeq=0,lastSend=0;
@@ -2299,8 +2547,8 @@ let rtcLast="";
 let pwaEvt=null;
 const isStandalone=()=>matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||navigator.standalone===true;
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-function pwaTexts(){const b=$("pwaBtn"),i=$("pwaIos");if(!b)return;b.textContent=t("pwaInstall");i.textContent=t(isIOS?"pwaIos":"pwaHow");
-  if($("gShare"))$("gShare").textContent=t("gShare");
+function pwaTexts(){const b=$("pwaBtn"),i=$("pwaIos");if(!b)return;b.textContent="📲 "+t("instShort");b.title=t("pwaInstall");i.textContent=t(isIOS?"pwaIos":"pwaHow");
+  if($("gShare")){$("gShare").textContent="📤 "+t("shareShort");$("gShare").title=t("gShare");}
   if($("gPriv"))$("gPriv").textContent=t("gPriv");
   const show=!isStandalone();b.classList.toggle("hidden",!show);if(!show)i.classList.add("hidden");}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))setTimeout(()=>navigator.serviceWorker.register("../../sw.js").catch(()=>{}),1500);
@@ -2629,7 +2877,7 @@ function tabAnswer(gb){
     removeBoxObj(u.wall);u.boxes.splice(u.boxes.indexOf(u.wall),1);
     TB.count++;Snd.play("ok");addPts(20);toast("🎉 "+u.txt+" = "+u.res,1300,true);
 
-    if(u.last){setTimeout(()=>{toast(t("tabDone").replace("{o}",OPICO[TB.op]).replace("{t}",u.t),2200,true);Snd.play("cp");},700);addPts(100);
+    if(u.last){setTimeout(()=>{toast(t("tabDone").replace("{o}",OPICO[TB.op]).replace("{t}",u.t),2200,true);Snd.play("cp");celebrate(u.t===9);if(u.t===9)grantWin();},700);addPts(100);
       const nx=Math.min(9,u.t+1);if(nx>tabSavedOf(TB.op)||u.t===9){tabSaveProg(TB.op,u.t===9?9:nx);}
       if(u.t===9)setTimeout(()=>toast(t("tabMixStart"),2200,true),3000);}
   }else{
@@ -2982,7 +3230,7 @@ function frame(now){
   sendState(false);
   SCN.update(dt,me.x,me.y,me.z);
   gfxUpdate(dt);renderer.render(scene,camera);
-  if(inMenu&&pvAv){pvAv.g.rotation.y=Math.sin(now*0.0011)*0.7;pvR.render(pvScene,pvCam);}
+  if((inMenu||!$("charOv").classList.contains("hidden"))&&pvAv){pvAv.g.rotation.y=Math.sin(now*0.0011)*0.7;pvR.render(pvScene,pvCam);}
 }
 addEventListener("resize",resize);resize();
 buildMenu();refreshPreview();renderInv();

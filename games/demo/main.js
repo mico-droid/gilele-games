@@ -3,7 +3,7 @@
 import {
   THREE, createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot,
   createRoom, createRemotePlayers, loadLook, randomLook, Audio, addStrings, t, onLangChange, applyDom,
-  h, toast, screen, openAvatarEditor, openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks,
+  h, toast, screen, openAvatarEditor, openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks, homeScreen,
   addGround, addTree, addCloud, addTrampoline, addSign, createCoins, addCheckpoint, addMover, createAvatarPreview,
   registerPWA, track, initGTM, isTouch, VERSION, createThrowables, GEO, getMat, createScenery, onAppHide,
 } from "../../engine/ez.js";
@@ -207,22 +207,13 @@ updCoins();
 let titleScr = null;
 function showTitle() {
   playing = false; hud.classList.add("ez-hidden"); input.setVisible(false);
-  const cv = h("canvas", { style: { width: "150px", height: "200px", display: "block", margin: "0 auto" } });
-  const pv = createAvatarPreview(cv); pv.set(me.ch.look); pv.start();
-  const close = () => { pv.stop(); titleScr.close(); };
-  titleScr = screen([
-    h("h1", "🎮 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.7 } }, t("sub") + " · v" + VERSION),
-    cv,
-    h("div.ez-col", { style: { marginTop: "10px" } },
-      h("button.ez-btn.wide", { onclick: () => { close(); start(); } }, "▶ " + t("play")),
-      h("div.ez-row", { style: { justifyContent: "center" } },
-        h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
-        h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle }); } }, "👥 " + t("mp")),
-        h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
-      gameLinks(t("title")),
-      isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, t("help")),
-    ),
-  ]);
+  titleScr = homeScreen({
+    icon: "🎮", title: t("title"), subtitle: t("sub") + " · v" + VERSION,
+    look: me.ch.look, onLook: (lk) => me.setLook(lk),
+    world, room, reopen: showTitle,
+    note: isTouch ? null : t("help"),
+    body: [h("button.ez-btn.ok.wide", { "data-k": "next", onclick: () => { titleScr.close(); start(); } }, "▶ " + t("play"))],
+  });
 }
 function start() {
   playing = true; hud.classList.remove("ez-hidden"); input.setVisible(true); world.setPaused(false);

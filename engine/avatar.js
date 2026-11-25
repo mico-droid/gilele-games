@@ -6,13 +6,17 @@ import * as THREE from "./three.js";
 import { part, getMat } from "./core.js";
 import { shared } from "./storage.js";
 import { t } from "./i18n.js";
+import { ACC_FREE, ACC_CHAIN, unlockCount } from "./unlocks.js";
 
 export const INK = "#111827";
 export const PALETTE = ["#f4c095", "#e0a878", "#a0673f", "#6b4226", "#ffd23f", "#f97316", "#ef4444", "#ec4899", "#a855f7", "#3b82f6", "#06b6d4", "#22c55e", "#ffffff", "#94a3b8", "#1f2937"];
 export const SKINS = ["#f9d7b9", "#f4c095", "#e0a878", "#c68642", "#a0673f", "#6b4226", "#4a2c17"];
 export const HAIRCOLS = ["#1f1a17", "#5b3a1e", "#a0673f", "#e8c15a", "#c2410c", "#ec4899", "#3b82f6", "#e5e7eb"];
 export const KINDS = ["m", "f", "fox", "et", "horse", "smiley", "zombie"];
-export const ACCS = ["none", "hat", "cap", "glasses", "crown", "headphones"];
+// Acessórios: os três primeiros vêm liberados; o resto é desbloqueado jogando (ver engine/unlocks.js).
+export const ACCS = ["none", "hat", "cap", "glasses", "crown", "headphones", "cape", "afro", "pet", "catears", "emo", "helmet", "halo", "horns"];
+/** Acessórios que ocupam o lugar do cabelo (não dá para usar junto). */
+export const ACC_HAIR = ["afro", "emo", "helmet"];
 export const FACES = ["normal", "happy", "smug", "sigma"];
 export const HAIRS = { m: ["short", "spiky", "curly", "none"], f: ["long", "ponytail", "pigtails", "bob", "curly", "none"] };
 export const ALLHAIR = ["none", "short", "spiky", "curly", "long", "ponytail", "pigtails", "bob"];
@@ -34,13 +38,27 @@ export function sanitizeLook(o) {
   };
 }
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
-export function randomLook(name = "") {
+/** Acessórios que o jogador já pode usar (os outros são desbloqueados jogando). */
+export function openAccs() { return ACC_FREE.concat(ACC_CHAIN.slice(0, unlockCount())); }
+/** randomLook(nome) — sorteia um boneco. Por padrão só usa acessórios já liberados. */
+export function randomLook(name = "", { accs } = {}) {
   const g = Math.random() < 0.8 ? pick(["m", "f"]) : pick(KINDS);
   const skin = KIND_SKIN[g] || pick(SKINS);
-  return sanitizeLook({ n: name, g, h: pick(HAIRS[g === "f" ? "f" : "m"]), hc: pick(HAIRCOLS), c: [skin, pick(PALETTE), skin, pick(PALETTE)], a: Math.random() < 0.6 ? "none" : pick(ACCS), f: pick(FACES) });
+  const pool = accs || openAccs();
+  return sanitizeLook({ n: name, g, h: pick(HAIRS[g === "f" ? "f" : "m"]), hc: pick(HAIRCOLS), c: [skin, pick(PALETTE), skin, pick(PALETTE)], a: Math.random() < 0.6 ? "none" : pick(pool), f: pick(FACES) });
 }
-/** The player's look is shared by every Gilelê game. */
-export function loadLook() { return sanitizeLook(shared.getJSON("look", DEFAULT_LOOK)); }
+/**
+ * O visual do boneco é compartilhado por todos os jogos Gilelê.
+ * Na primeira vez sorteia um boneco (o dono pediu personagem inicial aleatório, 25/11/2026)
+ * e já salva, para o jogador se reconhecer nos outros jogos.
+ */
+export function loadLook() {
+  const saved = shared.getJSON("look", null);
+  if (saved && typeof saved === "object") return sanitizeLook(saved);
+  const lk = randomLook("");
+  saveLook(lk);
+  return lk;
+}
 export function saveLook(lk) { shared.setJSON("look", sanitizeLook(lk)); }
 
 // ------------------------------------------------------------------ building blocks
@@ -194,7 +212,7 @@ export function buildAvatar(lk) {
     else if (fox) { if (lk.a !== "glasses") { part(0.1, 0.14, 0.03, INK, -0.15, 0.1, 0.355, head, false); part(0.1, 0.14, 0.03, INK, 0.15, 0.1, 0.355, head, false); } }
     else if (et) { [-1, 1].forEach((s) => { const e = part(0.28, 0.17, 0.03, "#0b0b0b", s * 0.16, 0.04, 0.355, head, false); e.rotation.z = s * 0.4; part(0.05, 0.05, 0.02, "#ffffff", s * 0.12, 0.08, 0.372, head, false); }); part(0.12, 0.03, 0.03, "#14532d", 0, -0.18, 0.355, head, false); }
     else faceNormal(head, lk);
-    if (!fox && !et && !zom) { buildHair(head, lk); up = lk.h !== "none" ? (lk.h === "curly" && girl ? 0.2 : 0.08) : 0; }
+    if (!fox && !et && !zom && !ACC_HAIR.includes(lk.a)) { buildHair(head, lk); up = lk.h !== "none" ? (lk.h === "curly" && girl ? 0.2 : 0.08) : 0; }
   }
   const hd = kind === "smiley" ? 1.55 : 1;
   const ink = INK;
@@ -214,6 +232,65 @@ export function buildAvatar(lk) {
   else if (lk.a === "glasses" && kind !== "horse") {
     const gy = kind === "smiley" ? 0.36 : 0.07, gz = kind === "smiley" ? 0.57 : 0.37, gx = kind === "smiley" ? 0.2 : 0.15;
     part(0.25, 0.17, 0.04, ink, -gx, gy, gz, head, false); part(0.25, 0.17, 0.04, ink, gx, gy, gz, head, false); part(gx * 2 + 0.42, 0.04, 0.04, ink, 0, gy + 0.05, gz, head, false);
+  }
+  // ---- itens desbloqueados jogando (25/11/2026) ----
+  else if (lk.a === "catears") {
+    const fur = lk.hc;
+    [-1, 1].forEach((s) => { const e = part(0.3 * hd, 0.38, 0.16, fur, s * 0.23 * hd, 0.54 + up, -0.02, head); e.rotation.z = s * 0.26; part(0.15, 0.2, 0.06, "#f9a8d4", s * 0.23 * hd, 0.52 + up, 0.07, head, false); });
+  }
+  else if (lk.a === "horns") {
+    const bone = "#e7e5e4";
+    part(0.62 * hd, 0.16, 0.34, "#a8a29e", 0, 0.3 + up, 0, head);                                  // faixa na testa
+    [-1, 1].forEach((s) => {
+      part(0.3, 0.17, 0.17, bone, s * 0.42 * hd, 0.28 + up, 0, head);                              // sai de lado
+      const mid = part(0.18, 0.3, 0.18, bone, s * 0.56 * hd, 0.45 + up, 0, head); mid.rotation.z = s * -0.3;
+      const tip = part(0.12, 0.24, 0.12, bone, s * 0.52 * hd, 0.65 + up, 0, head); tip.rotation.z = s * 0.15;
+    });
+  }
+  else if (lk.a === "halo") {
+    const gold = "#fde047", y0 = 0.72 + up;
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; part(0.11, 0.07, 0.11, gold, Math.cos(a) * 0.3 * hd, y0, Math.sin(a) * 0.3 * hd, head, false); }
+  }
+  else if (lk.a === "helmet") {
+    const sh = c[1];
+    part(0.86 * hd, 0.52, 0.86 * hd, sh, 0, 0.26, 0, head);
+    part(0.9 * hd, 0.2, 0.9 * hd, sh, 0, 0.02, 0, head);
+    part(0.74 * hd, 0.26, 0.12, "#0ea5e9", 0, 0.1, 0.4 * hd, head, false);     // viseira
+    part(0.94 * hd, 0.08, 0.3, "#1f2937", 0, 0.46, 0.2 * hd, head, false);      // aba
+    [-1, 1].forEach((s) => part(0.08, 0.34, 0.5, sh, s * 0.42 * hd, 0.04, -0.08, head));
+  }
+  else if (lk.a === "afro") {
+    const f = lk.hc;
+    for (let i = 0; i < 22; i++) { const a = (i / 22) * Math.PI * 2; part(0.34, 0.34, 0.34, f, Math.cos(a) * 0.5 * hd, 0.12 + (i % 2) * 0.08, Math.sin(a) * 0.5 * hd, head); }   // volume em volta
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2 + 0.3; part(0.32, 0.32, 0.32, f, Math.cos(a) * 0.32 * hd, 0.44, Math.sin(a) * 0.32 * hd, head); }            // topo
+    part(0.86 * hd, 0.36, 0.86 * hd, f, 0, 0.32, 0, head);
+    part(0.78 * hd, 0.1, 0.08, f, 0, 0.2, 0.36 * hd, head, false);              // linha do cabelo
+  }
+  else if (lk.a === "emo") {
+    const f = lk.hc;
+    part(0.8 * hd, 0.22, 0.8 * hd, f, 0, 0.34, 0, head);                                            // topo
+    const fringe = part(0.52 * hd, 0.4, 0.12, f, -0.11 * hd, 0.15, 0.36 * hd, head, false); fringe.rotation.z = 0.38;  // franja caída no olho
+    part(0.34 * hd, 0.26, 0.1, f, 0.25 * hd, 0.26, 0.36 * hd, head, false);
+    part(0.8 * hd, 0.66, 0.16, f, 0, 0.02, -0.36 * hd, head);                                       // nuca
+    [-1, 1].forEach((s) => part(0.12, 0.56, 0.46, f, s * 0.38 * hd, 0.06, -0.02, head));            // laterais
+  }
+  if (lk.a === "cape") {
+    const cp = new THREE.Group(); cp.position.set(0, 1.92, -0.26); cp.rotation.x = 0.12; body.add(cp);
+    part(1.12, 1.5, 0.08, c[1], 0, -0.72, 0, cp);
+    part(1.2, 0.16, 0.14, "#fde047", 0, 0.02, 0.02, cp, false);                 // gola da capa
+    part(0.9, 0.3, 0.07, "#fde047", 0, -1.4, -0.02, cp, false);                 // barra
+    ret.cape = cp;
+  }
+  if (lk.a === "pet") {
+    const pet = new THREE.Group(); pet.position.set(-0.95, 0.3, -0.5); g.add(pet);
+    const fur = lk.hc;
+    part(0.5, 0.34, 0.7, fur, 0, 0, 0, pet);
+    part(0.36, 0.34, 0.34, fur, 0, 0.26, 0.4, pet);
+    [-1, 1].forEach((s) => part(0.12, 0.16, 0.1, fur, s * 0.12, 0.46, 0.38, pet));
+    part(0.12, 0.08, 0.1, INK, 0, 0.2, 0.58, pet, false);
+    [[-0.17, 0.26], [0.17, 0.26], [-0.17, -0.26], [0.17, -0.26]].forEach(([x, z]) => part(0.12, 0.3, 0.12, fur, x, -0.3, z, pet));
+    const tail = part(0.1, 0.34, 0.1, fur, 0, 0.18, -0.38, pet); tail.rotation.x = -0.5;
+    ret.pet = pet; ret.petTail = tail;
   }
   return ret;
 }
@@ -288,6 +365,9 @@ export class Character {
       if (a.zombie) { a.armL.rotation.x = -1.45 + s * 0.12; a.armR.rotation.x = -1.45 - s * 0.12; }
     } else { a.legL.rotation.x = 0.35; a.legR.rotation.x = -0.35; a.armL.rotation.x = -2.6; a.armR.rotation.x = -2.6; a.armL.rotation.z = -0.15; a.armR.rotation.z = 0.15; }
     if (a.tail) a.tail.rotation.y = Math.sin(performance.now() / 300) * 0.3;
+    const tm = performance.now();
+    if (a.cape) a.cape.rotation.x = 0.12 + Math.min(0.5, speed * 0.06) + Math.sin(tm / 260) * (0.05 + amt * 0.1);   // capa balança
+    if (a.pet) { a.pet.position.y = 0.3 + Math.abs(Math.sin(tm / 190)) * 0.12 * (0.4 + amt); a.pet.rotation.y = Math.sin(tm / 700) * 0.25; if (a.petTail) a.petTail.rotation.z = Math.sin(tm / 120) * 0.6; }
     if (this.bubble) { this.bubbleT -= dt; if (this.bubbleT <= 0) { disposeSprite(this.bubble); this.bubble = null; } }
   }
   dispose() { disposeSprite(this.label); disposeSprite(this.bubble); this.scene.remove(this.root); }

@@ -52,3 +52,34 @@
 - Motor v0.3.3: correr em todo jogo 3D. `createPlayer({ run })` (padrão 1,6×; `false` desliga): Shift segurado no teclado, botão 🏃 (liga/desliga) no toque, `me.running`. No Parkour Tabuada (HTML avulso) é `RUN=1.3` com Shift e `#runBtn`. Jogo 3D novo deve ter correr (pedido do dono).
 - Motor v0.4.0 — gráficos realistas (pedido do dono, 15/11/2026): nível em `localStorage "gilele:quality"` (auto | low "Leve" | medium "Equilibrado" | high "Realista"), compartilhado por TODOS os jogos (mesma origem, inclusive EZ Obby). Decidido ao abrir o jogo em `engine/three.js` (`THREE.GFX`): nos níveis 1–2 todo `MeshLambertMaterial` vira `MeshStandardMaterial` (PBR) automaticamente. `engine/sky.js`: céu (domo com degradê, sol, nuvens no nível 2, estrelas à noite) que segue `scene.background` e o `sun`, + mapa de ambiente (reflexos) com `scene.environmentIntensity` caindo à noite. ACES + exposição 0,78; `hemi.intensity` é escalado ×0,5 por dentro (os jogos continuam setando o valor antigo). Pintura/vidro dos carros (`vehicle.js`) e moedas (`props.js`) brilhantes. Auto: PC=2, celular=1, celular fraco ou lento (`gilele:autoSlow`)=0. Trocar Leve↔outros vale ao reabrir.
 - HTML avulsos (Parkour Tabuada, EZ Obby, three r128): mesmo recurso no bloco `window.GFX` logo após o three.min.js; `GFX.setup(renderer,scene,camera,sun,hemi)` → `gfxUpdate(dt)` antes de cada render; botão "🎨 Gráficos" no menu (troca e recarrega). Em r128 o ambiente é feito via CubeCamera + `pmrem.fromCubemap` (fromScene sai vermelho/RGBE).
+- Motor v0.5.2 — rodada de testes gerais do dono (25/11/2026):
+  - **Casca padrão da tela inicial**: `homeScreen({icon,title,subtitle,look,onLook,body,room,roomActions,reopen,note,world})`
+    em `engine/ui.js` monta o mesmo topo em todos os jogos 3D: idiomas · 📤 Compartilhar · 📲 Instalar · ⚙️ (o
+    `openSettings`, com música/sons/gráficos/idioma) · título · subtítulo · boneco com o NOME e o ✏️ Editar ao lado ·
+    botões do jogo (`body`) · 👥 Multijogador · 🏠 Gilelê Games · 🔒 Privacidade. Usam: `games/demo`,
+    `games/sobrevivencia` (Apagão e Aprendizado) e `games/auto-escola`. Os HTML avulsos têm a mesma casca à mão
+    (bloco `.hometop`/`.hochar` no `#menu`). `gameLinks()` continua para telas antigas; `gameLinkParts()` devolve
+    cada botão separado. **Corrigido de quebra**: o link 🔒 Privacidade do motor apontava para
+    `../../jogos.htmlprivacidade.html`.
+  - **Editor do boneco fechado por padrão** nos HTML avulsos: virou o overlay `#charOv`, aberto pelo ✏️ ou pelo
+    próprio boneco; o `#pvWrap` (canvas do preview) é MOVIDO entre a tela inicial e o editor (é o mesmo renderer).
+  - **Personagem inicial aleatório**: `loadLook()` (motor) e o bloco equivalente nos avulsos sorteiam e já salvam
+    quando ainda não há boneco guardado.
+  - **Itens desbloqueáveis** (`engine/unlocks.js`, cópia nos avulsos): livres = `none, glasses, hat`; a cada grande
+    vitória libera o próximo de `ACC_CHAIN` = headphones, cape, afro, pet, catears, cap, emo, helmet, halo, horns,
+    crown. Progresso em `localStorage "gilele:unlocks"` (compartilhado por todos os jogos); `"gilele:unlockHalf"`
+    guarda a meia vitória. Grandes vitórias: terminar o EZ Obby / o Parkour (e a tabuada do 9), terminar o
+    Aprendizado, terminar o capítulo do Apagão, e **2 missões no modo difícil do Apagão = 1 item** (`grantWin({half:true})`).
+    No editor os trancados aparecem translúcidos com 🔒 (`accChips`). `ACC_HAIR` (afro, emo, helmet) ocupa o lugar
+    do cabelo; `cape` e `pet` são peças fora da cabeça e têm animação no `animate()`.
+  - **Comemorações** (`engine/party.js`, cópia nos avulsos): `celebrate({big})` — final ~22 s (10x) com confete,
+    fogos, emoji e a trilha **`victory`**; parcial (bandeira, missão, aula, tabuada) ~6,6 s (3x). O CSS é injetado
+    pelo próprio módulo. `grantWin()` solta o item novo e avisa por toast.
+  - **Trilha mais alta**: ganho da música 0,13 → **0,28** (`MUSIC_VOL`), com os médios das trilhas `adventure` e
+    `castle` reforçados e o sub-grave reduzido — alto-falante de celular não toca abaixo de ~200 Hz, o grave só
+    gastava volume. Nova trilha `victory`; novos sons `fanfare`, `cheer`, `firework`.
+  - **Configurações no botão de fechar** (Parkour e EZ Obby): ♫ e 🔊 saíram da barra de cima (ficaram ocultos no
+    DOM), o ⏸ virou **✕** e a pausa ganhou "⚙️ Opções" (overlay `#cfgOv` com bots, música, sons e gráficos),
+    como já era no Apagão.
+  - Pendente do mesmo pedido: lista pública de salas no multijogador (pool de anfitriões) — depende de servidor
+    ou de um esquema de IDs fixos no PeerJS; o dono topou deixar para depois.

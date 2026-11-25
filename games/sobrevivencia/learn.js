@@ -3,7 +3,7 @@
 import {
   THREE, createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot,
   createRoom, createRemotePlayers, loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openAvatarEditor,
-  openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks, createAvatarPreview, registerPWA,
+  openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks, homeScreen, celebrate, grantWin, createAvatarPreview, registerPWA,
   track, initGTM, isTouch, isMobile, createStore, VERSION, part, getMat, addGround, addLabel, Character, onAppHide,
 } from "../../engine/ez.js";
 import "./strings.js";
@@ -397,7 +397,10 @@ function checkLesson() {
   const l = P.cur && byId[P.cur]; if (!l) return;
   if (!l.steps.every(stepDone)) return;
   P.done.push(l.id); P.cur = null; save();
-  Audio.play("win"); confetti(); track("lesson_complete", { lesson: l.id });
+  const allDone = P.done.length >= LESSONS.length;
+  celebrate({ big: allDone });                                     // última aula = festa grande
+  if (allDone) grantWin();                                         // terminar o Aprendizado = item novo no boneco
+  track("lesson_complete", { lesson: l.id });
   const newly = LESSONS.filter((x) => avail(x) && x.req.includes(l.id));
   const allEra1 = LESSONS.filter((x) => x.era === 1).every((x) => isDone(x.id));
   openMenu(() => ({ title: u("done"), info: [h("p", { style: { fontSize: "20px", textAlign: "center" } }, `${l.icon} ${L(l.t)}`),
@@ -680,7 +683,7 @@ function updHud() {
   lessonEl.style.top = topEl.getBoundingClientRect().bottom + 6 + "px";
   const l = P.cur && byId[P.cur];
   if (!l) { lessonEl.replaceChildren(h("b", "📚 " + u("noLesson"))); return; }
-  const nd = l.steps.filter(stepDone).length; if (stepsSeen.id === l.id && nd > stepsSeen.n && nd < l.steps.length) { confetti(18); Audio.play("cp"); } stepsSeen = { id: l.id, n: nd };
+  const nd = l.steps.filter(stepDone).length; if (stepsSeen.id === l.id && nd > stepsSeen.n && nd < l.steps.length) { celebrate({ big: false, ms: 3300 }); Audio.play("cp"); } stepsSeen = { id: l.id, n: nd };
   lessonEl.replaceChildren(h("b", `${l.icon} ${L(l.t)}`), ...l.steps.map((s) => h("div.next" + (stepDone(s) ? ".ok" : ""), (stepDone(s) ? "✅ " : "⬜ ") + stepText(s) + stepProg(s))),
     h("button.sv-x", { onclick: (e) => { e.stopPropagation(); lessonEl.classList.add("min"); } }, "✕"), h("span.chip", "🚩 " + t("msShow")));
 }
@@ -692,24 +695,17 @@ function showTitle() {
   const act = consumeAction();
   if (act === "cont" && (P.done.length || P.cur)) { start(); return; }
   if (act === "novo") { intro(); return; }
-  const cv = h("canvas", { style: { width: "150px", height: "200px", display: "block", margin: "0 auto" } });
-  const pv = createAvatarPreview(cv); pv.set(me.ch.look); pv.start();
-  let scr = null; const close = () => { pv.stop(); scr.close(); };
+  let scr = null; const close = () => scr.close();
   const ageRow = h("div.ez-row", { style: { justifyContent: "center" } });
   const drawAge = () => ageRow.replaceChildren(h("b", u("age") + ": "), ...["kid", "teen"].map((a) => h("button.ez-chip" + (cfg.age === a ? ".sel" : ""), { onclick: () => { cfg.age = a; store.setJSON("cfg", Object.assign(store.getJSON("cfg", {}), { age: a })); drawAge(); } }, t(a === "kid" ? "age_kid" : "age_teen"))));
   drawAge();
-  scr = screen([
-    h("h1", "🔦 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.7 } }, u("title") + " · " + u("sub") + " · v" + VERSION),
-    cv, ageRow,
-    h("div.ez-col", { style: { marginTop: "10px" } },
-      ...modeMenu(store, { contLearn: () => { close(); start(); }, newLearn: () => { close(); P = structuredClone(P0); save(); location.href = "?modo=aprender&acao=novo"; } }),
-      h("div.ez-row", { style: { justifyContent: "center" } },
-        h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
-        h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle, actions: roomActions(room, store, enterGame) }); } }, "👥 " + t("mp")),
-        h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
-      gameLinks(t("title")),
-      isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, L(T("WASD/setas: andar · Shift: correr · E: interagir · I: mochila · T: manual · B: construir · Arraste: câmera", "WASD/arrows: move · Shift: run · E: interact · I: backpack · T: manual · B: build · Drag: camera", "WASD/flechas: mover · Shift: correr · E: interactuar · I: mochila · T: manual · B: construir · Arrastra: cámara")))),
-  ]);
+  scr = homeScreen({
+    icon: "🔦", title: t("title"), subtitle: u("title") + " · " + u("sub") + " · v" + VERSION,
+    look: me.ch.look, onLook: (lk) => me.setLook(lk),
+    world, room, reopen: showTitle, roomActions: roomActions(room, store, enterGame),
+    note: isTouch ? null : L(T("WASD/setas: andar · Shift: correr · J: interagir · I: mochila · T: manual · B: construir · Arraste: câmera", "WASD/arrows: move · Shift: run · J: interact · I: backpack · T: manual · B: build · Drag: camera", "WASD/flechas: mover · Shift: correr · J: interactuar · I: mochila · T: manual · B: construir · Arrastra: cámara")),
+    body: [ageRow, ...modeMenu(store, { contLearn: () => { close(); start(); }, newLearn: () => { close(); P = structuredClone(P0); save(); location.href = "?modo=aprender&acao=novo"; } })],
+  });
 }
 function enterGame() { if (!P.done.length && !P.cur) intro(); else start(); }
 function intro() { pagedScreen(h, screen, { title: "⛺ " + u("title"), text: u("intro"), nextLabel: u("next"), backLabel: t("backP"), endLabel: "▶ " + t("play"), onEnd: start }); }

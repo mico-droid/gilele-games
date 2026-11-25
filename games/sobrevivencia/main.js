@@ -3,7 +3,7 @@
 import {
   THREE, createWorld, createPhysics, endFrame, createInput, createFollowCamera, createPlayer, createBot,
   createRoom, createRemotePlayers, loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openAvatarEditor,
-  openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks, createAvatarPreview, registerPWA,
+  openSettings, openRoomPanel, roomPill, openQuickChat, chatText, installButton, gameLinks, homeScreen, celebrate, grantWin, createAvatarPreview, registerPWA,
   track, initGTM, isTouch, isMobile, createStore, VERSION, onAppHide,
 } from "../../engine/ez.js";
 import { tx, setKidMode } from "./strings.js";
@@ -652,13 +652,15 @@ function debrief() {
 }
 function endChapter(how = "forced") {
   if (st.ended) return;
-  st.ended = 1; playing = false; input.setVisible(false); Audio.play("win");
+  st.ended = 1; playing = false; input.setVisible(false);
+  const party = celebrate({ big: true });                           // festa grande: ~22 s com a trilha de vitória
+  grantWin();                                                      // terminar o capítulo = item novo
   const { total } = grade();
   const best = Math.max(total, +store.get("best", 0)); store.set("best", best); store.del("save");
   track("game_end", { mode: "real", score: total, difficulty: st.diff });
   const stars = total >= 80 ? "⭐⭐⭐" : total >= 55 ? "⭐⭐" : "⭐";
   screen([h("h1", stars), h("h2", { style: { textAlign: "center" } }, t(how === "car" ? "endCar" : how === "foot" ? "endFoot" : "endForced")), h("p", t("endSub")), debrief(), h("p", t("best", { v: best })), h("p.ez-msg", t("next")),
-    h("button.ez-btn.wide", { onclick: () => location.reload() }, "🏠 " + t("menu"))], { dim: true });
+    h("button.ez-btn.wide", { onclick: () => { party.stop(); location.reload(); } }, "🏠 " + t("menu"))], { dim: true });
 }
 
 // ---------------------------------------------------------------- HUD
@@ -733,7 +735,13 @@ function goals() {
   mission = curMission();
   const m = mission, spotKey = typeof m.spot === "function" ? m.spot() : m.spot;
   m.target = spotKey ? SPOTS.find((s) => s.key === spotKey) : null;
-  if (m.id !== lastMission) { if (lastMission && playing && missionDone(lastMission)) { Audio.play("win"); confetti(); } lastMission = m.id; goalsEl.classList.remove("open", "min"); }
+  if (m.id !== lastMission) {
+    if (lastMission && playing && missionDone(lastMission)) {
+      celebrate({ big: false });                                   // comemoração parcial (3x mais longa que antes)
+      if (st && st.diff === "hard") grantWin({ half: true });       // 2 fases difíceis = 1 item novo no boneco
+    }
+    lastMission = m.id; goalsEl.classList.remove("open", "min");
+  }
   const kids = [h("small.ph", t(m.phase)), h("b", "🚩 " + (m.i ? t("msN", { i: m.i, n: m.n }) : t("msNow"))),
     h("div.what", ...parts(t("ms_" + m.id, m.vars ? m.vars() : null)).map((x) => h("span.ln", x))), h("small.why", "💡 " + t("msWhy") + tx("mw_" + m.id))];
   if (!after()) kids.push(h("small.more", "▾ " + t("msList")), ...MS_PRE.map((x, i) => h("div.li" + (x.done() ? ".ok" : ""), (x.done() ? "✅ " : i + 1 === m.i ? "▶ " : "⬜ ") + t("ms_" + x.id).split(/[.(]/)[0])));
@@ -790,29 +798,24 @@ Audio.addSfx("radio", ({ noise, tone, now }) => { const n = now(); noise(n, 0.5,
 let cfg = Object.assign({ map: "gyn", age: "kid", diff: "easy" }, store.getJSON("cfg", {}), { mode: "real" });
 function showTitle() {
   playing = false; hud.classList.add("ez-hidden"); input.setVisible(false);
-  const cv = h("canvas", { style: { width: "150px", height: "200px", display: "block", margin: "0 auto" } });
-  const pv = createAvatarPreview(cv); pv.set(me.ch.look); pv.start();
   const saved = store.getJSON("save", null);
   const act = consumeAction();
   const mapOk = (sv) => (sv.map || "gyn") === MAP_NOW;
-  if (act === "cont" && saved && !saved.ended) { pv.stop(); if (!mapOk(saved)) { toast(t("map_lost"), 6000); showSetup(); return; } load(saved); start(); return; }
-  if (act === "novo:osm" || act === "novo:gyn") { pv.stop(); if (act === "novo:osm" && !OSM) { toast(t("map_lost"), 6000); showSetup(); return; } load(newState(cfg)); showIntro(); return; }
-  if (act === "novo") { pv.stop(); showSetup(); return; }
+  if (act === "cont" && saved && !saved.ended) { if (!mapOk(saved)) { toast(t("map_lost"), 6000); showSetup(); return; } load(saved); start(); return; }
+  if (act === "novo:osm" || act === "novo:gyn") { if (act === "novo:osm" && !OSM) { toast(t("map_lost"), 6000); showSetup(); return; } load(newState(cfg)); showIntro(); return; }
+  if (act === "novo") { showSetup(); return; }
   let scr = null;
-  const close = () => { pv.stop(); scr.close(); };
-  scr = screen([
-    h("h1", "🔦 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.7 } }, t("tagline") + " · v" + VERSION),
-    cv,
-    h("div.ez-col", { style: { marginTop: "10px" } },
-      ...modeMenu(store, { contReal: () => { close(); if (!mapOk(saved)) { location.href = "?acao=cont"; return; } load(saved); start(); }, newReal: () => { close(); showSetup(); } }),
-      h("div.ez-row", { style: { justifyContent: "center" } },
-        h("button.ez-btn.blue.small", { onclick: () => { close(); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); showTitle(); }, { onCancel: showTitle }); } }, "👕 " + t("character")),
-        h("button.ez-btn.blue.small", { onclick: () => { close(); openRoomPanel(room, { onClose: showTitle, actions: roomActions(room, store, enterGame) }); } }, "👥 " + t("mp")),
-        h("button.ez-btn.gray.small", { onclick: () => { close(); openSettings({ world, onClose: showTitle }); } }, "⚙️")),
-      gameLinks(t("title")),
-      isTouch ? null : h("p.ez-msg", { style: { textAlign: "center" } }, t("help")),
-    ),
-  ]);
+  const close = () => scr.close();
+  scr = homeScreen({
+    icon: "🔦", title: t("title"), subtitle: t("tagline") + " · v" + VERSION,
+    look: me.ch.look, onLook: (lk) => me.setLook(lk),
+    world, room, reopen: showTitle, roomActions: roomActions(room, store, enterGame),
+    note: isTouch ? null : t("help"),
+    body: modeMenu(store, {
+      contReal: () => { close(); if (!mapOk(saved)) { location.href = "?acao=cont"; return; } load(saved); start(); },
+      newReal: () => { close(); showSetup(); },
+    }),
+  });
 }
 /** Entra no jogo a partir da tela de amigos: continua o jogo salvo ou abre o "novo jogo". */
 function enterGame() { const sv = store.getJSON("save", null); if (sv && !sv.ended) { load(sv); start(); } else showSetup(); }

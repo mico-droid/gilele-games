@@ -2,8 +2,9 @@
 import { t, LANGS, LANG_NAMES, getLang, setLang, onLangChange } from "./i18n.js";
 import { Audio } from "./audio.js";
 import {
-  KINDS, HAIRS, HAIRCOLS, PALETTE, SKINS, ACCS, FACES, KIND_SKIN, sanitizeLook, randomLook, saveLook, createAvatarPreview,
+  KINDS, HAIRS, HAIRCOLS, PALETTE, SKINS, ACCS, FACES, KIND_SKIN, sanitizeLook, randomLook, saveLook, createAvatarPreview, openAccs,
 } from "./avatar.js";
+import { accOrder, isUnlocked } from "./unlocks.js";
 import { canInstall, promptInstall, isIos, isStandalone, onInstallable } from "./pwa.js";
 import { track } from "./analytics.js";
 
@@ -71,6 +72,21 @@ export function swatches(cols, cur, onPick) {
   return row;
 }
 
+/**
+ * Chips dos acessórios: os já liberados funcionam normalmente, os trancados aparecem
+ * translúcidos com 🔒 e, ao tocar, só explicam como se ganha (pedido do dono, 25/11/2026).
+ */
+export function accChips(cur, onPick) {
+  const row = h("div.ez-row");
+  accOrder().forEach((a) => {
+    const open = isUnlocked(a);
+    row.appendChild(h("button.ez-chip" + (a === cur ? ".sel" : "") + (open ? "" : ".locked"), {
+      onclick: () => { if (open) { Audio.play("click"); onPick(a); } else { Audio.play("wrong"); toast("🔒 " + t("lockHint"), 3200); } },
+    }, (open ? "" : "🔒 ") + t("a_" + a)));
+  });
+  return row;
+}
+
 // ------------------------------------------------------------------ avatar editor
 /** openAvatarEditor(look, onSave(look)) — tabs for type, hair, colors, accessories, face, name. */
 export function openAvatarEditor(look, onSave, { onCancel } = {}) {
@@ -103,7 +119,7 @@ export function openAvatarEditor(look, onSave, { onCancel } = {}) {
       h("h3", t("shirt")), swatches(PALETTE, lk.c[1], (x) => setC(1, x)),
       h("h3", t("pants")), swatches(PALETTE, lk.c[3], (x) => setC(3, x)),
     ];
-    if (tab === "acc") body = [h("h3", t("acc")), chips(ACCS, lk.a, (x) => t("a_" + x), (x) => set({ a: x }))];
+    if (tab === "acc") body = [h("h3", t("acc")), accChips(lk.a, (x) => set({ a: x })), h("p.ez-msg", { style: { fontSize: "12px" } }, t("lockHint"))];
     if (tab === "face") body = [h("h3", t("face")), chips(FACES, lk.f, (x) => t("f_" + x), (x) => set({ f: x }))];
     opts.replaceChildren(...body.filter(Boolean));
   }
@@ -111,7 +127,7 @@ export function openAvatarEditor(look, onSave, { onCancel } = {}) {
     h("h2", "🧍 " + t("character")),
     h("div.ez-editor", cv, h("div.ez-col", h("div", h("h3", t("name")), name), tabRow, opts)),
     h("div.ez-row", { style: { marginTop: "14px", justifyContent: "space-between" } },
-      h("button.ez-btn.warn.small", { onclick: () => { const n = lk.n; lk = randomLook(n); redraw(); Audio.play("pop"); } }, "🎲 " + t("random")),
+      h("button.ez-btn.warn.small", { onclick: () => { const n = lk.n; lk = randomLook(n, { accs: openAccs() }); redraw(); Audio.play("pop"); } }, "🎲 " + t("random")),
       h("div.ez-row",
         h("button.ez-btn.gray.small", { onclick: () => { pv.stop(); scr.close(); onCancel && onCancel(); } }, t("cancel")),
         h("button.ez-btn.small", { onclick: () => { lk.n = name.value; lk = sanitizeLook(lk); saveLook(lk); pv.stop(); scr.close(); Audio.play("ok"); onSave && onSave(lk); } }, "✔ " + t("save")))),
@@ -172,8 +188,14 @@ export function installNotes() {
  * @param {string} portal    link do portal (padrão: raiz do monorepo, ../../)
  */
 export const PORTAL_URL = "../../jogos.html"; // relativo: ainda não há domínio fixo
-export function gameLinks(gameName, { portal = "../../jogos.html" } = {}) {
-  const row = h("div.ez-row.ez-links", { style: { justifyContent: "center", flexWrap: "wrap", marginTop: "10px" } });
+
+/**
+ * Os quatro links/botões padrão, cada um por separado, para montar a tela inicial:
+ *   { portal, install, share, privacy, settings }  (install já se redesenha sozinho)
+ * `settings` só vem se `world` for passado.
+ */
+export function gameLinkParts(gameName, { portal = "../../jogos.html", small = true, world, onSettings } = {}) {
+  const sz = small ? ".small" : "";
   const shareUrl = location.origin + location.pathname;
   const share = async () => {
     const text = t("shareText", { g: gameName });
@@ -192,20 +214,88 @@ export function gameLinks(gameName, { portal = "../../jogos.html" } = {}) {
   if (isStandalone()) mark();
   addEventListener("appinstalled", () => { mark(); track("app_installed", {}); });
   const installed = () => { try { return isStandalone() || localStorage.getItem(KEY) === "1"; } catch { return isStandalone(); } };
-  const draw = () => {
-    // o navegador só oferece instalar quando o app NÃO está instalado: se oferecer, a marca antiga é falsa (app removido)
+  // o navegador só oferece instalar quando o app NÃO está instalado: se oferecer, a marca antiga é falsa (app removido)
+  const instSlot = h("span.ez-slot");
+  const drawInstall = () => {
     if (canInstall()) { try { localStorage.removeItem(KEY); } catch {} }
-    row.replaceChildren(...[
-      h("a.ez-btn.gray.small", { href: portal, style: { textDecoration: "none" } }, "🏠 " + t("portal")),
-      installed() && !canInstall() ? null : h("button.ez-btn.blue.small", { onclick: async () => { track("install_click", {}); if (canInstall()) { if (await promptInstall()) { mark(); draw(); } else howTo(); } else howTo(); } }, "📲 " + t("install")),
-      h("button.ez-btn.blue.small", { onclick: share }, "📤 " + t("share")),
-      h("a.ez-btn.gray.small", { href: portal + "privacidade.html", style: { textDecoration: "none" } }, "🔒 " + t("privacy")),
-    ].filter(Boolean));
+    instSlot.replaceChildren(...[installed() && !canInstall() ? null : h("button.ez-btn.blue" + sz, {
+      onclick: async () => { track("install_click", {}); if (canInstall()) { if (await promptInstall()) { mark(); drawInstall(); } else howTo(); } else howTo(); },
+    }, "📲 " + t("install"))].filter(Boolean));
   };
-  draw(); onInstallable(draw);
-  // Chrome/Android: pergunta ao sistema se este app já está instalado
-  if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps().then((a) => { if (a && a.length) { mark(); draw(); } }).catch(() => {});
-  return row;
+  drawInstall(); onInstallable(drawInstall);
+  if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps().then((a) => { if (a && a.length) { mark(); drawInstall(); } }).catch(() => {});
+  return {
+    portal: h("a.ez-btn.gray" + sz, { href: portal, style: { textDecoration: "none" } }, "🏠 " + t("portal")),
+    privacy: h("a.ez-btn.gray" + sz, { href: portal.replace(/jogos\.html$/, "") + "privacidade.html", style: { textDecoration: "none" } }, "🔒 " + t("privacy")),
+    install: instSlot,
+    share: h("button.ez-btn.blue" + sz, { onclick: share }, "📤 " + t("share")),
+    settings: h("button.ez-btn.gray" + sz, { title: t("settings"), "aria-label": t("settings"), onclick: () => (onSettings ? onSettings() : openSettings({ world })) }, "⚙️"),
+  };
+}
+
+/**
+ * Rodapé padrão da tela inicial de todo jogo: 🏠 Gilelê Games · 📲 Instalar · 📤 Compartilhar · 🔒 Privacidade.
+ * (Telas novas usam homeScreen(), que já monta tudo; isto fica para as telas antigas.)
+ * @param {string} gameName  nome do jogo no texto do compartilhamento
+ * @param {string} portal    link do portal (padrão: raiz do monorepo)
+ */
+export function gameLinks(gameName, { portal = "../../jogos.html" } = {}) {
+  const p = gameLinkParts(gameName, { portal });
+  return h("div.ez-row.ez-links", { style: { justifyContent: "center", flexWrap: "wrap", marginTop: "10px" } }, p.portal, p.install, p.share, p.privacy);
+}
+
+/**
+ * CASCA PADRÃO DA TELA INICIAL (pedido do dono, 25/11/2026) — igual em todos os jogos 3D:
+ *   topo:    idiomas · 📤 Compartilhar · 📲 Instalar · ⚙️ (música, gráficos…)
+ *   título:  ícone + nome do jogo + subtítulo
+ *   boneco:  desenho do personagem, o nome dele e ✏️ Editar ao lado (o editor NÃO abre sozinho)
+ *   meio:    os botões do jogo (continuar, novo jogo…) que vêm em `body`
+ *   embaixo: 👥 Multijogador · 🏠 Gilelê Games · 🔒 Privacidade
+ *
+ * @param o.icon/title/subtitle  cabeçalho
+ * @param o.look                 visual do boneco a desenhar (me.ch.look)
+ * @param o.onLook(lk)           chamado ao salvar o editor (me.setLook)
+ * @param o.body                 nós com os botões do jogo (array)
+ * @param o.room                 sala do multijogador → botão 👥 (ou passe o.onRoom)
+ * @param o.reopen()             como voltar para esta tela depois de um submenu
+ * @param o.note                 texto pequeno no fim (ajuda do teclado, versão…)
+ * @returns a tela (screen) — .close() já para a animação do boneco
+ */
+export function homeScreen(o = {}) {
+  const { icon = "🎮", title = "", subtitle = "", look, onLook, body = [], room, onRoom, roomActions, reopen, note, portal = "../../jogos.html", world } = o;
+  const cv = h("canvas.ez-mini");
+  const pv = createAvatarPreview(cv);
+  const lk = sanitizeLook(look || {});
+  pv.set(lk); pv.start();
+  let scr = null;
+  const back = () => { if (reopen) reopen(); };
+  const close = () => { pv.stop(); scr.close(); };
+  const parts = gameLinkParts(title, { portal, world, onSettings: () => { close(); openSettings({ world, onClose: back }); } });
+  const langRow = h("div.ez-row.ez-langs");
+  LANGS.forEach((l) => langRow.appendChild(h("button.ez-chip" + (l === getLang() ? ".sel" : ""), { onclick: () => { setLang(l); close(); back(); } }, l.toUpperCase())));
+  const charName = (lk.n || "").trim() || t("namePh");
+  const editChar = () => { close(); openAvatarEditor(lk, (nw) => { onLook && onLook(nw); back(); }, { onCancel: back }); };
+  scr = screen([
+    h("div.ez-hometop", langRow, h("div.ez-row.ez-hometools", parts.share, parts.install, parts.settings)),
+    h("h1", (icon ? icon + " " : "") + title),
+    subtitle ? h("p.ez-sub", subtitle) : null,
+    h("div.ez-hochar",
+      h("button.ez-charbtn", { title: t("editChar"), onclick: editChar }, cv),
+      h("div.ez-col.ez-charinfo",
+        h("b.ez-charname", charName),
+        h("button.ez-btn.blue.small", { onclick: editChar }, "✏️ " + t("editChar")))),
+    h("div.ez-col.ez-homebody", ...body.filter(Boolean)),
+    room || onRoom ? h("button.ez-btn.blue.wide", { style: { marginTop: "10px" }, onclick: () => {
+      close();
+      if (onRoom) { onRoom(); return; }
+      openRoomPanel(room, { onClose: back, actions: roomActions });
+    } }, "👥 " + t("mp")) : null,
+    h("div.ez-row.ez-links", { style: { justifyContent: "center", flexWrap: "wrap", marginTop: "10px" } }, parts.portal, parts.privacy),
+    note ? h("p.ez-msg", { style: { textAlign: "center" } }, note) : null,
+  ].filter(Boolean));
+  const base = scr.close;
+  scr.close = () => { pv.stop(); base(); };
+  return scr;
 }
 
 // ------------------------------------------------------------------ multiplayer panel

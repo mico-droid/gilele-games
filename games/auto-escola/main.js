@@ -2,7 +2,7 @@
 // Regras: Res. CONTRAN 1.020/2025 + MBEDV. Modos: Aprendizado, Prova, Trânsito Difícil (e passeio livre).
 import {
   THREE, createWorld, createPhysics, createRoads, createTraffic, createVehicle, createFirstPersonCamera, Character,
-  loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openSettings, installButton, gameLinks, registerPWA, track, initGTM,
+  loadLook, randomLook, Audio, t, onLangChange, h, toast, screen, openSettings, installButton, gameLinks, homeScreen, registerPWA, track, initGTM,
   isTouch, isMobile, createStore, getLang, VERSION, onAppHide,
 } from "../../engine/ez.js";
 import "./strings.js";
@@ -540,18 +540,17 @@ function showTitle() {
   playing = false; world.setPaused(false); cockpit.setOverlay(false); hud.classList.add("ez-hidden"); tc.classList.add("ez-hidden");
   if (mode && mode.dispose) mode.dispose(); mode = null; rain.set(false);
   const card = (emoji, key, onclick) => h("button.ae-mode", { onclick }, h("span.e", emoji), h("b", t(key)), h("small", t(key + "_d")));
-  titleScr = screen([
-    h("h1", "🚗 " + t("title")), h("p", { style: { textAlign: "center", opacity: 0.75, margin: "0 0 10px" } }, t("sub")),
-    h("div.ae-modes",
+  titleScr = homeScreen({
+    icon: "🚗", title: t("title"), subtitle: t("sub"),
+    look: driver.look, onLook: (lk) => driver.setLook(lk),
+    world, reopen: showTitle,
+    note: t("disclaimer") + " · Gilelê Engine v" + VERSION,
+    body: [h("div.ae-modes",
       card("🎓", "m_learn", () => { titleScr.close(); showList("lessons"); }),
       card("📋", "m_exam", () => { titleScr.close(); chooseGearbox(() => startMode(createExam)); }),
       card("⚠️", "m_hard", () => { titleScr.close(); showList("scenarios"); }),
-      card("🗺️", "m_free", () => { titleScr.close(); chooseGearbox(() => startMode(createFree)); })),
-    h("div.ez-row", { style: { justifyContent: "center", marginTop: "10px" } },
-      h("button.ez-btn.gray.small", { onclick: () => { titleScr.close(); openSettings({ world, onClose: showTitle }); } }, "⚙️ " + t("settings"))),
-    gameLinks(t("title")),
-    h("p.ez-msg", { style: { textAlign: "center", fontSize: "12px" } }, t("disclaimer") + " · Gilelê Engine v" + VERSION),
-  ]);
+      card("🗺️", "m_free", () => { titleScr.close(); chooseGearbox(() => startMode(createFree)); }))],
+  });
 }
 function showList(kind) {
   const items = kind === "lessons" ? LESSONS : SCENARIOS, prog = store.getJSON("stars", {});
