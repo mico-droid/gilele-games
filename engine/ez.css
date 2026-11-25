@@ -49,6 +49,7 @@ input { font-family: inherit; }
 .ez-btn.gray { background: #64748b; box-shadow: 0 4px 0 #334155; }
 .ez-btn.ok { background: #22c55e; box-shadow: 0 4px 0 #15803d; }   /* confirmação final ("Entendi", "Jogar"): sempre verde */
 .ez-btn.warn { background: var(--ez-warn); box-shadow: 0 4px 0 #b45309; }
+.ez-btn.pub { background: #a855f7; box-shadow: 0 4px 0 #7e22ce; }   /* sala pública: cor própria, para não se confundir com "Criar sala" */
 .ez-btn.small { font-size: 15px; padding: 8px 12px; }
 .ez-btn.wide { width: 100%; }
 .ez-kbd { display: inline-block; margin-left: 7px; font-size: 11px; font-weight: 700; opacity: 0.8; background: rgba(255, 255, 255, 0.22); border-radius: 5px; padding: 0 5px; vertical-align: middle; }

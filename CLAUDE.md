@@ -83,3 +83,12 @@
     como já era no Apagão.
   - Pendente do mesmo pedido: lista pública de salas no multijogador (pool de anfitriões) — depende de servidor
     ou de um esquema de IDs fixos no PeerJS; o dono topou deixar para depois.
+- **Salas públicas sem servidor (25/11/2026)** — `PUBLIC_SLOTS` em `engine/net.js` (e cópia no bloco `RTC` dos
+  HTML avulsos): 12 vagas fixas (`PUBA`…`PUBM`). Quem abre sala pública ocupa um desses apelidos no PeerJS
+  (`room.createPublic()`); quem procura testa as vagas uma a uma (`room.listPublic(onStep)`) — criar um apelido já
+  usado dá `unavailable-id`, e é isso que revela a sala aberta. Por isso a lista mostra QUAIS salas estão abertas,
+  mas **não quantos jogadores** tem em cada uma (quem entra numa cheia recebe o aviso "sala cheia" de sempre).
+  A busca roda em lotes de 4 (≈3–5 s no total) e cria peers descartáveis — não encosta no protocolo da sala, então
+  o multijogador de código continua exatamente como estava. Trocar por lista de verdade quando existir o Worker.
+  Aviso de segurança (ECA): a sala pública é anunciada como "pode entrar gente que você não conhece" e o chat
+  continua sendo só frases prontas.

@@ -29,6 +29,17 @@ function loadPeer() {
 const safe = (p, max = 6000) => { try { const j = JSON.stringify(p); return j && j.length < max ? JSON.parse(j) : null; } catch (e) { return null; } };
 const code4 = () => { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ"; let c = ""; for (let i = 0; i < 4; i++) c += A[Math.floor(Math.random() * A.length)]; return c; };
 
+/**
+ * SALAS PÚBLICAS SEM SERVIDOR (pedido do dono, 25/11/2026).
+ * Não existe lista de salas em lugar nenhum: o truque é ter VAGAS FIXAS. Quem abre uma sala
+ * pública ocupa um destes códigos; quem procura sala testa os códigos um a um — criar um apelido
+ * já usado no PeerJS dá o erro "unavailable-id", e é isso que diz que tem gente lá dentro.
+ * Por isso a lista mostra as salas abertas, mas não quantos jogadores tem em cada uma.
+ * Quando houver servidor (Cloudflare Worker), troca-se isto por uma lista de verdade.
+ */
+export const PUBLIC_SLOTS = ["PUBA", "PUBB", "PUBC", "PUBD", "PUBE", "PUBF", "PUBG", "PUBH", "PUBJ", "PUBK", "PUBL", "PUBM"];
+export const isPublicCode = (c) => PUBLIC_SLOTS.includes(String(c || "").toUpperCase());
+
 export function createRoom(opt = {}) {
   const MAX = opt.max || 4;
   const PREFIX = "gilele-" + (opt.gameId || "game") + "-v1-";
@@ -41,7 +52,7 @@ export function createRoom(opt = {}) {
   let peer = null, isHost = false, myId = null, code = null, hostConn = null, dirty = true, lastSnap = 0, lastSent = 0;
   const conns = new Map(), seen = {}, myP = {}, evH = {}, peersFns = [], statusFns = [], sharedFns = [];
   let pres = {}, shared = {}, sharedVer = 0;
-  let lastCode = null, tries = 0, backT = 0;
+  let lastCode = null, tries = 0, backT = 0, wantPublic = false, pubTries = 0;
 
   /** Caiu a ligação com o anfitrião: tenta voltar sozinho 3 vezes antes de avisar o jogador. */
   function retry(why) {
@@ -63,6 +74,7 @@ export function createRoom(opt = {}) {
   function reset(msg) {
     const p = peer, hc = hostConn;
     hostConn = null; peer = null; code = null; myId = null; isHost = false; conns.clear(); pres = {};
+    if (msg) { wantPublic = false; pubTries = 0; }
     try { if (hc) hc.close(); } catch (e) {}
     try { if (p) p.destroy(); } catch (e) {}
     emit(); if (msg) status(msg);
@@ -95,7 +107,7 @@ export function createRoom(opt = {}) {
     if (wanted.length !== 4) wanted = "";
     let Peer; try { Peer = await loadPeer(); } catch (e) { status("fail"); return; }
     await withIce();
-    reset(); const c = wanted || opt.code || code4(); isHost = true; status("connecting");
+    reset(); const c = wanted || opt.code || code4(); isHost = true; if (!wanted) wantPublic = false; status("connecting");
     const pr = new Peer(PREFIX + c, popts); peer = pr;
     pr.on("open", (id) => { if (peer !== pr) return; myId = id; code = c; pres = {}; emit(); status("room", info()); });
     pr.on("connection", (cn) => {
@@ -115,7 +127,43 @@ export function createRoom(opt = {}) {
       cn.on("close", () => { conns.delete(cn.peer); delete pres[cn.peer]; delete seen[cn.peer]; dispatch("leave", null, cn.peer); emit(); status("room", info()); });
     });
     pr.on("disconnected", () => { if (peer === pr) { try { pr.reconnect(); } catch (e) {} } });   // caiu o servidor de sinalização: volta sozinho
-    pr.on("error", (e) => { if (peer !== pr) return; if (e.type === "unavailable-id" && !opt.code && !wanted) create(); else if (!code) reset("fail"); });
+    pr.on("error", (e) => { if (peer !== pr) return; if (e.type === "unavailable-id" && wantPublic && pubTries < 3) { pubTries++; createPublic(); } else if (e.type === "unavailable-id" && !opt.code && !wanted) create(); else if (!code) reset("fail"); });
+  }
+
+  /** Testa uma vaga: devolve true se já tem alguém hospedando nela. */
+  function probeSlot(Peer, c) {
+    return new Promise((res) => {
+      let done = false, pr = null;
+      const end = (taken) => { if (done) return; done = true; try { if (pr) pr.destroy(); } catch (e) {} res(taken); };
+      try { pr = new Peer(PREFIX + c, { config: popts.config, host: popts.host, port: popts.port, path: popts.path, secure: popts.secure }); }
+      catch (e) { end(false); return; }
+      pr.on("open", () => end(false));                                   // apelido livre = sala vazia
+      pr.on("error", (e) => end(!!e && e.type === "unavailable-id"));    // apelido ocupado = sala aberta
+      setTimeout(() => end(false), 4500);
+    });
+  }
+  /** Lista as vagas ocupadas (salas públicas abertas). onStep(achadas, porcentagem) acompanha a busca. */
+  async function listPublic(onStep) {
+    let Peer; try { Peer = await loadPeer(); } catch (e) { return []; }
+    const found = [], B = 4;
+    for (let i = 0; i < PUBLIC_SLOTS.length; i += B) {
+      const batch = PUBLIC_SLOTS.slice(i, i + B);
+      const taken = await Promise.all(batch.map((c) => probeSlot(Peer, c)));
+      taken.forEach((t, j) => { if (t && batch[j] !== code) found.push(batch[j]); });
+      if (onStep) onStep(found.slice(), Math.min(100, Math.round(((i + B) / PUBLIC_SLOTS.length) * 100)));
+    }
+    return found;
+  }
+  /** Abre uma sala pública: pega a primeira vaga livre (em ordem sorteada, para espalhar). */
+  async function createPublic() {
+    let Peer; try { Peer = await loadPeer(); } catch (e) { status("fail"); return; }
+    status("connecting");
+    const pool = PUBLIC_SLOTS.slice().sort(() => Math.random() - 0.5);
+    for (const c of pool) {
+      if (await probeSlot(Peer, c)) continue;
+      wantPublic = true; create(c); return;
+    }
+    wantPublic = false; status("pubFull");
   }
 
   async function join(c, again = 0) {
@@ -169,6 +217,9 @@ export function createRoom(opt = {}) {
     setShared(obj) { if (!isHost && code) return; shared = Object.assign({}, shared, obj); sharedVer++; sharedFns.forEach((f) => f(shared)); },
     onShared(fn) { sharedFns.push(fn); },
     get code() { return code; }, get isHost() { return isHost; }, get myId() { return myId; },
+    /** Salas públicas (vagas fixas, sem servidor — ver PUBLIC_SLOTS). */
+    createPublic, listPublic, slots: PUBLIC_SLOTS,
+    get isPublic() { return !!code && isPublicCode(code); },
     get connected() { return !!code; }, get count() { return info().n; }, max: MAX,
     /** Link with ?sala=CODE so friends land straight in the room. */
     shareUrl() { const u = new URL(location.href); u.search = ""; if (code) u.searchParams.set("sala", code); return u.toString(); },

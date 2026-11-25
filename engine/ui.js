@@ -305,27 +305,47 @@ export function openRoomPanel(room, { onClose, actions } = {}) {
   const msg = h("div.ez-msg");
   const code = h("input.ez-input.ez-code", { maxlength: 4, placeholder: t("mpCodePh") });
   const body = h("div.ez-col");
+  // lista de salas públicas: a busca testa as vagas fixas uma a uma (ver PUBLIC_SLOTS em net.js)
+  const pubBox = h("div.ez-col", { style: { gap: "6px" } });
+  let searching = false;
+  function showPub(found, pct) {
+    pubBox.replaceChildren(...[
+      h("p.ez-msg", { style: { margin: "6px 0 0" } }, searching ? t("mpPubSearching", { p: pct || 0 }) : (found.length ? t("mpPubFound", { n: found.length }) : t("mpPubNone"))),
+      ...found.map((c) => h("button.ez-btn.ok.wide", { onclick: () => room.join(c) }, "▶ " + t("mpPubRoom", { code: c }))),
+    ]);
+  }
+  async function searchPublic() {
+    if (searching) return;
+    searching = true; showPub([], 0);
+    try { const found = await room.listPublic((f, p) => showPub(f, p)); searching = false; showPub(found, 100); }
+    catch (e) { searching = false; showPub([], 100); }
+  }
   function draw() {
     if (room.connected) {
       const url = room.shareUrl();
-      body.replaceChildren(
+      body.replaceChildren(...[
         h("p", h("b", t("mpRoom", { code: room.code, n: room.count, max: room.max }))),
+        room.isPublic ? h("p.ez-msg", "🌎 " + t("mpPubMine")) : null,
         h("p", t("mpShare")), h("div.ez-link", url),
         h("div.ez-row",
           h("button.ez-btn.blue.small", { onclick: async () => { try { if (navigator.share) await navigator.share({ url }); else { await navigator.clipboard.writeText(url); toast(t("copied")); } } catch (e) {} } }, "🔗 " + t("copy")),
           h("button.ez-btn.gray.small", { onclick: () => room.leave() }, t("mpLeave"))),
-      );
+      ].filter(Boolean));
       if (actions) (actions({ close: () => { silent = true; scr.close(); } }) || []).forEach((n) => n && body.appendChild(n));
     } else {
-      body.replaceChildren(
+      body.replaceChildren(...[
         h("button.ez-btn.wide", { onclick: () => room.create() }, "➕ " + t("mpCreate")),
+        room.createPublic ? h("button.ez-btn.pub.wide", { style: { marginTop: "8px" }, onclick: () => room.createPublic() }, "🌎 " + t("mpPubCreate")) : null,
+        room.createPublic ? h("p.ez-msg", { style: { margin: "2px 0 6px" } }, t("mpPubNote")) : null,
         h("div.ez-row", { style: { justifyContent: "center", marginTop: "8px" } }, code, h("button.ez-btn.blue", { onclick: () => room.join(code.value) }, t("mpJoin"))),
-      );
+        room.listPublic ? h("button.ez-btn.blue.wide", { style: { marginTop: "10px" }, onclick: () => searchPublic() }, "🔎 " + t("mpPubList")) : null,
+        pubBox,
+      ].filter(Boolean));
     }
     body.appendChild(msg);
   }
   const L = (k, i) => {
-    const map = { connecting: t("mpConnecting"), fail: t("mpFail"), full: t("mpFull", { max: room.max }), notFound: t("mpNotFound"), hostLeft: t("mpHostLeft"), left: t("mpLeft") };
+    const map = { connecting: t("mpConnecting"), fail: t("mpFail"), full: t("mpFull", { max: room.max }), notFound: t("mpNotFound"), hostLeft: t("mpHostLeft"), left: t("mpLeft"), pubFull: t("mpPubFull") };
     msg.textContent = map[k] || ""; draw();
   };
   const unsub = room.onStatus(L);

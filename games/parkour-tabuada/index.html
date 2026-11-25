@@ -315,7 +315,11 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
     <div id="rtcNew"><div id="rtcLbl1" style="font-weight:800;font-size:16px;color:#1e293b;margin:4px 0"></div>
     <div class="share"><button id="rtcCreate" style="background:#22c55e;font-size:18px;padding:14px"></button></div>
     <div id="rtcLbl2" style="font-weight:800;font-size:16px;color:#1e293b;margin:10px 0 4px"></div>
-    <div class="share"><input id="rtcCode" maxlength="4" autocomplete="off" style="flex:1;min-width:0;font:inherit;font-size:18px;padding:10px;border:2px solid #cbd5e1;border-radius:12px;text-transform:uppercase;text-align:center;letter-spacing:4px"><button id="rtcJoin" style="background:#f59e0b;font-size:18px"></button></div></div>
+    <div class="share"><input id="rtcCode" maxlength="4" autocomplete="off" style="flex:1;min-width:0;font:inherit;font-size:18px;padding:10px;border:2px solid #cbd5e1;border-radius:12px;text-transform:uppercase;text-align:center;letter-spacing:4px"><button id="rtcJoin" style="background:#f59e0b;font-size:18px"></button></div>
+    <div id="rtcLbl3" style="font-weight:800;font-size:16px;color:#1e293b;margin:14px 0 4px"></div>
+    <div class="share"><button id="rtcPub" style="background:#a855f7;font-size:17px"></button><button id="rtcFind" style="background:#2563eb;font-size:17px"></button></div>
+    <div id="rtcPubNote" class="info" style="margin-top:4px"></div>
+    <div id="rtcList" style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div></div>
     <div id="rtcInfo" class="info" style="font-weight:700;font-size:15px;color:#1e40af"></div>
     <button class="sec hidden" id="rtcLeave"></button>
     <div class="share">
@@ -601,15 +605,15 @@ const RIDDLES=[
 ];
 Object.assign(T.pt,{mp:"<b>Multiplayer:</b> crie uma sala e mande o link para até 3 amigos — ninguém precisa de conta. Encoste correndo em alguém para empurrar!",
   mpSteps:["Toque em <b>Criar sala</b>: aparece um código de 4 letras.","Mande o link (ou o código) para até 3 amigos. Quem abrir o link entra direto na sala.","Todos escolhem a mesma conta e tocam em <b>Tabuada multiplayer</b>.","Funciona melhor no mesmo Wi-Fi ou em redes de casa. Se quem criou a sala sair, a sala acaba."],
-  rtcCreate:"➕ Criar sala",gShare:"📤 Compartilhar",gPriv:"🔒 Privacidade",pwaHow:"No Android (Chrome): toque no menu ⋮ e depois em \"Instalar app\" ou \"Adicionar à tela inicial\". No computador (Chrome/Edge): clique no ícone de instalar na barra de endereço. Se o botão não aparecer: abra pelo Chrome (se veio de um link do WhatsApp ou Instagram, toque em ⋮ › “Abrir no Chrome”); se avisar sobre app desconhecido ou Play Protect, toque em “Instalar assim mesmo”; em celular de criança com Family Link, o responsável precisa aprovar no aparelho dele.",pwaInstall:"📲 Instalar o jogo no celular",pwaIos:"No iPhone: toque em Compartilhar (□↑) e depois em \"Adicionar à Tela de Início\".",rtcLbl1:"1️⃣ Quer chamar amigos? Crie uma sala:",rtcLbl2:"2️⃣ Recebeu um código? Digite aqui:",rtcBigLbl:"🔑 CÓDIGO DA SALA — fale para o seu amigo:",rtcBigN:"👥 {n}/4 jogadores na sala",rtcJoin:"🚪 Entrar",rtcCodePh:"CÓDIGO",rtcRoom:"✅ Sala {c} · {n}/4 jogadores",rtcHost:" (você criou)",rtcFull:"❌ Sala cheia (máximo 4).",rtcNotFound:"❌ Sala não encontrada. Confira o código.",
+  rtcCreate:"➕ Criar sala",rtcLbl3:"3️⃣ Ou jogue com gente nova:",rtcPub:"🌎 Abrir sala pública",rtcFind:"🔎 Ver salas abertas",rtcPubNote:"Sala pública: pode entrar gente que você não conhece. Ninguém consegue escrever nada — só as frases prontas do jogo.",rtcPubMine:"🌎 Sua sala está na lista pública.",rtcFinding:"Procurando salas… {p}%",rtcFound:"Salas abertas agora ({n}):",rtcNoneOpen:"Nenhuma sala aberta agora. Abra a sua!",rtcPubRoom:"Entrar na sala {c}",rtcPubFull:"❌ As vagas públicas acabaram. Crie uma sala e mande o código.",gShare:"📤 Compartilhar",gPriv:"🔒 Privacidade",pwaHow:"No Android (Chrome): toque no menu ⋮ e depois em \"Instalar app\" ou \"Adicionar à tela inicial\". No computador (Chrome/Edge): clique no ícone de instalar na barra de endereço. Se o botão não aparecer: abra pelo Chrome (se veio de um link do WhatsApp ou Instagram, toque em ⋮ › “Abrir no Chrome”); se avisar sobre app desconhecido ou Play Protect, toque em “Instalar assim mesmo”; em celular de criança com Family Link, o responsável precisa aprovar no aparelho dele.",pwaInstall:"📲 Instalar o jogo no celular",pwaIos:"No iPhone: toque em Compartilhar (□↑) e depois em \"Adicionar à Tela de Início\".",rtcLbl1:"1️⃣ Quer chamar amigos? Crie uma sala:",rtcLbl2:"2️⃣ Recebeu um código? Digite aqui:",rtcBigLbl:"🔑 CÓDIGO DA SALA — fale para o seu amigo:",rtcBigN:"👥 {n}/4 jogadores na sala",rtcJoin:"🚪 Entrar",rtcCodePh:"CÓDIGO",rtcRoom:"✅ Sala {c} · {n}/4 jogadores",rtcHost:" (você criou)",rtcFull:"❌ Sala cheia (máximo 4).",rtcNotFound:"❌ Sala não encontrada. Confira o código.",
   rtcFail:"⚠️ Não consegui conectar. Esta rede pode bloquear conexões diretas.",rtcHostLeft:"⚠️ Quem criou a sala saiu. A sala acabou.",rtcLeave:"Sair da sala",rtcLeft:"Você saiu da sala.",rtcConnecting:"⏳ Conectando...",waText:"Bora jogar Parkour Tabuada comigo! 🧮"});
 Object.assign(T.en,{mp:"<b>Multiplayer:</b> create a room and send the link to up to 3 friends — nobody needs an account. Run into someone to push them!",
   mpSteps:["Tap <b>Create room</b>: a 4-letter code shows up.","Send the link (or the code) to up to 3 friends. Whoever opens the link joins the room directly.","Everyone picks the same operation and taps <b>Multiplayer tables</b>.","Works best on the same Wi-Fi or home networks. If the room creator leaves, the room ends."],
-  rtcCreate:"➕ Create room",gShare:"📤 Share",gPriv:"🔒 Privacy",pwaHow:"On Android (Chrome): tap the ⋮ menu, then \"Install app\" or \"Add to Home screen\". On a computer (Chrome/Edge): click the install icon in the address bar. If the button does not show up: open it in Chrome (coming from a WhatsApp or Instagram link, tap ⋮ › “Open in Chrome”); if it warns about an unknown app or Play Protect, tap “Install anyway”; on a child phone with Family Link, the parent has to approve it on their own phone.",pwaInstall:"📲 Install the game",pwaIos:"On iPhone: tap Share (□↑) then \"Add to Home Screen\".",rtcLbl1:"1️⃣ Want to call friends? Create a room:",rtcLbl2:"2️⃣ Got a code? Type it here:",rtcBigLbl:"🔑 ROOM CODE — tell your friend:",rtcBigN:"👥 {n}/4 players in the room",rtcJoin:"🚪 Join",rtcCodePh:"CODE",rtcRoom:"✅ Room {c} · {n}/4 players",rtcHost:" (you created it)",rtcFull:"❌ Room is full (max 4).",rtcNotFound:"❌ Room not found. Check the code.",
+  rtcCreate:"➕ Create room",rtcLbl3:"3️⃣ Or play with new people:",rtcPub:"🌎 Open a public room",rtcFind:"🔎 See open rooms",rtcPubNote:"Public room: people you don't know can join. Nobody can type anything — only the game's ready-made phrases.",rtcPubMine:"🌎 Your room is on the public list.",rtcFinding:"Looking for rooms… {p}%",rtcFound:"Rooms open now ({n}):",rtcNoneOpen:"No open rooms right now. Open yours!",rtcPubRoom:"Join room {c}",rtcPubFull:"❌ No public spots left. Create a room and send the code.",gShare:"📤 Share",gPriv:"🔒 Privacy",pwaHow:"On Android (Chrome): tap the ⋮ menu, then \"Install app\" or \"Add to Home screen\". On a computer (Chrome/Edge): click the install icon in the address bar. If the button does not show up: open it in Chrome (coming from a WhatsApp or Instagram link, tap ⋮ › “Open in Chrome”); if it warns about an unknown app or Play Protect, tap “Install anyway”; on a child phone with Family Link, the parent has to approve it on their own phone.",pwaInstall:"📲 Install the game",pwaIos:"On iPhone: tap Share (□↑) then \"Add to Home Screen\".",rtcLbl1:"1️⃣ Want to call friends? Create a room:",rtcLbl2:"2️⃣ Got a code? Type it here:",rtcBigLbl:"🔑 ROOM CODE — tell your friend:",rtcBigN:"👥 {n}/4 players in the room",rtcJoin:"🚪 Join",rtcCodePh:"CODE",rtcRoom:"✅ Room {c} · {n}/4 players",rtcHost:" (you created it)",rtcFull:"❌ Room is full (max 4).",rtcNotFound:"❌ Room not found. Check the code.",
   rtcFail:"⚠️ Couldn't connect. This network may block direct connections.",rtcHostLeft:"⚠️ The room creator left. The room ended.",rtcLeave:"Leave room",rtcLeft:"You left the room.",rtcConnecting:"⏳ Connecting...",waText:"Come play Times Table Parkour with me! 🧮"});
 Object.assign(T.es,{mp:"<b>Multijugador:</b> crea una sala y envía el enlace a hasta 3 amigos — nadie necesita cuenta. ¡Choca corriendo con alguien para empujarlo!",
   mpSteps:["Toca <b>Crear sala</b>: aparece un código de 4 letras.","Envía el enlace (o el código) a hasta 3 amigos. Quien abra el enlace entra directo a la sala.","Todos eligen la misma cuenta y tocan <b>Tablas multijugador</b>.","Funciona mejor en el mismo Wi-Fi o en redes de casa. Si quien creó la sala se va, la sala termina."],
-  rtcCreate:"➕ Crear sala",gShare:"📤 Compartir",gPriv:"🔒 Privacidad",pwaHow:"En Android (Chrome): toca el menú ⋮ y luego \"Instalar app\" o \"Agregar a la pantalla principal\". En la computadora (Chrome/Edge): haz clic en el icono de instalar en la barra de direcciones. Si no aparece el botón: ábrelo en Chrome (si viniste de un enlace de WhatsApp o Instagram, toca ⋮ › «Abrir en Chrome»); si avisa de app desconocida o Play Protect, toca «Instalar de todos modos»; en el teléfono de un niño con Family Link, el adulto tiene que aprobarlo en su propio teléfono.",pwaInstall:"📲 Instalar el juego",pwaIos:"En iPhone: toca Compartir (□↑) y luego \"Agregar a inicio\".",rtcLbl1:"1️⃣ ¿Quieres llamar amigos? Crea una sala:",rtcLbl2:"2️⃣ ¿Te dieron un código? Escríbelo aquí:",rtcBigLbl:"🔑 CÓDIGO DE LA SALA — díselo a tu amigo:",rtcBigN:"👥 {n}/4 jugadores en la sala",rtcJoin:"🚪 Entrar",rtcCodePh:"CÓDIGO",rtcRoom:"✅ Sala {c} · {n}/4 jugadores",rtcHost:" (la creaste tú)",rtcFull:"❌ Sala llena (máximo 4).",rtcNotFound:"❌ Sala no encontrada. Revisa el código.",
+  rtcCreate:"➕ Crear sala",rtcLbl3:"3️⃣ O juega con gente nueva:",rtcPub:"🌎 Abrir sala pública",rtcFind:"🔎 Ver salas abiertas",rtcPubNote:"Sala pública: puede entrar gente que no conoces. Nadie puede escribir nada — solo las frases del juego.",rtcPubMine:"🌎 Tu sala está en la lista pública.",rtcFinding:"Buscando salas… {p}%",rtcFound:"Salas abiertas ahora ({n}):",rtcNoneOpen:"No hay salas abiertas ahora. ¡Abre la tuya!",rtcPubRoom:"Entrar en la sala {c}",rtcPubFull:"❌ Ya no hay vacantes públicas. Crea una sala y manda el código.",gShare:"📤 Compartir",gPriv:"🔒 Privacidad",pwaHow:"En Android (Chrome): toca el menú ⋮ y luego \"Instalar app\" o \"Agregar a la pantalla principal\". En la computadora (Chrome/Edge): haz clic en el icono de instalar en la barra de direcciones. Si no aparece el botón: ábrelo en Chrome (si viniste de un enlace de WhatsApp o Instagram, toca ⋮ › «Abrir en Chrome»); si avisa de app desconocida o Play Protect, toca «Instalar de todos modos»; en el teléfono de un niño con Family Link, el adulto tiene que aprobarlo en su propio teléfono.",pwaInstall:"📲 Instalar el juego",pwaIos:"En iPhone: toca Compartir (□↑) y luego \"Agregar a inicio\".",rtcLbl1:"1️⃣ ¿Quieres llamar amigos? Crea una sala:",rtcLbl2:"2️⃣ ¿Te dieron un código? Escríbelo aquí:",rtcBigLbl:"🔑 CÓDIGO DE LA SALA — díselo a tu amigo:",rtcBigN:"👥 {n}/4 jugadores en la sala",rtcJoin:"🚪 Entrar",rtcCodePh:"CÓDIGO",rtcRoom:"✅ Sala {c} · {n}/4 jugadores",rtcHost:" (la creaste tú)",rtcFull:"❌ Sala llena (máximo 4).",rtcNotFound:"❌ Sala no encontrada. Revisa el código.",
   rtcFail:"⚠️ No pude conectar. Esta red puede bloquear conexiones directas.",rtcHostLeft:"⚠️ Quien creó la sala salió. La sala terminó.",rtcLeave:"Salir de la sala",rtcLeft:"Saliste de la sala.",rtcConnecting:"⏳ Conectando...",waText:"¡Ven a jugar Parkour de las Tablas conmigo! 🧮"});
 const CHAT=[{e:"👋"},{e:"😂"},{e:"🔥"},{e:"😱"},{e:"😎"},{e:"🥳"},{e:"😡"},{e:"👍"},{k:"c_hi"},{k:"c_wait"},{k:"c_gg"},{k:"c_go"},{k:"c_help"},{k:"c_pass"},{k:"c_close"},{k:"c_thx"}];
 function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
@@ -2497,10 +2501,46 @@ const RTC=(function(){
     else if(hostConn&&hostConn.open&&lastSnap&&now-lastSnap>10000){retry("rtcHostLeft");}
     else if(hostConn&&hostConn.open&&(dirty||now-lastSent>900)){hostConn.send({t:"p",p:myP});dirty=false;lastSent=now;}
   },66);
-  async function create(){
+  /* SALAS PÚBLICAS SEM SERVIDOR (25/11/2026): vagas fixas. Quem abre sala pública ocupa um destes
+     apelidos no PeerJS; quem procura testa um a um — apelido já usado dá erro "unavailable-id", e é
+     isso que diz que tem sala aberta ali. Por isso a lista mostra as salas, não quantos jogadores tem.
+     Igual ao engine/net.js (PUBLIC_SLOTS) — mudou num, mudar nos dois. */
+  const PUBLIC_SLOTS=["PUBA","PUBB","PUBC","PUBD","PUBE","PUBF","PUBG","PUBH","PUBJ","PUBK","PUBL","PUBM"];
+  let wantPublic=false,pubTries=0;
+  function probeSlot(c){
+    return new Promise(res=>{
+      let done=false,pr=null;
+      const end=t=>{if(done)return;done=true;try{if(pr)pr.destroy();}catch(e){}res(t);};
+      try{pr=new Peer(PREFIX+c,opts);}catch(e){end(false);return;}
+      pr.on("open",()=>end(false));
+      pr.on("error",e=>end(!!e&&e.type==="unavailable-id"));
+      setTimeout(()=>end(false),4500);
+    });
+  }
+  async function listPublic(onStep){
+    if(typeof Peer==="undefined")return [];
+    const found=[],B=4;
+    for(let i=0;i<PUBLIC_SLOTS.length;i+=B){
+      const batch=PUBLIC_SLOTS.slice(i,i+B);
+      const taken=await Promise.all(batch.map(c=>probeSlot(c)));
+      taken.forEach((tk,j)=>{if(tk&&batch[j]!==code)found.push(batch[j]);});
+      if(onStep)onStep(found.slice(),Math.min(100,Math.round(((i+B)/PUBLIC_SLOTS.length)*100)));
+    }
+    return found;
+  }
+  async function createPublic(){
+    if(typeof Peer==="undefined"){status("rtcFail");return;}
+    status("rtcConnecting");
+    const pool=PUBLIC_SLOTS.slice().sort(()=>Math.random()-0.5);
+    for(const c of pool){ if(await probeSlot(c))continue; wantPublic=true; create(c); return; }
+    wantPublic=false;status("rtcPubFull");
+  }
+  async function create(wanted){
     if(typeof Peer==="undefined"){status("rtcFail");return;}
     await withIce();
-    reset();const c=code4();isHost=true;status("rtcConnecting");
+    wanted=typeof wanted==="string"?wanted.toUpperCase().replace(/[^A-Z]/g,"").slice(0,4):"";
+    if(wanted.length!==4)wanted="";
+    reset();const c=wanted||code4();isHost=true;if(!wanted)wantPublic=false;status("rtcConnecting");
     const pr=new Peer(PREFIX+c,opts);peer=pr;
     pr.on("open",id=>{if(peer!==pr)return;myId=id;code=c;pres={};emit();if(connFn)connFn(true);status("rtcRoom");});
     pr.on("connection",cn=>{
@@ -2510,7 +2550,10 @@ const RTC=(function(){
       cn.on("close",()=>{conns.delete(cn.peer);delete pres[cn.peer];delete seen[cn.peer];emit();status("rtcRoom");});
     });
     pr.on("disconnected",()=>{if(peer===pr){try{pr.reconnect();}catch(e){}}});
-    pr.on("error",e=>{if(peer!==pr)return;if(e.type==="unavailable-id")create();else if(!code)reset("rtcFail");});
+    pr.on("error",e=>{if(peer!==pr)return;
+      if(e.type==="unavailable-id"&&wantPublic&&pubTries<3){pubTries++;createPublic();}
+      else if(e.type==="unavailable-id")create();
+      else if(!code)reset("rtcFail");});
   }
   async function join(c,again){
     again=again||0;
@@ -2537,7 +2580,7 @@ const RTC=(function(){
     if(!c||tries>=3){tries=0;reset(why);return;}
     tries++;reset();status("rtcConnecting");clearTimeout(backT);backT=setTimeout(()=>join(c),1200*tries);}
   function count(){return code?Math.max(1,Object.keys(pres).length):0;}
-  return {api,create,join,leave(){lastCode=null;tries=0;clearTimeout(backT);reset("rtcLeft");},count,get code(){return code},get isHost(){return isHost},onStatus(fn){statusCb=fn;}};
+  return {api,create,join,createPublic,listPublic,slots:PUBLIC_SLOTS,leave(){lastCode=null;tries=0;pubTries=0;wantPublic=false;clearTimeout(backT);reset("rtcLeft");},count,get code(){return code},get isHost(){return isHost},get isPublic(){return !!code&&PUBLIC_SLOTS.includes(code)},onStatus(fn){statusCb=fn;}};
 })();
 room=RTC.api;
 room.onConnection(c=>{netState=c?"online":"offline";updateNetLabel();});
@@ -2563,6 +2606,8 @@ setTimeout(()=>{$("pwaBtn").addEventListener("click",()=>TRK("install_click",{})
   pwaTexts();},0);
 function rtcTexts(){pwaTexts();
   $("rtcCreate").textContent=t("rtcCreate");$("rtcJoin").textContent=t("rtcJoin");$("rtcCode").placeholder=t("rtcCodePh");$("rtcLeave").textContent=t("rtcLeave");
+  $("rtcLbl3").textContent=t("rtcLbl3");$("rtcPub").textContent=t("rtcPub");$("rtcFind").textContent=t("rtcFind");
+  $("rtcPubNote").textContent=RTC.isPublic?t("rtcPubMine"):t("rtcPubNote");
   GAME_URL=RTC.code?GAME_BASE+"?sala="+RTC.code:GAME_BASE;
   $("waBtn").href="https://wa.me/?text="+encodeURIComponent(t("waText")+(RTC.code?" ("+RTC.code+") ":" ")+GAME_URL);
   $("shareUrl").textContent=GAME_URL;
@@ -2582,6 +2627,25 @@ RTC.onStatus(k=>{rtcLast=k;rtcTexts();});
 setInterval(()=>{try{roomPillUpd();}catch(e){}},1500);
 setInterval(()=>{if(!$("mpOv").classList.contains("hidden"))rtcTexts();},1000);
 $("rtcCreate").onclick=()=>{Snd.init();Snd.play("click");RTC.create();track("ez_room_create");};
+/* salas públicas: abrir uma vaga fixa / procurar as que estão abertas */
+let pubSearching=false;
+function drawPubList(found,pct){
+  const L=$("rtcList");L.innerHTML="";
+  const info=document.createElement("div");info.className="info";info.style.cssText="font-weight:700;color:#1e40af";
+  info.textContent=pubSearching?t("rtcFinding").replace("{p}",pct||0):(found.length?t("rtcFound").replace("{n}",found.length):t("rtcNoneOpen"));
+  L.appendChild(info);
+  found.forEach(c=>{const b=document.createElement("button");b.style.cssText="background:#22c55e;color:#fff;font-weight:800;border-radius:14px;padding:11px 14px;font-size:17px";
+    b.textContent="▶ "+t("rtcPubRoom").replace("{c}",c);
+    b.onclick=()=>{Snd.play("click");RTC.join(c);track("ez_room_join");};L.appendChild(b);});
+}
+$("rtcPub").onclick=()=>{Snd.init();Snd.play("click");RTC.createPublic();track("ez_room_create");};
+$("rtcFind").onclick=async()=>{
+  Snd.init();Snd.play("click");
+  if(pubSearching)return;
+  pubSearching=true;drawPubList([],0);
+  try{const f=await RTC.listPublic((fd,p)=>drawPubList(fd,p));pubSearching=false;drawPubList(f,100);}
+  catch(e){pubSearching=false;drawPubList([],100);}
+};
 $("rtcJoin").onclick=()=>{Snd.init();Snd.play("click");const c=$("rtcCode").value.trim().toUpperCase();if(/^[A-Z]{4}$/.test(c)){RTC.join(c);track("ez_room_join");}};
 $("rtcLeave").onclick=()=>{RTC.leave();};
 {const q=new URLSearchParams(location.search).get("sala");if(q&&/^[A-Za-z]{4}$/.test(q)){$("rtcCode").value=q.toUpperCase();setTimeout(()=>{RTC.join(q.toUpperCase());$("tabMpBtn").onclick();},400);}}
