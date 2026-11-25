@@ -190,6 +190,26 @@ export function installNotes() {
 export const PORTAL_URL = "../../jogos.html"; // relativo: ainda não há domínio fixo
 
 /**
+ * O botão VOLTAR do celular (e do navegador) não pode jogar o jogador para fora sem avisar
+ * (pedido do dono, 25/11/2026). O truque é deixar sempre uma "entrada falsa" no histórico: quando
+ * o jogador aperta voltar, o navegador consome essa entrada, nós perguntamos e repomos a entrada.
+ * Assim, por mais vezes que ele aperte, nunca sai sem confirmar.
+ *   onBack()   → o que fazer quando apertar voltar e não houver pergunta aberta
+ *   isAsking() → devolve a função que fecha a pergunta, se ela já estiver na tela
+ */
+let backGuard = false;
+export function guardBack(onBack, isAsking) {
+  if (backGuard) return; backGuard = true;
+  try { history.pushState({ ezGuard: 1 }, ""); } catch (e) { return; }
+  addEventListener("popstate", () => {
+    try { history.pushState({ ezGuard: 1 }, ""); } catch (e) {}   // repõe a entrada falsa
+    const shut = isAsking && isAsking();
+    if (shut) shut();            // já estava perguntando: voltar fecha a pergunta
+    else onBack();
+  });
+}
+
+/**
  * Os quatro links/botões padrão, cada um por separado, para montar a tela inicial:
  *   { portal, install, share, privacy, settings }  (install já se redesenha sozinho)
  * `settings` só vem se `world` for passado.
@@ -225,14 +245,19 @@ export function gameLinkParts(gameName, { portal = "../../jogos.html", small = t
   drawInstall(); onInstallable(drawInstall);
   if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps().then((a) => { if (a && a.length) { mark(); drawInstall(); } }).catch(() => {});
   // Sair do jogo pergunta antes: o 🏠 estava levando embora com um toque só (pedido do dono, 25/11/2026)
+  let askOpen = null;
   const leave = () => {
+    if (askOpen) return;
+    const shut = () => { askOpen = null; scr.close(); };
     const scr = screen([
       h("h2", "🏠 " + t("leaveTitle")),
       h("p", t("leaveAsk")),
-      h("button.ez-btn.ok.wide", { "data-k": "next", onclick: () => { location.href = portal; } }, t("leaveYes")),
-      h("button.ez-btn.gray.wide", { style: { marginTop: "8px" }, "data-k": "back", onclick: () => scr.close() }, t("leaveNo")),
-    ], { dim: true, x: true });
+      h("button.ez-btn.ok.wide", { "data-k": "next", onclick: () => { askOpen = null; location.href = portal; } }, t("leaveYes")),
+      h("button.ez-btn.gray.wide", { style: { marginTop: "8px" }, "data-k": "back", onclick: shut }, t("leaveNo")),
+    ], { dim: true, x: shut });
+    askOpen = shut;
   };
+  guardBack(leave, () => askOpen);
   return {
     portal: h("button.ez-btn.gray" + sz, { onclick: leave }, "🏠 " + t("portal")),
     privacy: h("a.ez-btn.gray" + sz, { href: portal.replace(/jogos\.html$/, "") + "privacidade.html", style: { textDecoration: "none" } }, "🔒 " + t("privacy")),

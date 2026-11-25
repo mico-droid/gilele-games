@@ -686,7 +686,7 @@ const Snd=(function(){
     /* AVENTURA — rock/metal animado (25/11/2026). Guitarra "abafada" em semicolcheia, bateria forte e
        riff pentatônico. Não há distorção no Web Audio: a guitarra é serra + quinta + oitava em notas
        curtas. Igual ao engine/audio.js — mudou num, mudar nos dois. */
-    adventure:{bpm:152,len:128,play(st,tm){
+    adventure:{bpm:152,len:128,gain:3.15,play(st,tm){
       const bar=Math.floor(st/16)%8,s=st%16;
       const root=[45,41,48,43,45,41,48,43][bar];
       const f0=mtof(root),f5=mtof(root+7),f8=mtof(root+12);
@@ -709,7 +709,7 @@ const Snd=(function(){
         tone("sawtooth",f,tm,bend?0.42:0.17,0.17,musicG,bend||undefined);
         tone("square",f*2,tm,0.1,0.05,musicG);}}},
     // trecho difícil: grave pulsante, menor com trítono (composição original)
-    castle:{bpm:132,len:128,play(st,tm){
+    castle:{gain:4.3,bpm:132,len:128,play(st,tm){
       const bar=Math.floor(st/16)%8,s=st%16;
       const root=[38,38,37,37,38,38,44,43][bar];
       const pat=[0,0,1,0,0,0,1,0,0,0,1,0,3,0,1,0];
@@ -723,7 +723,7 @@ const Snd=(function(){
       if(s%2===0&&nt!==null){tone("square",mtof(root+12+nt),tm,0.22,0.17,musicG);tone("sawtooth",mtof(root+nt),tm,0.22,0.11,musicG);}
       if(bar%4===3&&(s===12||s===14))tone("triangle",mtof(root+24+(s===12?6:7)),tm,0.3,0.14,musicG);}},
     /* COMEMORAÇÃO — fanfarra em Dó maior para a vitória final (25/11/2026) */
-    victory:{bpm:140,len:128,play(st,tm){
+    victory:{bpm:140,len:128,gain:2.05,play(st,tm){
       const bar=Math.floor(st/16)%8,s=st%16;
       const root=[48,48,53,55,48,45,50,55][bar];
       const MEL=[[72,null,76,null,79,null,84,null,79,null,76,null,72,null,76,null],
@@ -739,7 +739,7 @@ const Snd=(function(){
       const nt=MEL[s];
       if(nt!==null&&nt!==undefined){tone("square",mtof(nt),tm,0.2,0.2,musicG);tone("triangle",mtof(nt+12),tm,0.16,0.09,musicG);}
       if(s%4===2)tone("triangle",mtof(84+((s+bar)%3)*4),tm,0.12,0.08,musicG);}},
-    happy:{bpm:112,len:128,gain:2,play(st,tm){
+    happy:{bpm:112,len:128,gain:2.4,play(st,tm){
       const bar=Math.floor(st/16),s=st%16,ch=bar%4;const m=HAPPY_MEL[bar][s];
       if(m){tone("square",mtof(m),tm,bar<4?0.17:0.45,0.18,musicG);tone("triangle",mtof(m+12),tm,0.12,0.05,musicG);}
       if(s%2===0)tone("triangle",mtof([48,43,45,41][ch]+(s%4===2?12:0)),tm,0.22,0.5,musicG);
@@ -749,7 +749,7 @@ const Snd=(function(){
     /* POWER METAL — é esta que toca DENTRO do jogo (25/11/2026). Galope de guitarra (colcheia +
        duas semicolcheias) com distorção de verdade pelo rockBus, bumbo duplo e solo cantado em
        Mi menor. O dono pediu "rock power metal mais animado". */
-    rock:{bpm:168,len:128,gain:1.15,play(st,tm){
+    rock:{bpm:168,len:128,gain:0.9,play(st,tm){
       const bar=Math.floor(st/16)%8,s=st%16;
       const root=[40,40,36,43,38,36,43,38][bar];          /* Em - Em - C - G - D - C - G - D */
       const GAL=[1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1];        /* galope: toc - toc-toc */
@@ -773,7 +773,7 @@ const Snd=(function(){
       if(nt!==null&&nt!==undefined){
         tone("sawtooth",mtof(nt),tm,0.34,0.5,rockBus);
         tone("square",mtof(nt+12),tm,0.2,0.07,musicG);}}},
-    funk:{bpm:130,len:64,gain:1.7,play(st,tm){
+    funk:{bpm:130,len:64,gain:2.6,play(st,tm){
       const bar=Math.floor(st/16),s=st%16;
       if([0,3,6,10].includes(s)){kick(tm,1);tone("sine",mtof(FUNK_BASS[bar]),tm,0.32,0.55,musicG,mtof(FUNK_BASS[bar])*0.8);}
       if(s===4||s===12){noise(tm,0.12,0.4,musicG,1200);noise(tm+0.012,0.08,0.25,musicG,2500);}
@@ -786,7 +786,12 @@ const Snd=(function(){
     if(ctx){if(ctx.state==="suspended"&&!paused)ctx.resume().catch(()=>{});return;}
     const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
     try{ctx=new AC();}catch(e){ctx=null;return;}
-    master=ctx.createGain();master.gain.value=0.9;master.connect(ctx.destination);
+    /* Limitador no fim de tudo: as trilhas têm ganhos bem diferentes (ver `gain` de cada uma) e os
+       picos somados com os efeitos passavam de 1. Em vez de estourar, o compressor segura. */
+    const lim=ctx.createDynamicsCompressor();
+    lim.threshold.value=-8;lim.knee.value=10;lim.ratio.value=8;lim.attack.value=0.004;lim.release.value=0.18;
+    lim.connect(ctx.destination);
+    master=ctx.createGain();master.gain.value=0.9;master.connect(lim);
     musicG=ctx.createGain();musicG.gain.value=musicOn?MUSIC_VOL:0;musicG.connect(master);
     sfxG=ctx.createGain();sfxG.gain.value=sfxOn?0.55:0;sfxG.connect(master);
     const ws=ctx.createWaveShaper();const cv=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/512-1;cv[i]=Math.tanh(x*4);}ws.curve=cv;
@@ -2306,17 +2311,29 @@ function celebrate(big,ms){
   return {stop:stop};
 }
 /* Sair do jogo pergunta antes (o dono pediu em 25/11/2026: um toque no 🏠 levava embora na hora). */
+let leaveOv=null;
 function askLeave(){
-  const ov=document.createElement("div");ov.className="overlay";ov.style.zIndex=40;
+  if(leaveOv)return;
+  const ov=document.createElement("div");ov.className="overlay";ov.style.zIndex=40;leaveOv=ov;
   const card=document.createElement("div");card.className="card";card.style.textAlign="center";
   const ttl=document.createElement("h2");ttl.textContent="🏠 "+t("leaveTitle");ttl.style.cssText="margin:0 0 8px;color:#2563eb;font-size:24px";
   const msg=document.createElement("p");msg.textContent=t("leaveAsk");msg.style.cssText="margin:0 0 16px;color:#334155;font-weight:600";
   const yes=document.createElement("button");yes.className="play";yes.textContent=t("leaveYes");
   const no=document.createElement("button");no.className="sec";no.textContent=t("leaveNo");no.style.marginTop="10px";
-  yes.onclick=()=>{location.href="../../jogos.html";};
-  no.onclick=()=>{Snd.play("click");ov.remove();};
+  yes.onclick=()=>{leaveOv=null;location.href="../../jogos.html";};
+  no.onclick=()=>{Snd.play("click");closeLeave();};
   card.append(ttl,msg,yes,no);ov.appendChild(card);document.body.appendChild(ov);
 }
+function closeLeave(){if(leaveOv){leaveOv.remove();leaveOv=null;}}
+/* O botão VOLTAR do celular/navegador também não pode jogar o jogador para fora sem avisar.
+   Deixamos sempre uma "entrada falsa" no histórico: ao voltar, o navegador consome essa entrada,
+   nós perguntamos e repomos a entrada — por mais vezes que ele aperte, nunca sai sem confirmar. */
+try{history.pushState({ezGuard:1},"");}catch(e){}
+addEventListener("popstate",()=>{
+  try{history.pushState({ezGuard:1},"");}catch(e){}
+  if(leaveOv)closeLeave();      /* já estava perguntando: voltar fecha a pergunta */
+  else askLeave();
+});
 /* Grande vitória: desbloqueia o próximo item do boneco e avisa. */
 function grantWin(){const got=addWin();if(got)setTimeout(()=>toast(t("unlockNew").replace("{a}",t("a_"+got)),5200,true),1400);return got;}
 

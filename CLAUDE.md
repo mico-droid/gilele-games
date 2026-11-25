@@ -126,3 +126,22 @@
     Sim/Não — no motor via `gameLinkParts.leave()`, nos avulsos via `askLeave()`.
   - `jogos.html`: ordem dos jogos prontos passou a ser Apagão → Parkour Tabuada → EZ Obby → Playground →
     Tabuada Simples (o dono quis o Apagão em primeiro e a Tabuada Simples por último).
+- **Volume igual em todas as trilhas (25/11/2026)** — o dono cobrou "o volume tem que ser sempre o mesmo em
+  todos os jogos". Em vez de chutar, as trilhas foram **medidas**: um renderizador offline em Node sintetiza
+  cada música (os mesmos osciladores, envelopes, ruído, distorção tanh e filtro do jogo), aplica um passa-altas
+  de 320 Hz (o que o alto-falante de celular realmente toca) e mede o RMS. O alvo é **0,023** e todas as
+  trilhas foram ajustadas pelo campo `gain` até baterem nesse número (motor e avulsos).
+  - Motor: `adventure` 1 (referência) · `castle` 4,3 · `chill` 5 · `chase` 4,9 · `victory` 2,05 ·
+    `apagao` 3,3 (em `menu.js`).
+  - Avulsos: `rock` 0,9 · `adventure` 3,15 (lá não passa pelo rockBus) · `castle` 4,3 · `happy` 2,4 ·
+    `funk` 2,6 · `victory` 2,05.
+  - A trilha do Apagão também foi **remisturada**: estava com a música em 0,03–0,11 e o bumbo em 0,55, ou
+    seja, só se ouvia a batida. Agora a parte melódica carrega o volume.
+  - **Limitador** (`DynamicsCompressorNode`, threshold −8, ratio 8) entre o master e a saída, nos dois lados:
+    com ganhos altos os picos passavam de 1. Picos medidos hoje: 0,3 a 0,76.
+  - Para refazer a medição: o renderizador fica em `/tmp/meas` durante a sessão; é um script de ~80 linhas que
+    importa `engine/audio.js` com `SONGS` exportado. Vale recriar se mexer nas trilhas.
+- **Botão Voltar do celular** (`guardBack()` em `engine/ui.js`, cópia nos avulsos): o jogo mantém sempre uma
+  entrada falsa no histórico (`history.pushState`); ao voltar, o navegador consome essa entrada, o jogo
+  pergunta "Quer mesmo sair?" e repõe a entrada. Apertar voltar de novo fecha a pergunta. Assim não dá para
+  sair sem confirmar, por mais vezes que aperte.

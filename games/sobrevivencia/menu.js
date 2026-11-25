@@ -183,25 +183,28 @@ let musicLevel = 0;
 export function installMusic(Audio) {
   const BASS = [45, 41, 38, 40], CH = [[0, 3, 7], [0, 4, 7], [0, 3, 7], [0, 4, 8]];
   Audio.addSong("apagao", {
-    gain: 2.4,   // trilha composta baixa demais: sumia dentro do jogo (ajuste de 25/11/2026)
+    // Mistura refeita em 25/11/2026: a música estava toda nos 0,03–0,11 enquanto o bumbo ia a 0,55 —
+    // no celular só se ouvia a batida. Agora a parte melódica carrega o volume e a bateria acompanha.
+    // O `gain` abaixo veio de medição: todas as trilhas do projeto tocam no mesmo volume percebido.
+    gain: 3.3,
     get bpm() { return [104, 118, 132][musicLevel]; }, len: 64,
     play(s, tm, k) {
       const L = musicLevel, bar = Math.floor(s / 16), st = s % 16, r = BASS[bar], m = k.music, f = k.mtof;
       // batida
-      if (st % (L ? 4 : 8) === 0) k.tone("sine", 140, tm, 0.18, 0.55, m, 40);
-      if (L >= 1 && (st === 4 || st === 12)) k.noise(tm, 0.1, 0.2, m, 1800);
-      if (st % 2 === 1 || (L === 2 && st % 2 === 0)) k.noise(tm, 0.025, L === 2 ? 0.07 : 0.05, m, 9000);
+      if (st % (L ? 4 : 8) === 0) k.tone("sine", 140, tm, 0.18, 0.34, m, 40);
+      if (L >= 1 && (st === 4 || st === 12)) k.noise(tm, 0.1, 0.17, m, 1800);
+      if (st % 2 === 1 || (L === 2 && st % 2 === 0)) k.noise(tm, 0.025, L === 2 ? 0.06 : 0.045, m, 9000);
       // baixo pulsante (colcheias; semicolcheias no perigo)
-      if (st % (L === 2 ? 1 : 2) === 0) k.tone("sawtooth", f(r + (st % 4 === 2 ? 12 : 0)), tm, 0.1, L ? 0.11 : 0.08, m);
+      if (st % (L === 2 ? 1 : 2) === 0) k.tone("sawtooth", f(r + (st % 4 === 2 ? 12 : 0)), tm, 0.1, L ? 0.3 : 0.24, m);
       // fundo sombrio: quinta e trítono, longo
-      if (st === 0) { k.tone("sine", f(r + 12), tm, 1.9, 0.07, m); k.tone("sine", f(r + 18), tm + 0.02, 1.9, bar === 3 ? 0.05 : 0.03, m); }
+      if (st === 0) { k.tone("sine", f(r + 12), tm, 1.9, 0.2, m); k.tone("sine", f(r + 18), tm + 0.02, 1.9, bar === 3 ? 0.15 : 0.1, m); }
       // arpejo (missão perto)
-      if (L >= 1 && st % 2 === 0) { const c = CH[bar]; k.tone("square", f(r + 24 + c[(st >> 1) % 3]), tm, 0.09, 0.045, m); }
+      if (L >= 1 && st % 2 === 0) { const c = CH[bar]; k.tone("square", f(r + 24 + c[(st >> 1) % 3]), tm, 0.09, 0.15, m); }
       // sino de alerta / melodia tensa (perigo)
       if (L === 2) {
-        if (st === 0 || st === 6 || st === 10) k.tone("triangle", f(r + 36 + (st === 6 ? 1 : 0)), tm, 0.22, 0.06, m);
-        if (bar === 3 && st >= 12) k.tone("sine", 220 - (st - 12) * 30, tm, 0.12, 0.3, m, 70);
-      } else if (st === 8 && (bar === 1 || bar === 3)) k.tone("triangle", f(r + 31), tm, 0.5, 0.04, m);
+        if (st === 0 || st === 6 || st === 10) k.tone("triangle", f(r + 36 + (st === 6 ? 1 : 0)), tm, 0.22, 0.19, m);
+        if (bar === 3 && st >= 12) k.tone("sine", 220 - (st - 12) * 30, tm, 0.12, 0.28, m, 70);
+      } else if (st === 8 && (bar === 1 || bar === 3)) k.tone("triangle", f(r + 31), tm, 0.5, 0.14, m);
     },
   });
   Audio.setSong("apagao");

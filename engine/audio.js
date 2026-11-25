@@ -66,7 +66,7 @@ const SFX = {
 const SONGS = {
   // calminha (a antiga) — menus e cenários tranquilos
   chill: {
-    gain: 2.3,
+    gain: 5,
     bpm: 108, len: 64,
     play(s, tm, k) {
       const bar = Math.floor(s / 16), st = s % 16, roots = [60, 57, 53, 55];
@@ -83,6 +83,7 @@ const SONGS = {
   // bateria batendo forte e um riff pentatônico por cima. Não há distorção de verdade no Web Audio,
   // então a guitarra é feita de serra + quinta + oitava com notas curtas — de longe soa como palhetada.
   adventure: {
+    gain: 1,   // referência: as outras trilhas foram medidas contra esta
     bpm: 152, len: 128,
     play(s, tm, k) {
       const bar = Math.floor(s / 16) % 8, st = s % 16;
@@ -125,6 +126,7 @@ const SONGS = {
   },
   // PERIGO / evento difícil — grave pulsante, menor com trítono (composição original)
   castle: {
+    gain: 4.3,
     bpm: 132, len: 128,
     play(s, tm, k) {
       const bar = Math.floor(s / 16) % 8, st = s % 16;
@@ -148,6 +150,7 @@ const SONGS = {
   },
   // COMEMORAÇÃO — fanfarra alegre em Dó maior, para a vitória final (pedido do dono, 25/11/2026)
   victory: {
+    gain: 2.05,
     bpm: 140, len: 128,
     play(s, tm, k) {
       const bar = Math.floor(s / 16) % 8, st = s % 16;
@@ -176,7 +179,7 @@ const SONGS = {
   },
   // correria / contagem regressiva — rápido e nervoso, mesma pegada grave
   chase: {
-    gain: 1.9,
+    gain: 4.9,
     bpm: 150, len: 64,
     play(s, tm, k) {
       const bar = Math.floor(s / 16) % 4, st = s % 16;
@@ -219,7 +222,12 @@ export const Audio = {
     if (ctx) { if (ctx.state === "suspended") ctx.resume().catch(() => {}); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     try { ctx = new AC(); } catch (e) { ctx = null; return; }
-    master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
+    // Limitador no fim de tudo: as trilhas têm ganhos bem diferentes (ver `gain` de cada uma) e
+    // os picos somados com os efeitos passavam de 1. Em vez de deixar estourar, o compressor segura.
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -8; lim.knee.value = 10; lim.ratio.value = 8; lim.attack.value = 0.004; lim.release.value = 0.18;
+    lim.connect(ctx.destination);
+    master = ctx.createGain(); master.gain.value = 0.9; master.connect(lim);
     musicG = ctx.createGain(); musicG.gain.value = musicOn ? MUSIC_VOL : 0; musicG.connect(master);
     sfxG = ctx.createGain(); sfxG.gain.value = sfxOn ? 0.55 : 0; sfxG.connect(master);
     // Guitarra de verdade: distorção (tanh) + filtro, como numa caixa de som de guitarra.
