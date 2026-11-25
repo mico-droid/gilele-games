@@ -112,9 +112,20 @@ export function openAvatarEditor(look, onSave, { onCancel } = {}) {
       }),
       h("h3", t("skin")), swatches(SKINS.concat(Object.values(KIND_SKIN)), lk.c[0], (col) => { const c = lk.c.slice(); if (c[2] === c[0]) c[2] = col; c[0] = col; set({ c }); }),
     ];
-    if (tab === "hair") body = ["m", "f"].includes(lk.g) || ["horse"].includes(lk.g)
-      ? [h("h3", t("hair")), lk.g === "horse" ? null : chips(HAIRS[lk.g === "f" ? "f" : "m"], lk.h, (x) => t("h_" + x), (x) => set({ h: x })), h("h3", t("hairColor")), swatches(HAIRCOLS, lk.hc, (x) => set({ hc: x }))]
-      : [h("p", "—")];
+    // Aba do cabelo: bicho/ET/zumbi/carinha não usam cabelo, mas a aba NÃO pode ficar vazia
+    // (o dono abria o editor com um boneco sorteado desses e não via opção nenhuma — 25/11/2026).
+    // Agora ela sempre mostra a cor e, quando o tipo não tem cabelo, deixa trocar o tipo ali mesmo.
+    if (tab === "hair") {
+      const human = lk.g === "m" || lk.g === "f";
+      body = human
+        ? [h("h3", t("hair")), chips(HAIRS[lk.g === "f" ? "f" : "m"], lk.h, (x) => t("h_" + x), (x) => set({ h: x })), h("h3", t("hairColor")), swatches(HAIRCOLS, lk.hc, (x) => set({ hc: x }))]
+        : [h("p.ez-msg", t("noHair")),
+           chips(["m", "f"], null, (k) => t("k_" + k), (g) => {
+             const c = lk.c.slice(); if (KIND_SKIN[lk.g]) { c[0] = SKINS[1]; c[2] = SKINS[1]; }
+             const hs = HAIRS[g === "f" ? "f" : "m"]; set({ g, c, h: hs.includes(lk.h) && lk.h !== "none" ? lk.h : hs[0] });
+           }),
+           h("h3", t("hairColor")), swatches(HAIRCOLS, lk.hc, (x) => set({ hc: x }))];
+    }
     if (tab === "colors") body = [
       h("h3", t("shirt")), swatches(PALETTE, lk.c[1], (x) => setC(1, x)),
       h("h3", t("pants")), swatches(PALETTE, lk.c[3], (x) => setC(3, x)),
@@ -197,16 +208,40 @@ export const PORTAL_URL = "../../jogos.html"; // relativo: ainda não há domín
  *   onBack()   → o que fazer quando apertar voltar e não houver pergunta aberta
  *   isAsking() → devolve a função que fecha a pergunta, se ela já estiver na tela
  */
-let backGuard = false;
+let backGuard = false, fakeEntries = 0, leavingNow = false;
 export function guardBack(onBack, isAsking) {
   if (backGuard) return; backGuard = true;
-  try { history.pushState({ ezGuard: 1 }, ""); } catch (e) { return; }
+  const push = () => { try { history.pushState({ ezGuard: 1 }, ""); fakeEntries++; } catch (e) {} };
+  push(); if (!fakeEntries) return;
   addEventListener("popstate", () => {
-    try { history.pushState({ ezGuard: 1 }, ""); } catch (e) {}   // repõe a entrada falsa
+    if (leavingNow) return;                 // já estamos saindo: deixa o navegador seguir
+    fakeEntries = Math.max(0, fakeEntries - 1);
+    push();                                 // repõe a entrada falsa
     const shut = isAsking && isAsking();
     if (shut) shut();            // já estava perguntando: voltar fecha a pergunta
     else onBack();
   });
+}
+/**
+ * Sair do jogo DE VERDADE (depois do "Quer mesmo sair? → Sim").
+ * Antes isto era um `location.href = portal`, o que deixava a página do jogo e as entradas falsas
+ * para trás no histórico: no portal, o botão voltar caía no jogo outra vez, já com a pergunta de
+ * sair na tela, e dava um vai-e-vem sem fim (bug do dono, 25/11/2026). Agora o jogo DESCARTA as
+ * suas entradas: se o jogador veio do portal, volta para ele; senão, troca a entrada atual.
+ */
+export function leaveToPortal(portal = PORTAL_URL) {
+  if (leavingNow) return;
+  leavingNow = true;
+  const steps = fakeEntries + 1;                           // as entradas falsas + a página do jogo
+  const ref = document.referrer || "";
+  const cameFromPortal = !!ref && ref !== location.href && /jogos\.html(\?|#|$)/.test(ref);
+  if (cameFromPortal && history.length > steps) {
+    // se o voltar não sair em meio segundo (histórico cortado pelo navegador), navega na mão
+    const fallback = setTimeout(() => location.replace(portal), 600);
+    addEventListener("pagehide", () => clearTimeout(fallback), { once: true });
+    try { history.go(-steps); return; } catch (e) { clearTimeout(fallback); }
+  }
+  location.replace(portal);
 }
 
 /**
@@ -252,7 +287,7 @@ export function gameLinkParts(gameName, { portal = "../../jogos.html", small = t
     const scr = screen([
       h("h2", "🏠 " + t("leaveTitle")),
       h("p", t("leaveAsk")),
-      h("button.ez-btn.ok.wide", { "data-k": "next", onclick: () => { askOpen = null; location.href = portal; } }, t("leaveYes")),
+      h("button.ez-btn.ok.wide", { "data-k": "next", onclick: () => { shut(); leaveToPortal(portal); } }, t("leaveYes")),
       h("button.ez-btn.gray.wide", { style: { marginTop: "8px" }, "data-k": "back", onclick: shut }, t("leaveNo")),
     ], { dim: true, x: shut });
     askOpen = shut;

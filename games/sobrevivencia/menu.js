@@ -6,7 +6,7 @@ import { h, t, screen, THREE, part, toast } from "../../engine/ez.js";
 import { LESSONS } from "./lessons.js";
 
 const here = new URLSearchParams(location.search).get("modo") === "aprender" ? "learn" : "real";
-const go = (mode, acao) => { location.href = (mode === "learn" ? "?modo=aprender&" : "?") + "acao=" + acao; };
+const go = (mode, acao) => { location.replace((mode === "learn" ? "?modo=aprender&" : "?") + "acao=" + acao); };
 
 /** Ação pedida pela URL ("cont" | "novo" | null). Só vale uma vez (limpa a URL). */
 export function consumeAction() {
@@ -35,7 +35,7 @@ export function modeMenu(store, on, { fromHome = false } = {}) {
     h("button.ez-btn.blue.wide", { onclick: newLearn }, t("m_learn")), desc("learnDesc"),
     h("button.ez-btn.blue.wide", { onclick: newReal }, t("m_real")), desc("realDesc"),
     sec("secTest"),
-    h("button.ez-btn.gray.wide", { onclick: () => { location.href = "?modo=cidade"; } }, t("m_city")), desc("cityDescM"),
+    h("button.ez-btn.gray.wide", { onclick: () => { location.replace("?modo=cidade"); } }, t("m_city")), desc("cityDescM"),
   ];
 }
 
@@ -56,14 +56,21 @@ export function modeHome(store, on, { reopen, close } = {}) {
                          : t("contLearn", { d: learn ? learn.done.length : 0, n: LESSONS.length });
     out.push(h("button.ez-btn.ok.main", { onclick: () => {
       if (toReal) { here === "real" ? on.contReal() : go("real", "cont"); }
-      else { here === "learn" ? on.contLearn() : go("learn", "cont"); }
+      else if (here === "learn" && on.contLearn) on.contLearn();
+      else go("learn", "cont");
     } }, label));
   }
   out.push(h("button.ez-btn" + (hasReal || hasLearn ? ".blue" : ".ok.main"), { onclick: () => {
     close && close();
-    const scr = screen([h("h2", t("secNew")), ...modeMenu(store, on, { fromHome: true }),
-      h("button.ez-btn.gray.wide", { style: { marginTop: "10px" }, "data-k": "back", onclick: () => { scr.close(); reopen && reopen(); } }, t("back"))],
-      { dim: true, x: () => { scr.close(); reopen && reopen(); } });
+    let scr = null;
+    const shut = () => { if (scr) { scr.close(); scr = null; } };
+    // A caixa tem de FECHAR ao escolher o modo: sem isso ela ficava por cima do jogo já rodando
+    // (o dono via "o jogo não inicia / não dá para ver o boneco"). Corrigido em 25/11/2026.
+    const pick = {};
+    for (const k of Object.keys(on)) pick[k] = (...a) => { shut(); return on[k](...a); };
+    scr = screen([h("h2", t("secNew")), ...modeMenu(store, pick, { fromHome: true }),
+      h("button.ez-btn.gray.wide", { style: { marginTop: "10px" }, "data-k": "back", onclick: () => { shut(); reopen && reopen(); } }, t("back"))],
+      { dim: true, x: () => { shut(); reopen && reopen(); } });
   } }, t("newGame")));
   return out;
 }
@@ -128,7 +135,7 @@ export function wearPack(ch, color = "#b45309") {
 // Cada modo tem a sua página; a sala acompanha o dono quando ele troca de modo (mesmo código).
 const modeUrl = (mode) => (mode === "learn" ? "?modo=aprender&" : "?");
 const hasSave = (store, mode) => { const v = store.getJSON(mode === "learn" ? "learn" : "save", null); return mode === "learn" ? !!(v && ((v.done && v.done.length) || v.cur)) : !!(v && !v.ended); };
-const travel = (store, mode, code, extra) => { location.href = modeUrl(mode) + "sala=" + code + extra + "&acao=" + (hasSave(store, mode) ? "cont" : "novo"); };
+const travel = (store, mode, code, extra) => { location.replace(modeUrl(mode) + "sala=" + code + extra + "&acao=" + (hasSave(store, mode) ? "cont" : "novo")); };
 /** Botões "Jogar Aprendizado / Jogar Apagão Real" para a tela de amigos (opção `actions` do openRoomPanel). */
 export function roomActions(room, store, enterHere) {
   return ({ close }) => {

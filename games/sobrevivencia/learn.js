@@ -705,7 +705,7 @@ function showTitle() {
     world, room, reopen: showTitle, roomActions: roomActions(room, store, enterGame),
     scenicAt: me.body ? { x: me.body.x, y: me.body.y, z: me.body.z } : null,
     note: isTouch ? null : L(T("WASD/setas: andar · Shift: correr · J: interagir · I: mochila · T: manual · B: construir · Arraste: câmera", "WASD/arrows: move · Shift: run · J: interact · I: backpack · T: manual · B: build · Drag: camera", "WASD/flechas: mover · Shift: correr · J: interactuar · I: mochila · T: manual · B: construir · Arrastra: cámara")),
-    buttons: modeHome(store, { contLearn: () => { close(); start(); }, newLearn: () => { close(); P = structuredClone(P0); save(); location.href = "?modo=aprender&acao=novo"; } }, { reopen: showTitle, close }),
+    buttons: modeHome(store, { contLearn: () => { close(); start(); }, newLearn: () => { close(); P = structuredClone(P0); save(); location.replace("?modo=aprender&acao=novo"); } }, { reopen: showTitle, close }),
     extra: ageRow,
   });
 }

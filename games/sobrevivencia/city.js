@@ -12,6 +12,13 @@ export const ZONES = {
 /**
  * opt.homeOnly: só o quarteirão de casa (prédio, vizinhos, garagem, torre) — o resto vem do mapa real (osmcity.js).
  */
+/** Ruas do bairro: centros das pistas (±24, ±72) e meia-largura útil (pista 8 + folga). */
+const STREETS = [-72, -24, 24, 72], LANE = 4.6;
+/** true = este ponto cai na pista de alguma rua (não pode haver casa, poste, árvore nem muro aí). */
+export function onStreet(x, z, pad = 0) {
+  return STREETS.some((c) => Math.abs(x - c) < LANE + pad) || STREETS.some((c) => Math.abs(z - c) < LANE + pad);
+}
+
 export function buildCity(world, phys, opt = {}) {
   const homeOnly = !!opt.homeOnly;
   const S = world.scene;
@@ -36,8 +43,10 @@ export function buildCity(world, phys, opt = {}) {
     // calçadas nas ruas principais
     [-24, 24].forEach((c) => { [c - 5, c + 5].forEach((s) => { part(180, 0.12, 2, "#d6d3d1", 0, 0.06, s, S, false); part(2, 0.12, 180, "#d6d3d1", s, 0.06, 0, S, false); }); });
 
-    // postes de luz
+    // postes de luz — NUNCA dentro da pista (o dono achou poste no meio da rua, 25/11/2026).
+    // As ruas ficam centradas em ±24 e ±72, com 8 de largura; a calçada vai até 5 do centro.
     for (let i = -66; i <= 66; i += 22) [[i, -18.6], [i, 29.4], [-18.6, i], [29.4, i]].forEach(([x, z]) => {
+      if (onStreet(x, z)) return;
       part(0.25, 5, 0.25, "#64748b", x, 2.5, z, S);
       const head = part(0.9, 0.3, 0.5, "#64748b", x, 5.1, z, S); head.material = lampOn; lit.push({ m: head, on: lampOn, off: lampOff });
     });
@@ -59,6 +68,11 @@ export function buildCity(world, phys, opt = {}) {
   /** Prédio/casa fechada com janelas que acendem. */
   function building(x, z, w, d, h, color, { roof = "#9a3412", face = "+z", windows = true } = {}) {
     h = Math.max(h, 5); // pé-direito realista: o boneco tem ~2,7 de altura
+    // nenhuma parede pode encostar na pista: empurra o prédio para dentro do quarteirão
+    for (const c of STREETS) {
+      if (Math.abs(x - c) < LANE + w / 2) x = c + Math.sign(x - c || 1) * (LANE + w / 2 + 0.6);
+      if (Math.abs(z - c) < LANE + d / 2) z = c + Math.sign(z - c || 1) * (LANE + d / 2 + 0.6);
+    }
     phys.addBox({ x, y: h / 2, z, w, h, d, color, scene: S });
     part(w + 0.6, 0.4, d + 0.6, roof, x, h + 0.2, z, S);
     if (!windows) return;
@@ -134,6 +148,52 @@ export function buildCity(world, phys, opt = {}) {
   building(10, -14, 8, 8, 3.2, "#fed7aa");
   const homeLabel = roofSign("🏢 " + t("l_building"), H.x - 1.5, WH + 11.2, H.z, "#b45309");
 
+
+  // ---------------------------------------------------------------- casas do bairro (25/11/2026)
+  // Regra do dono: 50% das casas ABERTAS (com porta de verdade, dá para entrar);
+  // destas, 50% COM ITENS no chão; e destas, 50% com um MORADOR (NPC) que não deixa levar nada.
+  // A lista é fixa (não sorteada) para o jogo salvo continuar combinando com o mapa.
+  const HOUSE_SPOTS = [
+    [-46, -10], [46, 6], [46, 54], [60, -40], [0, -50], [14, -54], [-14, -54], [46, -10], [-12, 62], [14, 60], [60, 40],
+    [34, 14], [34, -12], [60, -12], [60, 12], [58, 34], [36, 60], [60, 60], [34, -34], [-34, -12], [-34, 12],
+  ];
+  const HCOL = ["#fde68a", "#c7d2fe", "#fecaca", "#d9f99d", "#e0e7ff", "#fae8ff", "#cffafe", "#fef9c3", "#e2e8f0", "#fee2e2", "#dcfce7"];
+  const houses = [];
+  /** Casa aberta: quatro paredes com vão de porta virado para +z, piso e telhado que some quando você entra. */
+  function openHouse(x, z, w, d, color, i) {
+    const HWH = 3.4, TH = 0.3, ax0 = x - w / 2, ax1 = x + w / 2, az0 = z - d / 2, az1 = z + d / 2;
+    const wl = (wx, wz, ww, wd) => phys.addBox({ x: wx, y: HWH / 2, z: wz, w: ww, h: HWH, d: wd, color, scene: S });
+    part(w, 0.06, d, "#e7e5e4", x, 0.03, z, S, false);                              // piso
+    wl(x, az0, w, TH); wl(ax0, z, TH, d); wl(ax1, z, TH, d);                         // fundo e laterais
+    const side = (w / 2 - 1.3);
+    wl(ax0 + side / 2, az1, side, TH); wl(ax1 - side / 2, az1, side, TH);            // frente com o vão da porta
+    part(2.6, 0.5, TH, color, x, HWH - 0.25, az1, S);                                // verga
+    // porta aberta na dobradiça
+    const dr = new THREE.Group(); dr.position.set(x - 1.3, 0, az1); dr.rotation.y = -1.25; S.add(dr);
+    part(2.5, 2.3, 0.14, "#7c2d12", 1.25, 1.15, 0, dr); part(0.16, 0.16, 0.22, "#facc15", 2.2, 1.1, 0, dr);
+    const roof = new THREE.Group(); S.add(roof);
+    part(w + 0.8, 0.4, d + 0.8, "#9a3412", x, HWH + 0.2, z, roof);
+    const win = [];
+    [[ax0 - 0.05, z - 1.5], [ax1 + 0.05, z + 1.5]].forEach(([wx, wz]) => { const m = part(0.1, 1, 1.4, "#fde68a", wx, 1.8, wz, S, false); m.material = winOn; lit.push({ m, on: winOn, off: winOff }); win.push(m); });
+    return { roof, inside: (px, pz) => px > ax0 && px < ax1 && pz > az0 && pz < az1, spots: [
+      { x: ax0 + 1.6, z: az0 + 1.6 }, { x: ax1 - 1.6, z: az0 + 1.8 }, { x: x, z: z - 0.4 },
+    ] };
+  }
+  if (!homeOnly) HOUSE_SPOTS.forEach(([hx2, hz2], i) => {
+    const w = 10, d = 9, open = i % 2 === 0, loot = open && i % 4 === 0, npc = loot && i % 8 === 0;
+    const color = HCOL[i % HCOL.length];
+    if (!open) {
+      building(hx2, hz2, w, d, i % 5 === 0 ? 9 : 3.4, color, { roof: i % 2 ? "#7c2d12" : "#475569" });
+      // porta fechada, só visual, para a casa não ficar uma caixa lisa
+      part(2.4, 2.3, 0.18, "#57534e", hx2, 1.15, hz2 + d / 2 + 0.12, S);
+      part(0.16, 0.16, 0.2, "#e5e7eb", hx2 + 0.9, 1.1, hz2 + d / 2 + 0.24, S);
+      houses.push({ x: hx2, z: hz2, w, d, open: false, loot: false, npc: false });
+      return;
+    }
+    const oh = openHouse(hx2, hz2, w, d, color, i);
+    houses.push({ x: hx2, z: hz2, w, d, open: true, loot, npc, roof: oh.roof, inside: oh.inside, spots: oh.spots });
+  });
+
   const TP = homeOnly ? { x: 20, z: -20 } : { x: 48, z: -50 };   // torre de celular
   const tower = new THREE.Group(); tower.position.set(TP.x, 0, TP.z); S.add(tower);
   for (let y = 0; y < 28; y += 4) { part(0.25, 4, 0.25, "#94a3b8", -1, y + 2, -1, tower); part(0.25, 4, 0.25, "#94a3b8", 1, y + 2, 1, tower); part(0.25, 4, 0.25, "#94a3b8", -1, y + 2, 1, tower); part(0.25, 4, 0.25, "#94a3b8", 1, y + 2, -1, tower); part(2.2, 0.15, 2.2, "#94a3b8", 0, y + 4, 0, tower); }
@@ -143,10 +203,22 @@ export function buildCity(world, phys, opt = {}) {
   [["👴 " + t("l_ze"), -15, 11.6, 10, "#4d7c0f"], ["👩 " + t("l_cida"), 14, 5.6, -2, "#be185d"], ["👨 " + t("l_valdir"), -8, 5.6, -12, "#7e22ce"]].forEach(([txt, x, y, z, bg]) => roofSign(txt, x, y, z, bg));
   if (!homeOnly) {
     // ---------------------------------------------------------------- comércio e serviços
+    /** Porta de loja: moldura, folha entreaberta, maçaneta e plaquinha "ABERTO" — o dono reclamou
+     *  que os comércios não tinham porta nenhuma (25/11/2026). A compra é no toque da porta. */
+    function shopDoor(x, z, w = 2.6, hh = 2.6) {
+      part(w + 0.5, hh + 0.35, 0.22, "#0f172a", x, (hh + 0.35) / 2, z + 0.06, S);     // moldura
+      const dr = new THREE.Group(); dr.position.set(x - w / 2, 0, z + 0.18); dr.rotation.y = -0.9; S.add(dr);
+      part(w, hh, 0.12, "#92400e", w / 2, hh / 2, 0, dr);
+      part(w - 0.6, hh - 1.2, 0.04, "#bae6fd", w / 2, hh / 2 + 0.3, 0.08, dr, false);
+      part(0.14, 0.14, 0.2, "#facc15", w - 0.25, hh / 2 - 0.1, 0.1, dr);
+      part(0.9, 0.3, 0.06, "#16a34a", x + w / 2 + 0.1, hh + 0.2, z + 0.2, S, false);  // plaquinha
+      part(1.2, 0.08, 1.6, "#a8a29e", x, 0.04, z + 0.9, S, false);                     // soleira
+    }
     building(0, 46, 26, 16, 6, "#f1f5f9", { roof: "#16a34a" });                     // mercado
-    part(6, 3, 0.2, "#0f172a", 0, 1.5, 37.95, S); part(10, 1.4, 0.3, "#16a34a", 0, 5.2, 37.9, S);
+    part(10, 1.4, 0.3, "#16a34a", 0, 5.2, 37.9, S);
+    shopDoor(0, 37.95, 4, 3);                                                        // porta do mercado
     building(40, 38, 10, 8, 4, "#ecfeff", { roof: "#0d9488" });                     // farmácia
-    part(2.4, 2.6, 0.2, "#0f172a", 40, 1.3, 33.95, S);
+    shopDoor(40, 33.95, 2.6, 2.6);                                                   // porta da farmácia
     phys.addBox({ x: 0, y: 1.6, z: -32, w: 4, h: 3.2, d: 3, color: "#1d4ed8", scene: S });   // banco 24h
     const atmScr = part(1.2, 0.9, 0.1, "#38bdf8", 0, 1.7, -30.45, S, false); atmScr.material = getMat("#38bdf8", 1); lit.push({ m: atmScr, on: atmScr.material, off: winOff });
     // posto
@@ -154,6 +226,7 @@ export function buildCity(world, phys, opt = {}) {
     part(14, 0.5, 14, "#dc2626", -46, 5.2, -40, S);
     [[-49, -40], [-43, -40]].forEach(([x, z]) => { phys.addBox({ x, y: 0.9, z, w: 1, h: 1.8, d: 0.8, color: "#f8fafc", scene: S }); const d = part(0.6, 0.4, 0.1, "#22c55e", x, 1.3, z + 0.42, S, false); d.material = getMat("#22c55e", 1); lit.push({ m: d, on: d.material, off: winOff }); });
     building(-46, -56, 12, 6, 3.5, "#fef2f2", { roof: "#dc2626" });
+    shopDoor(-46, -52.95, 2.6, 2.6);
     // hospital
     building(-52, 6, 16, 20, 9, "#f8fafc", { roof: "#1d4ed8" });
     part(0.2, 2.4, 0.8, "#ef4444", -43.85, 7, 6, S); part(0.2, 0.8, 2.4, "#ef4444", -43.85, 7, 6, S);
@@ -166,10 +239,8 @@ export function buildCity(world, phys, opt = {}) {
     [[-56, 42], [-40, 42], [-56, 54], [-40, 54]].forEach(([x, z]) => { part(3, 0.4, 1, "#92400e", x, 0.5, z, S); });
     [[-58, 38], [-38, 38], [-58, 58], [-38, 58], [-50, 58], [-46, 38]].forEach(([x, z]) => addTree(world, phys, x, z, 1.1));
 
-    // quarteirões de enchimento
-    const fill = [[-46, -10, "#fde68a"], [46, 6, "#c7d2fe"], [46, 54, "#fecaca"], [60, -40, "#d9f99d"], [0, -50, "#e0e7ff"], [14, -54, "#fae8ff"], [-14, -54, "#cffafe"], [46, -10, "#fef9c3"], [-16, 62, "#e2e8f0"], [14, 60, "#fee2e2"], [60, 40, "#dcfce7"]];
-    fill.forEach(([x, z, c], i) => building(x, z, 10, 9, i % 4 === 0 ? 9 : 3.4, c, { roof: i % 2 ? "#7c2d12" : "#475569" }));
-    [[-18, 21], [18, 21], [-18, -21], [18, -21], [-30, 30], [30, 30], [-30, -30], [30, -30], [6, -30], [-6, 30], [36, -18], [-36, 18]].forEach(([x, z]) => addTree(world, phys, x, z, 0.9));
+    // árvores: as quatro primeiras ficavam em z=±21, ou seja, DENTRO da pista — foram para dentro do quarteirão
+    [[-18, 17], [18, 17], [-18, -17], [18, -17], [-30, 30], [30, 30], [-30, -30], [30, -30], [6, -30], [-6, 30], [36, -18], [-36, 18]].forEach(([x, z]) => addTree(world, phys, x, z, 0.9));
 
     // vegetação: canteiros da praça, arborização e mato nos terrenos vazios (preenche o vazio)
     sc.meadow({ area: [-60, 36, -36, 60], n: 150, flowers: 0.4 });
@@ -214,7 +285,11 @@ export function buildCity(world, phys, opt = {}) {
 
   let power = true;
   return {
-    scenery: sc, roof, npcs, gen, tower, towerLight: tl, homeLabel, towerPos: TP,
+    scenery: sc, roof, npcs, gen, tower, towerLight: tl, homeLabel, towerPos: TP, houses,
+    /** Esconde o telhado da casa em que o jogador entrou (e devolve os outros). */
+    updateHouses(px, pz) {
+      for (const hh of houses) if (hh.roof) hh.roof.visible = !hh.inside(px, pz);
+    },
     /** Porta do apartamento: trancada = fechada e sólida; destrancada = aberta. */
     setDoor(locked) {
       doorMesh.rotation.y = locked ? 0 : -1.35; bar.visible = locked;

@@ -1,7 +1,7 @@
 // Shared service worker for every game in this repo (scope = whole site).
 // Strategy: network-first for pages (always get updates), stale-while-revalidate for everything else
 // (engine, Three.js from CDN, fonts) so games load fast and work offline after the first visit.
-const CACHE = "gilele-v46";
+const CACHE = "gilele-v47";
 const CDN = ["cdn.jsdelivr.net", "unpkg.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", () => self.skipWaiting());
@@ -16,6 +16,14 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   const same = url.origin === location.origin;
   if (!same && !CDN.includes(url.hostname)) return; // analytics, PeerJS signalling etc. go straight to network
+  // Código do site (js/css/json) SEMPRE pela rede primeiro, com o cache só como reserva offline.
+  // Antes era "devolve o cache e atualiza depois": numa publicação nova o jogador recebia metade
+  // dos módulos velhos e metade novos, e o jogo abria quebrado até recarregar duas vezes
+  // (foi o que o dono viu em 25/11/2026). Imagens, fontes e CDN continuam vindo do cache.
+  if (same && /\.(js|css|json|webmanifest)$/.test(url.pathname)) {
+    e.respondWith(fetch(req).then((r) => { if (r.ok) { const c = r.clone(); caches.open(CACHE).then((ca) => ca.put(req, c)); } return r; }).catch(() => caches.match(req)));
+    return;
+  }
   if (req.mode === "navigate") {
     e.respondWith(fetch(req).then((r) => { const c = r.clone(); caches.open(CACHE).then((ca) => ca.put(req, c)); return r; }).catch(() => caches.match(req)));
     return;

@@ -69,3 +69,7 @@
 .sv-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
 .sv-confetti i { position: absolute; top: 22%; border-radius: 2px; animation: svConf 1.9s cubic-bezier(.2,.6,.4,1) forwards; }
 @keyframes svConf { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 25% { transform: translate(calc(var(--dx) * .6), -14vh) rotate(calc(var(--r) * .3)); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; } }
+
+/* Bateria do celular escrita no próprio ícone do HUD (economiza espaço no topo, 25/11/2026). */
+.sv-batt { position: absolute; left: 50%; transform: translateX(-50%); bottom: -3px; padding: 0 3px; border-radius: 6px;
+  background: rgba(15, 23, 42, .85); color: #fff; font-size: 9px; font-weight: 800; line-height: 12px; pointer-events: none; }

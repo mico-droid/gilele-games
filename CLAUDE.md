@@ -151,3 +151,43 @@
   entrada falsa no histórico (`history.pushState`); ao voltar, o navegador consome essa entrada, o jogo
   pergunta "Quer mesmo sair?" e repõe a entrada. Apertar voltar de novo fecha a pergunta. Assim não dá para
   sair sem confirmar, por mais vezes que aperte.
+- **Rodada de correções de 25/11/2026 (noite) — 10 itens apontados pelo dono:**
+  - **Apagão Real não iniciava** (item 6): a caixa "🆕 Novo jogo" (`modeHome` em `menu.js`) não era
+    fechada ao escolher o modo — ficava por cima do jogo já rodando, então parecia que o jogo não
+    abria e o boneco não aparecia. Agora `modeHome` embrulha as ações (`pick`) e fecha a caixa antes
+    de chamar `on.*`. **Toda caixa que chama uma ação do jogo tem de se fechar primeiro.**
+  - **Service worker**: js/css/json do próprio site passaram a ser **rede primeiro** (`sw.js`), com o
+    cache só como reserva offline. O "devolve o cache e atualiza depois" entregava metade dos módulos
+    velhos e metade novos numa publicação nova e o jogo abria quebrado. `CACHE` = `gilele-v47`.
+  - **Editor do boneco, aba Cabelo** (item 5): bicho/ET/zumbi/carinha não têm cabelo e a aba ficava
+    vazia (`"—"`). Agora mostra a cor do cabelo e os tipos menino/menina para trocar ali mesmo
+    (`noHair`). Era isto que o dono via quando o sorteio inicial caía num bicho.
+  - **Sair do jogo em loop** (item 10): `leaveToPortal()` em `engine/ui.js` (e cópia nos avulsos).
+    O "Sim, sair" não fechava a pergunta e usava `location.href`, deixando a página do jogo + as
+    entradas falsas no histórico; no portal, o voltar caía no jogo com a pergunta na tela. Agora
+    fecha a pergunta, conta as entradas falsas (`fakeEntries`) e faz `history.go(-n)` quando veio do
+    portal (senão `location.replace`). Navegação interna do Apagão virou `location.replace`.
+  - **EZ Obby** (itens 2 e 4): botões da base em **largura cheia** (`#menu .modes` em coluna); **saiu**
+    a escolha inicial dos 3 trajetos (todos jogam o normal; os 3 níveis ficam só no editor de trajeto)
+    e **saiu** o botão "Mapa 2D"; e nasceu a **área livre** (`buildArena`, constante `ARENA`): descampado
+    46×79 de chão normal com esconderijos, quadrados de poder e uma **corrida de 1 minuto** (linha verde
+    → linha vermelha, `arenaRace`), seguida de uma **subida sem limbo** montada em cima do chão — quem
+    cai aterriza no chão (`preSafe` é o ponto seguro do alto) — e só depois começa o trajeto normal.
+  - **Parkour Tabuada** (itens 1 e 3): fonte menor nos nomes das operações; e **nada de ícones de ação
+    em cima da cabeça** — o jogo lia a mochila de poderes do EZ Obby (`ezobby_inv`, mesma origem) num
+    jogo que não tem poderes. `inv` fica sempre vazio e `setIcons("")`.
+  - **Editor padronizado nos avulsos** (item 9): `buildEditor()` com as mesmas abas do motor
+    (Tipo · Cabelo · Cores · Acessório · Rosto) e 🎲 Aleatório · Cancelar · ✔ Salvar; "Cores" agora é só
+    detalhe + calça (a camiseta é o uniforme da marca), como no motor. O editor do motor
+    (`openAvatarEditor`) continua sendo o original — os avulsos não importam ES modules, então mantêm a
+    cópia espelhada. Mudou num → replicar nos dois.
+  - **Apagão, ruas limpas** (item 8): `onStreet()`/`STREETS` em `city.js`; postes e árvores que caíam na
+    pista saíram, `building()` empurra qualquer construção para dentro do quarteirão e a casa de
+    enchimento que invadia a rua x=−24 mudou de lugar. A **bateria do celular** virou um selo dentro do
+    próprio ícone 📱 do HUD (`.sv-batt`), fora do topo.
+  - **Apagão, bairro vivo** (item 7): comércios ganharam **porta de verdade** (`shopDoor`) e ficam
+    abertos por mais tempo; **21 casas** (`HOUSE_SPOTS`) com a regra do dono — 50% abertas (paredes com
+    vão de porta, piso e telhado que some quando você entra), 50% destas com **itens no chão**
+    (`houseLoot()`) e 50% destas com um **morador** que não deixa levar nada (`guard` novo no
+    `setupSocial`/`social.js`). E **moradores de rua**: um por rua (8), 10% agressivos (empurram) e 10%
+    ladrões (levam dinheiro ou um item) — só agem depois do apagão (`updateDwellers`).

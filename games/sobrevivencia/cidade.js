@@ -261,8 +261,8 @@ export function runExplorer() {
     openPicker({
       kid: cfg.age !== "teen", size: cfg.citySize, onSize: (v) => { cfg.citySize = v; store.setJSON("cfg", cfg); },
       extra: () => [h("p.ez-msg", { style: { textAlign: "center" } }, "🧪 " + t("cityTest")), msg ? h("p.ez-msg", { style: { color: "#ef4444" } }, msg) : null, h("h3", t("age")), h("div.ez-row", chip("kid", t("age_kid")), chip("teen", t("age_teen")))],
-      footer: () => [h("button.ez-btn.gray.wide", { onclick: () => { location.href = "./"; } }, t("toMain")), gameLinks(t("title"))],
-      onPack: play, onCancel: () => { location.href = "./"; },
+      footer: () => [h("button.ez-btn.gray.wide", { onclick: () => { location.replace("./"); } }, t("toMain")), gameLinks(t("title"))],
+      onPack: play, onCancel: () => { location.replace("./"); },
     });
   }
   const LOOT = { house: ["water", "can", "biscuit", "kit", "candle", "batt", "matches", "bottle"], market: ["water", "can", "biscuit", "rice"], bakery: ["biscuit", "bread"], pharmacy: ["kit", "ors", "kit"], hospital: ["kit", "ors"], fuel: ["gascan", "water"], hardware: ["flash", "batt", "candle", "matches"], water: ["water"], school: ["water", "biscuit"] };
@@ -299,7 +299,7 @@ export function runExplorer() {
         h("button.ez-btn.wide", { onclick: back }, t("cont")),
         h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); showStart(); } }, t("geoOther")),
         h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); openSettings({ world, onClose: () => openMenu() }); } }, "⚙️"),
-        h("button.ez-btn.gray.wide", { onclick: () => { location.href = "./"; } }, t("toMain")),
+        h("button.ez-btn.gray.wide", { onclick: () => { location.replace("./"); } }, t("toMain")),
       ], { x: back });
     });
   }

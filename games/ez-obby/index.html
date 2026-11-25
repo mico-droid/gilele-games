@@ -121,11 +121,12 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
     border-radius:999px;padding:5px 6px 5px 15px;font-size:16px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:80vw}
   .homename b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .editpill{width:30px;height:30px;border-radius:50%;background:#2563eb;color:#fff;font-size:14px;padding:0;flex:none}
-  #menu .modes{display:flex;flex-direction:row;flex-wrap:wrap;gap:9px;justify-content:center;align-items:stretch;padding:12px 12px 0;margin:0}
+  /* O dono pediu (25/11/2026): parkour ataque, parkour tabuada e multijogador em LARGURA CHEIA,
+     um por linha, em vez de dois lado a lado. */
+  #menu .modes{display:flex;flex-direction:column;flex-wrap:nowrap;gap:9px;justify-content:center;align-items:stretch;padding:12px 12px 0;margin:0;width:min(480px,94vw);margin-inline:auto}
   #menu .modes button{font-size:16px;padding:11px 16px;margin:0}
   #menu .modes button.main{font-size:19px;padding:14px 26px}
-  #menu .modes .mode{width:auto;max-width:46vw;text-align:center}
-  #menu .modes .mode.atk{max-width:none}
+  #menu .modes .mode{width:100%;max-width:none;text-align:center}
   #menu .modes .mode small{font-size:12px;opacity:.9}
   #menu .modes #tabPick{width:100%;background:rgba(8,25,40,.72);backdrop-filter:blur(8px);border-radius:16px;padding:12px}
   #menu .modes #tabPick .l2{color:#fff}
@@ -162,6 +163,9 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   .tcol label.l:first-child{margin-top:0}
   #nameIn{width:100%;font-family:inherit;font-size:16px;padding:7px 10px;border:2px solid #cbd5e1;border-radius:12px;outline:none}
   #nameIn:focus{border-color:#2563eb}
+  .edbtns{display:flex;align-items:center;gap:8px;margin-top:12px}
+  .edbtns button{margin:0}
+  #edOpts .chips{margin-top:2px}
   .crow{display:flex;align-items:center;gap:8px;margin:4px 0}
   .crow .cl{width:58px;font-size:12px;font-weight:600;color:#475569;flex:none}
   .sws{display:flex;gap:4px;flex-wrap:wrap}
@@ -292,28 +296,23 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   <div class="card">
     <button class="ovx" id="charX" aria-label="✕">✕</button>
     <h2 id="charTitle" style="margin:0 0 10px;color:#2563eb;font-size:24px"></h2>
+    <!-- Editor padronizado com o do Apagão (pedido do dono, 25/11/2026): abas Tipo · Cabelo ·
+         Cores · Acessório · Rosto, e embaixo 🎲 Aleatório · Cancelar · ✔ Salvar. -->
     <div class="top">
       <span id="pvSlot"><div id="pvWrap"><canvas id="preview"></canvas></div></span>
       <div class="tcol">
         <label class="l" data-i="name" for="nameIn"></label>
         <input id="nameIn" maxlength="14" autocomplete="off">
         <div class="info" id="invInfo" style="margin-top:4px"></div>
-        <label class="l" data-i="gender"></label>
-        <div class="chips" id="genders"></div>
-        <label class="l" data-i="face"></label>
-        <div class="chips" id="faces"></div>
-        <div id="hairBlock">
-          <label class="l" data-i="hair"></label>
-          <div class="chips" id="hairs"></div>
-        </div>
+        <div class="chips" id="edTabs" style="margin-top:8px"></div>
+        <div id="edOpts"></div>
       </div>
     </div>
-    <div class="crow" id="hairColRow" style="margin-top:8px"><div class="cl" data-i="hairColor"></div><div class="sws" id="hairCols"></div></div>
-    <div id="colorRows"></div>
-    <label class="l" data-i="acc"></label>
-    <div class="chips" id="accs"></div>
     <div class="info" id="lockInfo" style="margin-top:6px"></div>
-    <button class="play" id="charOk" style="margin-top:12px"></button>
+    <div class="edbtns">
+      <button class="sec" id="charRnd"></button><span style="flex:1"></span>
+      <button class="sec" id="charCancel"></button><button class="play" id="charOk"></button>
+    </div>
   </div>
 </div>
 
@@ -497,6 +496,8 @@ const T = {
   pt:{sub:"Parkour 3D com os amigos", dev:"Desenvolvido por", name:"Seu apelido", namePh:"Jogador", gender:"Personagem", g_m:"👦 Menino", g_f:"👧 Menina", g_fox:"🦊 Raposa", g_et:"👽 ET", g_zombie:"🧟 Zumbi",
       hair:"Cabelo", hairColor:"Cor do cabelo", h_none:"Sem cabelo", h_short:"Curto", h_spiky:"Espetado", h_curly:"Cacheado", h_long:"Longo", h_ponytail:"Rabo de cavalo", h_pigtails:"Maria-chiquinha", h_bob:"Chanel",
       head:"Pele", headFur:"Pelo", torso:"Detalhe", arms:"Mangas", legs:"Calça", acc:"Acessório",
+      tab_kind:"Tipo", tab_hair:"Cabelo", tab_colors:"Cores 🎨", tab_acc:"Acessório", tab_face:"Rosto",
+      rndChar:"Aleatório", cancelChar:"Cancelar", noHair:"Este personagem não usa cabelo. Toque num tipo para virar menino ou menina:", noFace:"Este personagem tem o rosto próprio.",
       a_none:"Nenhum", a_hat:"🎩 Cartola", a_cap:"🧢 Boné", a_glasses:"🕶 Óculos",
       a_crown:"👑 Coroa", a_headphones:"🎧 Fone", a_cape:"🦸 Capa de herói", a_afro:"💈 Black power", a_pet:"🐶 Bichinho", a_catears:"🐱 Orelha de gato", a_emo:"🖤 Cabelo emo", a_halo:"😇 Auréola", a_horns:"🐂 Chifre de boi",
       lockHint:"Ganhe um item novo a cada grande vitória: terminar o jogo ou passar 2 fases difíceis.", leaveTitle:"Sair do jogo", leaveAsk:"Quer mesmo sair e voltar para o Gilelê Games? O jogo fica salvo.", leaveYes:"Sim, sair", leaveNo:"Não, continuar jogando", unlockNew:"🎁 Item novo no personagem: {a}!", editChar:"✏️ Editar personagem", charTitle:"Personagem", partyWin:"🏆 Você conseguiu!",
@@ -514,11 +515,15 @@ const T = {
       ok:"🎉 Acertou!", wrong:"❌ Errou! Tente outra conta", resumed:"▶ Fase {n}",
       s_move:"Use WASD ou as setas para andar\nArraste o mouse para olhar", s_moveT:"Use o joystick para andar\nArraste a direita para olhar",
       s_jump:"Aperte ESPAÇO para pular!", s_jumpT:"Toque em PULAR para pular!", s_up:"Pule para subir os degraus ⬆",
-      s_kill:"Vermelho = perigo! Pule por cima", s_cp:"Bandeira = checkpoint ✅\nSe cair, volta pra ela", s_bots:"🤖 Cuidado: bots empurram!\nCorra contra eles pra empurrar de volta",
+      s_kill:"Vermelho = perigo! Pule por cima", s_cp:"Bandeira = checkpoint ✅\nSe cair, volta pra ela",
+      s_free:"🏞️ Área livre\nCorra, brinque e atire nos amigos", s_race:"🏁 Corrida de 1 minuto\nPise na linha verde para começar",
+      s_climb:"🧱 Subida treino\nSe cair, cai no chão — nada de limbo", raceGo:"🏁 Valendo! Corra até a linha vermelha", raceEnd:"⏱️ {s}s na corrida!", s_bots:"🤖 Cuidado: bots empurram!\nCorra contra eles pra empurrar de volta",
       s_math:"🧮 Resolva a conta do quadro\ne pule no número certo!", s_boulder:"🪨 Corra sem parar!\nUma pedra gigante vem aí!"},
   en:{sub:"3D parkour with friends", dev:"Developed by", name:"Your nickname", namePh:"Player", gender:"Character", g_m:"👦 Boy", g_f:"👧 Girl", g_fox:"🦊 Fox", g_et:"👽 Alien", g_zombie:"🧟 Zombie",
       hair:"Hair", hairColor:"Hair color", h_none:"No hair", h_short:"Short", h_spiky:"Spiky", h_curly:"Curly", h_long:"Long", h_ponytail:"Ponytail", h_pigtails:"Pigtails", h_bob:"Bob",
       head:"Skin", headFur:"Fur", torso:"Trim", arms:"Sleeves", legs:"Pants", acc:"Accessory",
+      tab_kind:"Type", tab_hair:"Hair", tab_colors:"Colors 🎨", tab_acc:"Accessory", tab_face:"Face",
+      rndChar:"Random", cancelChar:"Cancel", noHair:"This character has no hair. Tap a type to become a boy or a girl:", noFace:"This character has its own face.",
       a_none:"None", a_hat:"🎩 Top hat", a_cap:"🧢 Cap", a_glasses:"🕶 Shades",
       a_crown:"👑 Crown", a_headphones:"🎧 Headphones", a_cape:"🦸 Hero cape", a_afro:"💈 Afro", a_pet:"🐶 Pet", a_catears:"🐱 Cat ears", a_emo:"🖤 Emo hair", a_halo:"😇 Halo", a_horns:"🐂 Bull horns",
       lockHint:"You unlock a new item on every big win: finishing the game or clearing 2 hard stages.", leaveTitle:"Leave the game", leaveAsk:"Do you really want to leave and go back to Gilelê Games? Your game is saved.", leaveYes:"Yes, leave", leaveNo:"No, keep playing", unlockNew:"🎁 New character item: {a}!", editChar:"✏️ Edit character", charTitle:"Character", partyWin:"🏆 You made it!",
@@ -536,11 +541,15 @@ const T = {
       ok:"🎉 Correct!", wrong:"❌ Wrong! Try another one", resumed:"▶ Stage {n}",
       s_move:"Use WASD or arrows to walk\nDrag the mouse to look", s_moveT:"Use the joystick to walk\nDrag the right side to look",
       s_jump:"Press SPACE to jump!", s_jumpT:"Tap JUMP to jump!", s_up:"Jump to climb the steps ⬆",
-      s_kill:"Red = danger! Jump over it", s_cp:"Flag = checkpoint ✅\nIf you fall, you come back here", s_bots:"🤖 Watch out: bots push!\nRun into them to push back",
+      s_kill:"Red = danger! Jump over it", s_cp:"Flag = checkpoint ✅\nIf you fall, you come back here",
+      s_free:"🏞️ Free area\nRun, play and shoot your friends", s_race:"🏁 One-minute race\nStep on the green line to start",
+      s_climb:"🧱 Practice climb\nFall here and you land on the ground — no limbo", raceGo:"🏁 Go! Run to the red line", raceEnd:"⏱️ {s}s in the race!", s_bots:"🤖 Watch out: bots push!\nRun into them to push back",
       s_math:"🧮 Solve the sum on the board\nand jump on the right number!", s_boulder:"🪨 Keep running!\nA giant boulder is coming!"},
   es:{sub:"Parkour 3D con amigos", dev:"Desarrollado por", name:"Tu apodo", namePh:"Jugador", gender:"Personaje", g_m:"👦 Niño", g_f:"👧 Niña", g_fox:"🦊 Zorro", g_et:"👽 ET", g_zombie:"🧟 Zombi",
       hair:"Pelo", hairColor:"Color del pelo", h_none:"Sin pelo", h_short:"Corto", h_spiky:"Puntiagudo", h_curly:"Rizado", h_long:"Largo", h_ponytail:"Coleta", h_pigtails:"Dos coletas", h_bob:"Bob",
       head:"Piel", headFur:"Pelaje", torso:"Detalle", arms:"Mangas", legs:"Pantalón", acc:"Accesorio",
+      tab_kind:"Tipo", tab_hair:"Pelo", tab_colors:"Colores 🎨", tab_acc:"Accesorio", tab_face:"Cara",
+      rndChar:"Aleatorio", cancelChar:"Cancelar", noHair:"Este personaje no usa pelo. Toca un tipo para ser niño o niña:", noFace:"Este personaje tiene su propia cara.",
       a_none:"Ninguno", a_hat:"🎩 Chistera", a_cap:"🧢 Gorra", a_glasses:"🕶 Gafas",
       a_crown:"👑 Corona", a_headphones:"🎧 Audífonos", a_cape:"🦸 Capa de héroe", a_afro:"💈 Afro", a_pet:"🐶 Mascota", a_catears:"🐱 Orejas de gato", a_emo:"🖤 Pelo emo", a_halo:"😇 Aureola", a_horns:"🐂 Cuernos de toro",
       lockHint:"Ganas un objeto nuevo en cada gran victoria: terminar el juego o pasar 2 fases difíciles.", leaveTitle:"Salir del juego", leaveAsk:"¿Seguro que quieres salir y volver a Gilelê Games? La partida queda guardada.", leaveYes:"Sí, salir", leaveNo:"No, seguir jugando", unlockNew:"🎁 ¡Objeto nuevo del personaje: {a}!", editChar:"✏️ Editar personaje", charTitle:"Personaje", partyWin:"🏆 ¡Lo lograste!",
@@ -558,7 +567,9 @@ const T = {
       ok:"🎉 ¡Correcto!", wrong:"❌ ¡Error! Prueba otra cuenta", resumed:"▶ Fase {n}",
       s_move:"Usa WASD o las flechas para andar\nArrastra el ratón para mirar", s_moveT:"Usa el joystick para andar\nArrastra la derecha para mirar",
       s_jump:"¡Pulsa ESPACIO para saltar!", s_jumpT:"¡Toca SALTAR para saltar!", s_up:"Salta para subir los escalones ⬆",
-      s_kill:"¡Rojo = peligro! Salta por encima", s_cp:"Bandera = checkpoint ✅\nSi caes, vuelves aquí", s_bots:"🤖 ¡Cuidado: los bots empujan!\nCorre contra ellos para empujarlos",
+      s_kill:"¡Rojo = peligro! Salta por encima", s_cp:"Bandera = checkpoint ✅\nSi caes, vuelves aquí",
+      s_free:"🏞️ Área libre\nCorre, juega y dispara a tus amigos", s_race:"🏁 Carrera de 1 minuto\nPisa la línea verde para empezar",
+      s_climb:"🧱 Subida de práctica\nSi caes, caes al suelo — sin limbo", raceGo:"🏁 ¡Ya! Corre hasta la línea roja", raceEnd:"⏱️ ¡{s}s en la carrera!", s_bots:"🤖 ¡Cuidado: los bots empujan!\nCorre contra ellos para empujarlos",
       s_math:"🧮 Resuelve la cuenta de la pizarra\n¡y salta en el número correcto!", s_boulder:"🪨 ¡Corre sin parar!\n¡Viene una roca gigante!"}
 };
 
@@ -919,11 +930,15 @@ function sanitizeLook(o){
 let look=Object.assign({},DEF,{c:DEF.c.slice()});
 let lookWasSaved=false;
 try{const s=JSON.parse(load("ezobby_look2")||"null");if(s){look=sanitizeLook(s);lookWasSaved=true;}}catch(e){}
-if(!lookWasSaved){                                    // primeira vez: sorteia o boneco e já guarda
+/* Sorteia um boneco (primeira vez e botão 🎲 do editor) — mesmo critério do motor. */
+function randomLook(){
   const pk=a=>a[Math.floor(Math.random()*a.length)];
   const g=Math.random()<0.8?pk(["m","f"]):pk(KINDS);
   const skin=KIND_SKIN[g]||pk(PALETTE.slice(0,3));
-  look=sanitizeLook({n:"",g,h:pk(HAIRS[g==="f"?"f":"m"]),hc:pk(HAIRCOLS),c:[skin,pk(PALETTE),skin,pk(PALETTE)],a:Math.random()<0.6?"none":pk(openAccs()),f:pk(FACES)});
+  return sanitizeLook({n:"",g,h:pk(HAIRS[g==="f"?"f":"m"]),hc:pk(HAIRCOLS),c:[skin,pk(PALETTE),skin,pk(PALETTE)],a:Math.random()<0.6?"none":pk(openAccs()),f:pk(FACES)});
+}
+if(!lookWasSaved){                                    // primeira vez: sorteia o boneco e já guarda
+  look=randomLook();
   try{store("ezobby_look2",JSON.stringify(look));}catch(e){}
 }
 let botsOn=load("ezobby_bots")!=="0";
@@ -1340,7 +1355,9 @@ function diffSpec(lvl){const sp=defaultSpec();sp.diff=lvl;if(lvl===1)return sp;c
     if(k==="belt"&&E)sg[6]=f2(sg[6]*0.6);
     if(k==="rope")sg[1]=+(sg[1]*(E?0.7:1.3)).toFixed(1);}));
   return sp;}
-let SPEC=diffSpec(diffLvl());
+/* O dono tirou a escolha inicial de trajeto (25/11/2026): todo mundo joga o trajeto normal.
+   Os três níveis continuam existindo só para o editor de trajeto do multijogador. */
+let SPEC=diffSpec(1);
 let NSTAGE=0,MATH_STAGE=-1,BOULDER_STAGE=-1,RIDDLE_STAGE=-1,TEACHER_STAGE=-1;
 const stageSpecIdx=[];const cps=[],flags=[],stageZ=[],wps=[],cpWp=[],gates=[],coins=[],stageTh=[],stageKey=[],zips=[],belts=[],segReg=[];let winTrophy=null;
 const boulder={state:"idle",x:0,y:0,z:0,r:3,z0:0,trig:0,end:0,v:0,mesh:null,passed:false};
@@ -1608,11 +1625,71 @@ function segPlat(s,i,sg,th){
 let levelObjs=[],levelBoxes=[],buildingLevel=false,animBase=0;
 const _sceneAdd=scene.add.bind(scene);
 scene.add=function(...o){if(buildingLevel)levelObjs.push(...o);return _sceneAdd(...o);};
+/* ------------------------------------------------------------------------------------------------
+   ÁREA LIVRE + SUBIDA SEM LIMBO (pedido do dono, 25/11/2026)
+   Entre o parquinho e o tutorial: primeiro um descampado grande (chão normal, quase nenhuma
+   plataforma) para andar à vontade, apostar uma corrida de 1 minuto e atirar uns nos outros;
+   depois uma subida de degraus e plataformas montada EM CIMA do chão — quem cai aterriza no
+   chão e sobe de novo, nunca vai para o limbo. Só então começa o trajeto normal.
+   ------------------------------------------------------------------------------------------------ */
+const ARENA={z0:13,z1:92,w:46,lane:{x:-11,z0:24,z1:86},climb:{z0:91,z1:140,w:32,top:9},run:null};
+function arenaGround(z0,z1,w,color){
+  const zc=(z0+z1)/2,d=z1-z0;
+  plat(0,0,zc,w,d,color,"solid");
+  addBox(0,-1.6,zc,w-2,1.2,d-2,getMat(0x8b5a2b),"deco");                 // terra por baixo
+  // laterais fechadas; nas pontas deixa uma passagem de 6 no meio (entra e sai sem cair no vazio)
+  propFence(-w/2+1,z0+1,-3,z0+1,0);propFence(3,z0+1,w/2-1,z0+1,0);
+  propFence(-w/2+1,z1-1,-3,z1-1,0);propFence(3,z1-1,w/2-1,z1-1,0);
+  propFence(-w/2+1,z0+1,-w/2+1,z1-1,0);propFence(w/2-1,z0+1,w/2-1,z1-1,0);
+  return zc;
+}
+function buildArena(){
+  const A=ARENA;
+  // ---- descampado ----
+  arenaGround(A.z0,A.z1,A.w,0x79b84a);
+  addBox(0,0.02,(A.z0+A.z1)/2,A.w-6,0.03,0.6,getMat(0xfde68a),"deco");   // risco do meio
+  // pista da corrida de 1 minuto: duas faixas e as linhas de largada/chegada
+  [A.lane.x-4.2,A.lane.x+4.2].forEach(x=>addBox(x,0.02,(A.lane.z0+A.lane.z1)/2,0.4,0.03,A.lane.z1-A.lane.z0,getMat(0xffffff),"deco"));
+  [[A.lane.z0,0x22c55e],[A.lane.z1,0xef4444]].forEach(([z,c])=>addBox(A.lane.x,0.03,z,8.4,0.04,0.9,getMat(c),"deco"));
+  addSign("s_race",A.lane.x,2.9,A.lane.z0-1.6);
+  addSign("s_free",8,2.9,A.z0+3);
+  // esconderijos para a brincadeira de atirar (poucos e baixos, nada de pulo difícil)
+  [[-16,30,3,2.2,1.2],[14,34,3,2.2,1.2],[-6,44,4,2.6,1.4],[8,52,3.4,2.4,1.2],[-17,60,3,2.2,1.2],[16,68,3.6,2.4,1.4],[2,76,4,2.6,1.4],[-12,82,3,2.2,1.2]]
+    .forEach(([x,z,w,h,d])=>pbox(x,0,z,w,h,d,0xa8a29e,true));
+  // duas plataformas baixinhas (só para dar relevo; pulo curtinho)
+  plat(-20,1.6,48,6,6,0xf59e0b,"solid");plat(20,1.6,64,6,6,0xf59e0b,"solid");
+  // quadrados de poder: aqui é onde pegam os tiros (sorvete e chocolate) para brincar
+  [[-4,28,"cream"],[4,28,"choc"],[0,56,"mystery"],[-14,70,"cream"],[14,70,"choc"]]
+    .forEach(([x,z,type])=>tutBoxes.push({x,y:1.45,z,type}));
+  [[-8,36],[8,40],[0,66],[-18,76],[18,24]].forEach(([x,z])=>addCoin(x,1.3,z));
+  // visual: natureza em volta, sem atrapalhar
+  SCN.meadow(-A.w/2+2,A.z0+2,A.w/2-2,A.z1-2,260,0.04,0.3);
+  [[-20,22],[20,22],[-20,88],[20,88],[-21,54],[21,44]].forEach((a,i)=>SCN.tree(a[0],0,a[1],{s:0.95,kind:i%2?"pine":"round"}));
+  [[-18,40],[18,50],[-15,66],[15,80]].forEach((a,i)=>SCN.bush(a[0],0,a[1],{s:1+rnd()*0.4,seed:i*5}));
+  SCN.butterflies(0,1.5,46,6,3.4);SCN.balloons(0,7,A.z1-6,4,6);
+  // ---- subida sem limbo: tudo em cima de um chão de verdade ----
+  const C=A.climb;
+  arenaGround(C.z0,C.z1,C.w,0x8fbf5e);
+  addSign("s_climb",0,2.9,C.z0+3);
+  // degraus largos subindo (pulo curto) — cair daqui é cair no chão, não no vazio
+  let y=0;
+  for(let i=0;i<6;i++){y+=1.5;plat((i%2?1:-1)*4.5,y,C.z0+6+i*4.4,7,4,0xfcd34d,"solid");}
+  // duas plataformas maiores e o alto da subida
+  plat(0,y+1.5,C.z0+34,9,7,0xf59e0b,"solid");
+  plat(0,C.top,C.z0+40,10,8,0x22c55e,"solid");
+  addCoin(0,C.top+1.4,C.z0+40);
+  // escorrega de volta para o chão (desce sem dar queda)
+  for(let i=0;i<7;i++)plat(7.5,C.top-1.2*i,C.z0+40-i*1.2,3,1.6,0xcbd5e1,"solid");
+  // ponto seguro no alto: quem aperta ↺ volta para cá, não para o parquinho
+  preSafe={x:0,y:C.top,z:C.z0+40};
+  cx=0;cy=0;edge=C.z1-2;
+}
 function buildGeometry(spec){
   buildingLevel=true;seed=7;
   const nb=boxes.length;animBase=animated.length;
   cx=0;cy=0;edge=14;curStage=0;curSeg=-1;
   buildLobby();
+  buildArena();                       // descampado + subida sem limbo (25/11/2026)
   TUT.forEach((it,i)=>{
     const [gap,dx,dy,w,d,kind,sign]=it;
     if(sign)addSign(sign,cx-4.2,cy+2.6,edge-0.5);
@@ -1928,12 +2005,20 @@ function addPts(n){
   clearTimeout(ptsTimer);ptsTimer=setTimeout(()=>el.classList.remove("show"),900);
   sendState(true);
 }
-function spawnAt(i){me.zip=null;const c=cps[i];me.x=c.x;me.y=c.y+0.05;me.z=c.z-1;me.vx=me.vy=me.vz=me.kx=me.kz=0;me.rot=0;me.lastSafe={x:me.x,y:c.y,z:me.z};
+var preSafe=null;                     // alto da subida da área livre (antes do 1º checkpoint)
+function spawnAt(i){me.zip=null;const c=(i===0&&preSafe&&me.z>ARENA.climb.z0)?preSafe:cps[i];me.x=c.x;me.y=c.y+0.05;me.z=c.z-1;me.vx=me.vy=me.vz=me.kx=me.kz=0;me.rot=0;me.lastSafe={x:me.x,y:c.y,z:me.z};
   if(me.ride){me.ride.ride=false;me.ride=null;}
   if(i===MATH_STAGE||i===RIDDLE_STAGE)resetGates(i);
   if(i<=BOULDER_STAGE)boulderReset();
   teacherReset();}
 spawnAt(0);
+/* Corrida de 1 minuto da área livre: pisa na linha verde, corre até a vermelha e vê o tempo. */
+function arenaRace(){
+  const L=ARENA.lane;
+  if(Math.abs(me.x-L.x)>5.4){if(me.z<L.z0)ARENA.run=null;return;}
+  if(!ARENA.run&&me.z>L.z0-1&&me.z<L.z0+2){ARENA.run={t:performance.now()};toast(t("raceGo"),1600,true);Snd.play("pop");return;}
+  if(ARENA.run&&me.z>L.z1-1.4){const sec=(performance.now()-ARENA.run.t)/1000;ARENA.run=null;toast(t("raceEnd").replace("{s}",sec.toFixed(1)),2800,true);Snd.play("coin");}
+}
 function die(kind){
   if(mode==="tab"){tabRespawn();return;}
   if((kind===undefined||kind==="fell")&&tryAngel())return;
@@ -2319,7 +2404,7 @@ function askLeave(){
   const msg=document.createElement("p");msg.textContent=t("leaveAsk");msg.style.cssText="margin:0 0 16px;color:#334155;font-weight:600";
   const yes=document.createElement("button");yes.className="play";yes.textContent=t("leaveYes");
   const no=document.createElement("button");no.className="sec";no.textContent=t("leaveNo");no.style.marginTop="10px";
-  yes.onclick=()=>{leaveOv=null;location.href="../../jogos.html";};
+  yes.onclick=()=>{closeLeave();leaveToPortal();};
   no.onclick=()=>{Snd.play("click");closeLeave();};
   card.append(ttl,msg,yes,no);ov.appendChild(card);document.body.appendChild(ov);
 }
@@ -2327,12 +2412,28 @@ function closeLeave(){if(leaveOv){leaveOv.remove();leaveOv=null;}}
 /* O botão VOLTAR do celular/navegador também não pode jogar o jogador para fora sem avisar.
    Deixamos sempre uma "entrada falsa" no histórico: ao voltar, o navegador consome essa entrada,
    nós perguntamos e repomos a entrada — por mais vezes que ele aperte, nunca sai sem confirmar. */
-try{history.pushState({ezGuard:1},"");}catch(e){}
+let fakeEntries=0,leavingNow=false;
+const pushFake=()=>{try{history.pushState({ezGuard:1},"");fakeEntries++;}catch(e){}};
+pushFake();
 addEventListener("popstate",()=>{
-  try{history.pushState({ezGuard:1},"");}catch(e){}
+  if(leavingNow)return;         /* já estamos saindo: deixa o navegador seguir */
+  fakeEntries=Math.max(0,fakeEntries-1);
+  pushFake();                   /* repõe a entrada falsa */
   if(leaveOv)closeLeave();      /* já estava perguntando: voltar fecha a pergunta */
   else askLeave();
 });
+/* Sair de verdade: descarta as entradas do jogo (antes elas ficavam no histórico e o botão voltar
+   do portal caía no jogo outra vez, já com a pergunta na tela — vai-e-vem sem fim, 25/11/2026). */
+function leaveToPortal(portal="../../jogos.html"){
+  if(leavingNow)return;leavingNow=true;
+  const steps=fakeEntries+1,ref=document.referrer||"";
+  if(ref&&ref!==location.href&&/jogos\.html(\?|#|$)/.test(ref)&&history.length>steps){
+    const fb=setTimeout(()=>location.replace(portal),600);
+    addEventListener("pagehide",()=>clearTimeout(fb),{once:true});
+    try{history.go(-steps);return;}catch(e){clearTimeout(fb);}
+  }
+  location.replace(portal);
+}
 /* Grande vitória: desbloqueia o próximo item do boneco e avisa. */
 function grantWin(){const got=addWin();if(got)setTimeout(()=>toast(t("unlockNew").replace("{a}",t("a_"+got)),5200,true),1400);return got;}
 
@@ -2344,6 +2445,48 @@ function setKind(k){
   else if(KIND_SKIN[prev]&&look.c[0]===KIND_SKIN[prev])look.c[0]=DEF.c[0];
   if((k==="m"||k==="f")&&!HAIRS[k].includes(look.h))look.h=HAIRS[k][0];
 }
+/* ---- editor do personagem no padrão do Apagão: abas + aleatório/cancelar/salvar (25/11/2026) ---- */
+const ED_TABS=["kind","hair","colors","acc","face"];
+let edTab="kind",lookBak=null;
+function edChips(parent,values,cur,label,fn){values.forEach(v=>chip(parent,label(v),v===cur,()=>fn(v)));}
+function buildEditor(){
+  const TB=$("edTabs");if(!TB)return;
+  TB.innerHTML="";ED_TABS.forEach(k=>chip(TB,t("tab_"+k),k===edTab,()=>{edTab=k;buildEditor();}));
+  const O=$("edOpts");O.innerHTML="";
+  const lab=(key)=>{const l=document.createElement("label");l.className="l";l.textContent=t(key);O.appendChild(l);};
+  const row=(key,cols,cur,fn)=>{const r=document.createElement("div");r.className="crow";
+    const l=document.createElement("div");l.className="cl";l.textContent=t(key);r.appendChild(l);
+    const sw=document.createElement("div");sw.className="sws";swatches(sw,cols,cur,fn);r.appendChild(sw);O.appendChild(r);};
+  const chipsBox=()=>{const d=document.createElement("div");d.className="chips";O.appendChild(d);return d;};
+  const human=look.g==="m"||look.g==="f";
+  if(edTab==="kind"){
+    lab("gender");edChips(chipsBox(),KINDS,look.g,g=>t("g_"+g),g=>{setKind(g);saveLook();buildEditor();buildMenu();});
+    row(look.g==="fox"?"headFur":"head",PALETTE,look.c[0],c=>{look.c[0]=c;saveLook();buildEditor();});
+  }
+  if(edTab==="hair"){
+    if(human){lab("hair");edChips(chipsBox(),HAIRS[look.g],look.h,h=>t("h_"+h),h=>{look.h=h;saveLook();buildEditor();});}
+    else{
+      const i=document.createElement("div");i.className="info";i.textContent=t("noHair");O.appendChild(i);
+      edChips(chipsBox(),["m","f"],null,g=>t("g_"+g),g=>{setKind(g);saveLook();buildEditor();buildMenu();});
+    }
+    row("hairColor",HAIRCOLS,look.hc,c=>{look.hc=c;saveLook();buildEditor();});
+  }
+  if(edTab==="colors"){row("torso",PALETTE,look.c[1],c=>{look.c[1]=c;saveLook();buildEditor();});row("legs",PALETTE,look.c[3],c=>{look.c[3]=c;saveLook();buildEditor();});}
+  if(edTab==="acc"){
+    lab("acc");const A=chipsBox();
+    ACCS.forEach(a=>{                                   // trancados ficam translúcidos com 🔒
+      const open=accUnlocked(a);
+      const b=document.createElement("button");b.textContent=(open?"":"🔒 ")+t("a_"+a);
+      b.className=(look.a===a?"sel":"")+(open?"":" locked");
+      b.onclick=()=>{ if(open){Snd.play("click");look.a=a;saveLook();buildEditor();} else {Snd.play("wrong");toast("🔒 "+t("lockHint"),3200);} };
+      A.appendChild(b);});
+  }
+  if(edTab==="face"){
+    if(look.g==="horse"||look.g==="smiley"||look.g==="zombie"){const i=document.createElement("div");i.className="info";i.textContent=t("noFace");O.appendChild(i);}
+    else{lab("face");edChips(chipsBox(),FACES,look.f,f=>t("f_"+f),f=>{look.f=f;saveLook();buildEditor();});}
+  }
+  $("lockInfo").textContent=t("lockHint");
+}
 function buildMenu(){
   document.documentElement.lang=lang==="pt"?"pt-BR":lang;
   document.querySelectorAll("[data-i]").forEach(el=>{el.textContent=t(el.dataset.i);});
@@ -2351,35 +2494,11 @@ function buildMenu(){
   $("nameIn").placeholder=t("namePh");
   const L=$("langs");L.innerHTML="";
   [["pt","🇧🇷 PT"],["en","🇺🇸 EN"],["es","🇪🇸 ES"]].forEach(([k,lbl])=>chip(L,lbl,k===lang,()=>{lang=k;store("ezobby_lang",k);buildMenu();meChar.setLook(look);signs.forEach(drawSign);gates.forEach(drawGate);}));
-  const G=$("genders");G.innerHTML="";
-  KINDS.forEach(g=>chip(G,t("g_"+g),look.g===g,()=>{setKind(g);saveLook();buildMenu();}));
-  const FC=$("faces");FC.innerHTML="";
-  FACES.forEach(f=>chip(FC,t("f_"+f),look.f===f,()=>{look.f=f;saveLook();buildMenu();}));
-  const human=look.g==="m"||look.g==="f";
-  FC.parentElement.querySelector('[data-i="face"]').classList.toggle("hidden",look.g==="horse"||look.g==="smiley"||look.g==="zombie");FC.classList.toggle("hidden",look.g==="horse"||look.g==="smiley"||look.g==="zombie");
-  $("hairBlock").classList.toggle("hidden",!human);$("hairColRow").classList.toggle("hidden",!(look.g==="horse"||(human&&look.h!=="none")));
-  const H=$("hairs");H.innerHTML="";
-  if(human)HAIRS[look.g].forEach(h=>chip(H,t("h_"+h),look.h===h,()=>{look.h=h;saveLook();buildMenu();}));
-  const HC=$("hairCols");HC.innerHTML="";swatches(HC,HAIRCOLS,look.hc,c=>{look.hc=c;saveLook();buildMenu();});
-  const CR=$("colorRows");CR.innerHTML="";
-  ["head","torso","arms","legs"].forEach((k,i)=>{
-    const row=document.createElement("div");row.className="crow";
-    const l=document.createElement("div");l.className="cl";l.textContent=t(i===0&&look.g==="fox"?"headFur":k);row.appendChild(l);
-    const sw=document.createElement("div");sw.className="sws";swatches(sw,PALETTE,look.c[i],c=>{look.c[i]=c;saveLook();buildMenu();});
-    row.appendChild(sw);CR.appendChild(row);
-  });
-  const A=$("accs");A.innerHTML="";
-  ACCS.forEach(a=>{                                   // trancados ficam translúcidos com 🔒 (25/11/2026)
-    const open=accUnlocked(a);
-    const b=document.createElement("button");b.textContent=(open?"":"🔒 ")+t("a_"+a);
-    b.className=(look.a===a?"sel":"")+(open?"":" locked");
-    b.onclick=()=>{ if(open){Snd.play("click");look.a=a;saveLook();buildMenu();} else {Snd.play("wrong");toast("🔒 "+t("lockHint"),3200);} };
-    A.appendChild(b);
-  });
-  $("lockInfo").textContent=t("lockHint");
+  buildEditor();
   $("charName").textContent=(look.n||"").trim()||t("namePh");
   $("editChar").title=t("editChar");
   $("charTitle").textContent="🧍 "+t("charTitle");$("charOk").textContent="✔ "+t("saveChar");
+  $("charRnd").textContent="🎲 "+t("rndChar");$("charCancel").textContent=t("cancelChar");
   $("cfgTitle").textContent="⚙️ "+t("options");$("cfgOk").textContent=t("back");
   const O=$("opts");O.innerHTML="";
   chip(O,botsOn?t("botsOn"):t("botsOff"),botsOn,()=>{botsOn=!botsOn;store("ezobby_bots",botsOn?"1":"0");buildMenu();});
@@ -2409,14 +2528,16 @@ function buildMenu(){
 }
 function saveLook(){store("ezobby_look2",JSON.stringify(look));meChar.setLook(look);refreshPreview();sendLook();}
 /* ---- editor do personagem (abre só no botão) e configurações ---- */
-function charOpen(){$("charOv").classList.remove("hidden");resizePreview();}
+function charOpen(){lookBak=JSON.stringify(look);edTab="kind";buildEditor();$("charOv").classList.remove("hidden");resizePreview();}
 function charClose(){$("charOv").classList.add("hidden");buildMenu();}
 function cfgOpen(){buildMenu();$("cfgOv").classList.remove("hidden");}
 function cfgClose(){$("cfgOv").classList.add("hidden");}
 setTimeout(()=>{
   $("editChar").onclick=()=>{Snd.play("click");charOpen();};
   $("charX").onclick=()=>{Snd.play("click");charClose();};
-  $("charOk").onclick=()=>{Snd.play("ok");charClose();};
+  $("charOk").onclick=()=>{Snd.play("ok");lookBak=null;charClose();};
+  $("charCancel").onclick=()=>{Snd.play("click");if(lookBak){look=sanitizeLook(JSON.parse(lookBak));saveLook();}lookBak=null;charClose();};
+  $("charRnd").onclick=()=>{const n=look.n;look=randomLook();look.n=n;saveLook();$("nameIn").value=look.n;buildEditor();buildMenu();Snd.play("pop");};
   $("cfgBtn").onclick=()=>{Snd.play("click");cfgOpen();};
   $("cfgX").onclick=()=>{Snd.play("click");cfgClose();};
   $("cfgOk").onclick=()=>{Snd.play("click");cfgClose();};
@@ -2467,18 +2588,17 @@ function showDiffPicker(cb,back){
 }
 $("playBtn").onclick=()=>{
   leaveTab();
-  const fromMp=mpStart;mpStart=false;
-  // RTC: the host picks the course and guests receive it · Claude room: everyone plays the normal course
+  mpStart=false;
+  // Sem tela de escolha de trajeto: entra direto no trajeto normal (ou no do anfitrião, no multijogador).
   const guest=SPEC_SYNC&&mpGuest();
-  if(!guest&&!(fromMp&&!SPEC_SYNC)){$("menu").classList.add("hidden");showDiffPicker(()=>startAtk(),()=>$("menu").classList.remove("hidden"));return;}
-  if(fromMp&&!SPEC_SYNC&&SPEC.diff!==1)rebuildLevel(diffSpec(1));
+  if(!guest&&SPEC.diff!==1)rebuildLevel(diffSpec(1));
   startAtk();
 };
 function startAtk(){track("ez_play",{mode:"parkour",difficulty:SPEC.diff==null?1:SPEC.diff,multiplayer:room&&room.connected&&room.connected()?1:0});
   if(me.cp===0&&savedCp>=1){reachCp(savedCp,true);spawnAt(savedCp);startT=performance.now();var rsm=savedCp;}
   $("menu").classList.add("hidden");showCourseMap(()=>{if(startT)startT=performance.now();startPlaying();if(rsm)setTimeout(()=>toast(t("resumed").replace("{n}",rsm)),400);});
 }
-$("restartBtn").onclick=()=>{leaveTab();resetCoins();savedCp=0;store("ezobby_cp","0");me.cp=0;me.won=false;setFlag(0);spawnAt(0);startT=0;elapsed=0;$("menu").classList.add("hidden");if(SPEC_SYNC&&mpGuest())showCourseMap(startPlaying);else showDiffPicker(()=>showCourseMap(startPlaying),()=>$("menu").classList.remove("hidden"));};
+$("restartBtn").onclick=()=>{leaveTab();resetCoins();savedCp=0;store("ezobby_cp","0");me.cp=0;me.won=false;setFlag(0);spawnAt(0);startT=0;elapsed=0;$("menu").classList.add("hidden");showCourseMap(startPlaying);};
 $("menuBtn").onclick=()=>{playing=false;for(const k in keys)keys[k]=false;$("menu").classList.remove("hidden");$("hud").classList.add("hidden");buildMenu();resizePreview();};
 $("chatBtn").onclick=()=>$("chatRow").classList.toggle("hidden");
 $("pauseBtn").onclick=()=>setPause(true);
@@ -3166,8 +3286,8 @@ function flyStep(dt){
 }
 function showCourseMap(cb){
   const ov=$("mapOv");ov.classList.remove("hidden");$("mapTitle").textContent=t("mapTitle");$("mapSkip").textContent=t("mapSkip");
-  $("mapCount").textContent=t("mapStart");$("map2d").textContent=t("map2d");$("mapCv").classList.add("hidden");clearInterval(mapTimer);
-  $("map2d").onclick=()=>{Snd.play("click");const cv=$("mapCv");cv.classList.toggle("hidden");if(!cv.classList.contains("hidden"))drawCourseMap(cv,{me:true});};
+  $("mapCount").textContent=t("mapStart");$("mapCv").classList.add("hidden");clearInterval(mapTimer);
+  $("map2d").classList.add("hidden");   /* o dono tirou a opção de ver o mapa 2D (25/11/2026) */
   flyStart();
   const done=()=>{clearInterval(mapTimer);fly.on=false;ov.classList.add("hidden");$("mapSkip").onclick=null;cb();};
   $("mapSkip").onclick=()=>{Snd.play("click");done();};
@@ -3319,6 +3439,7 @@ function frame(now){
     }
     if(me.grounded&&me.groundBox&&me.groundBox.gate===undefined&&!killNear(me.x,me.y,me.z))me.lastSafe={x:me.x,y:me.y,z:me.z};
     if(mode==="atk"&&!died&&me.y<Math.min(cps[me.cp].y,me.lastSafe?me.lastSafe.y:1e9)-15)die();
+    if(mode==="atk"&&!died)arenaRace();
     if(mode==="atk"&&me.grounded&&me.groundBox){const gb=me.groundBox;
       if(gb.type==="cp"&&gb.cp>me.cp)reachCp(gb.cp);
       if(gb.gate!==undefined&&playing)checkGate(gb);

@@ -129,6 +129,11 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   #menu .modes .mode small{font-size:12px;opacity:.9}
   #menu .modes #tabPick{width:100%;background:rgba(8,25,40,.72);backdrop-filter:blur(8px);border-radius:16px;padding:12px}
   #menu .modes #tabPick .l2{color:#fff}
+  /* Nomes das operações (➕ Adição, ✖️ Multiplicação…): fonte menor para caberem em menos linhas
+     (pedido do dono, 25/11/2026). A regra vence a da media query por ser mais específica. */
+  #menu .modes #tabPick .chips{gap:4px;justify-content:center}
+  #menu .modes #tabPick .chips button{font-size:11.5px;padding:4px 9px;white-space:nowrap;line-height:1.15}
+  @media (min-width:520px){ #menu .modes #tabPick .chips button{font-size:12.5px;padding:5px 10px} }
   #menu .logo.hometitle{color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.6)}
   #menu .logo.hometitle span{color:#fde047}
   #menu .info{color:#dce9f2;text-shadow:0 2px 8px rgba(0,0,0,.6);text-align:center;padding:0 12px;font-size:11.5px;line-height:1.35}
@@ -162,6 +167,9 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   .tcol label.l:first-child{margin-top:0}
   #nameIn{width:100%;font-family:inherit;font-size:16px;padding:7px 10px;border:2px solid #cbd5e1;border-radius:12px;outline:none}
   #nameIn:focus{border-color:#2563eb}
+  .edbtns{display:flex;align-items:center;gap:8px;margin-top:12px}
+  .edbtns button{margin:0}
+  #edOpts .chips{margin-top:2px}
   .crow{display:flex;align-items:center;gap:8px;margin:4px 0}
   .crow .cl{width:58px;font-size:12px;font-weight:600;color:#475569;flex:none}
   .sws{display:flex;gap:4px;flex-wrap:wrap}
@@ -292,28 +300,23 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   <div class="card">
     <button class="ovx" id="charX" aria-label="✕">✕</button>
     <h2 id="charTitle" style="margin:0 0 10px;color:#2563eb;font-size:24px"></h2>
+    <!-- Editor padronizado com o do Apagão (pedido do dono, 25/11/2026): abas Tipo · Cabelo ·
+         Cores · Acessório · Rosto, e embaixo 🎲 Aleatório · Cancelar · ✔ Salvar. -->
     <div class="top">
       <span id="pvSlot"><div id="pvWrap"><canvas id="preview"></canvas></div></span>
       <div class="tcol">
         <label class="l" data-i="name" for="nameIn"></label>
         <input id="nameIn" maxlength="14" autocomplete="off">
         <div class="info" id="invInfo" style="margin-top:4px"></div>
-        <label class="l" data-i="gender"></label>
-        <div class="chips" id="genders"></div>
-        <label class="l" data-i="face"></label>
-        <div class="chips" id="faces"></div>
-        <div id="hairBlock">
-          <label class="l" data-i="hair"></label>
-          <div class="chips" id="hairs"></div>
-        </div>
+        <div class="chips" id="edTabs" style="margin-top:8px"></div>
+        <div id="edOpts"></div>
       </div>
     </div>
-    <div class="crow" id="hairColRow" style="margin-top:8px"><div class="cl" data-i="hairColor"></div><div class="sws" id="hairCols"></div></div>
-    <div id="colorRows"></div>
-    <label class="l" data-i="acc"></label>
-    <div class="chips" id="accs"></div>
     <div class="info" id="lockInfo" style="margin-top:6px"></div>
-    <button class="play" id="charOk" style="margin-top:12px"></button>
+    <div class="edbtns">
+      <button class="sec" id="charRnd"></button><span style="flex:1"></span>
+      <button class="sec" id="charCancel"></button><button class="play" id="charOk"></button>
+    </div>
   </div>
 </div>
 
@@ -497,6 +500,8 @@ const T = {
   pt:{sub:"Parkour 3D de contas: + − × ÷", dev:"Desenvolvido por", name:"Seu apelido", namePh:"Jogador", gender:"Personagem", g_m:"👦 Menino", g_f:"👧 Menina", g_fox:"🦊 Raposa", g_et:"👽 ET", g_zombie:"🧟 Zumbi",
       hair:"Cabelo", hairColor:"Cor do cabelo", h_none:"Sem cabelo", h_short:"Curto", h_spiky:"Espetado", h_curly:"Cacheado", h_long:"Longo", h_ponytail:"Rabo de cavalo", h_pigtails:"Maria-chiquinha", h_bob:"Chanel",
       head:"Pele", headFur:"Pelo", torso:"Detalhe", arms:"Mangas", legs:"Calça", acc:"Acessório",
+      tab_kind:"Tipo", tab_hair:"Cabelo", tab_colors:"Cores 🎨", tab_acc:"Acessório", tab_face:"Rosto",
+      rndChar:"Aleatório", cancelChar:"Cancelar", noHair:"Este personagem não usa cabelo. Toque num tipo para virar menino ou menina:", noFace:"Este personagem tem o rosto próprio.",
       a_none:"Nenhum", a_hat:"🎩 Cartola", a_cap:"🧢 Boné", a_glasses:"🕶 Óculos",
       a_crown:"👑 Coroa", a_headphones:"🎧 Fone", a_cape:"🦸 Capa de herói", a_afro:"💈 Black power", a_pet:"🐶 Bichinho", a_catears:"🐱 Orelha de gato", a_emo:"🖤 Cabelo emo", a_halo:"😇 Auréola", a_horns:"🐂 Chifre de boi",
       lockHint:"Ganhe um item novo a cada grande vitória: terminar o jogo ou passar 2 fases difíceis.", leaveTitle:"Sair do jogo", leaveAsk:"Quer mesmo sair e voltar para o Gilelê Games? O jogo fica salvo.", leaveYes:"Sim, sair", leaveNo:"Não, continuar jogando", unlockNew:"🎁 Item novo no personagem: {a}!", editChar:"✏️ Editar personagem", charTitle:"Personagem", partyWin:"🏆 Você conseguiu!",
@@ -519,6 +524,8 @@ const T = {
   en:{sub:"3D math parkour: + − × ÷", dev:"Developed by", name:"Your nickname", namePh:"Player", gender:"Character", g_m:"👦 Boy", g_f:"👧 Girl", g_fox:"🦊 Fox", g_et:"👽 Alien", g_zombie:"🧟 Zombie",
       hair:"Hair", hairColor:"Hair color", h_none:"No hair", h_short:"Short", h_spiky:"Spiky", h_curly:"Curly", h_long:"Long", h_ponytail:"Ponytail", h_pigtails:"Pigtails", h_bob:"Bob",
       head:"Skin", headFur:"Fur", torso:"Trim", arms:"Sleeves", legs:"Pants", acc:"Accessory",
+      tab_kind:"Type", tab_hair:"Hair", tab_colors:"Colors 🎨", tab_acc:"Accessory", tab_face:"Face",
+      rndChar:"Random", cancelChar:"Cancel", noHair:"This character has no hair. Tap a type to become a boy or a girl:", noFace:"This character has its own face.",
       a_none:"None", a_hat:"🎩 Top hat", a_cap:"🧢 Cap", a_glasses:"🕶 Shades",
       a_crown:"👑 Crown", a_headphones:"🎧 Headphones", a_cape:"🦸 Hero cape", a_afro:"💈 Afro", a_pet:"🐶 Pet", a_catears:"🐱 Cat ears", a_emo:"🖤 Emo hair", a_halo:"😇 Halo", a_horns:"🐂 Bull horns",
       lockHint:"You unlock a new item on every big win: finishing the game or clearing 2 hard stages.", leaveTitle:"Leave the game", leaveAsk:"Do you really want to leave and go back to Gilelê Games? Your game is saved.", leaveYes:"Yes, leave", leaveNo:"No, keep playing", unlockNew:"🎁 New character item: {a}!", editChar:"✏️ Edit character", charTitle:"Character", partyWin:"🏆 You made it!",
@@ -541,6 +548,8 @@ const T = {
   es:{sub:"Parkour 3D de cuentas: + − × ÷", dev:"Desarrollado por", name:"Tu apodo", namePh:"Jugador", gender:"Personaje", g_m:"👦 Niño", g_f:"👧 Niña", g_fox:"🦊 Zorro", g_et:"👽 ET", g_zombie:"🧟 Zombi",
       hair:"Pelo", hairColor:"Color del pelo", h_none:"Sin pelo", h_short:"Corto", h_spiky:"Puntiagudo", h_curly:"Rizado", h_long:"Largo", h_ponytail:"Coleta", h_pigtails:"Dos coletas", h_bob:"Bob",
       head:"Piel", headFur:"Pelaje", torso:"Detalle", arms:"Mangas", legs:"Pantalón", acc:"Accesorio",
+      tab_kind:"Tipo", tab_hair:"Pelo", tab_colors:"Colores 🎨", tab_acc:"Accesorio", tab_face:"Cara",
+      rndChar:"Aleatorio", cancelChar:"Cancelar", noHair:"Este personaje no usa pelo. Toca un tipo para ser niño o niña:", noFace:"Este personaje tiene su propia cara.",
       a_none:"Ninguno", a_hat:"🎩 Chistera", a_cap:"🧢 Gorra", a_glasses:"🕶 Gafas",
       a_crown:"👑 Corona", a_headphones:"🎧 Audífonos", a_cape:"🦸 Capa de héroe", a_afro:"💈 Afro", a_pet:"🐶 Mascota", a_catears:"🐱 Orejas de gato", a_emo:"🖤 Pelo emo", a_halo:"😇 Aureola", a_horns:"🐂 Cuernos de toro",
       lockHint:"Ganas un objeto nuevo en cada gran victoria: terminar el juego o pasar 2 fases difíciles.", leaveTitle:"Salir del juego", leaveAsk:"¿Seguro que quieres salir y volver a Gilelê Games? La partida queda guardada.", leaveYes:"Sí, salir", leaveNo:"No, seguir jugando", unlockNew:"🎁 ¡Objeto nuevo del personaje: {a}!", editChar:"✏️ Editar personaje", charTitle:"Personaje", partyWin:"🏆 ¡Lo lograste!",
@@ -919,11 +928,15 @@ function sanitizeLook(o){
 let look=Object.assign({},DEF,{c:DEF.c.slice()});
 let lookWasSaved=false;
 try{const s=JSON.parse(load("ezobby_look2")||"null");if(s){look=sanitizeLook(s);lookWasSaved=true;}}catch(e){}
-if(!lookWasSaved){                                    // primeira vez: sorteia o boneco e já guarda
+/* Sorteia um boneco (primeira vez e botão 🎲 do editor) — mesmo critério do motor. */
+function randomLook(){
   const pk=a=>a[Math.floor(Math.random()*a.length)];
   const g=Math.random()<0.8?pk(["m","f"]):pk(KINDS);
   const skin=KIND_SKIN[g]||pk(PALETTE.slice(0,3));
-  look=sanitizeLook({n:"",g,h:pk(HAIRS[g==="f"?"f":"m"]),hc:pk(HAIRCOLS),c:[skin,pk(PALETTE),skin,pk(PALETTE)],a:Math.random()<0.6?"none":pk(openAccs()),f:pk(FACES)});
+  return sanitizeLook({n:"",g,h:pk(HAIRS[g==="f"?"f":"m"]),hc:pk(HAIRCOLS),c:[skin,pk(PALETTE),skin,pk(PALETTE)],a:Math.random()<0.6?"none":pk(openAccs()),f:pk(FACES)});
+}
+if(!lookWasSaved){                                    // primeira vez: sorteia o boneco e já guarda
+  look=randomLook();
   try{store("ezobby_look2",JSON.stringify(look));}catch(e){}
 }
 let botsOn=load("ezobby_bots")!=="0";
@@ -2320,7 +2333,7 @@ function askLeave(){
   const msg=document.createElement("p");msg.textContent=t("leaveAsk");msg.style.cssText="margin:0 0 16px;color:#334155;font-weight:600";
   const yes=document.createElement("button");yes.className="play";yes.textContent=t("leaveYes");
   const no=document.createElement("button");no.className="sec";no.textContent=t("leaveNo");no.style.marginTop="10px";
-  yes.onclick=()=>{leaveOv=null;location.href="../../jogos.html";};
+  yes.onclick=()=>{closeLeave();leaveToPortal();};
   no.onclick=()=>{Snd.play("click");closeLeave();};
   card.append(ttl,msg,yes,no);ov.appendChild(card);document.body.appendChild(ov);
 }
@@ -2328,12 +2341,28 @@ function closeLeave(){if(leaveOv){leaveOv.remove();leaveOv=null;}}
 /* O botão VOLTAR do celular/navegador também não pode jogar o jogador para fora sem avisar.
    Deixamos sempre uma "entrada falsa" no histórico: ao voltar, o navegador consome essa entrada,
    nós perguntamos e repomos a entrada — por mais vezes que ele aperte, nunca sai sem confirmar. */
-try{history.pushState({ezGuard:1},"");}catch(e){}
+let fakeEntries=0,leavingNow=false;
+const pushFake=()=>{try{history.pushState({ezGuard:1},"");fakeEntries++;}catch(e){}};
+pushFake();
 addEventListener("popstate",()=>{
-  try{history.pushState({ezGuard:1},"");}catch(e){}
+  if(leavingNow)return;         /* já estamos saindo: deixa o navegador seguir */
+  fakeEntries=Math.max(0,fakeEntries-1);
+  pushFake();                   /* repõe a entrada falsa */
   if(leaveOv)closeLeave();      /* já estava perguntando: voltar fecha a pergunta */
   else askLeave();
 });
+/* Sair de verdade: descarta as entradas do jogo (antes elas ficavam no histórico e o botão voltar
+   do portal caía no jogo outra vez, já com a pergunta na tela — vai-e-vem sem fim, 25/11/2026). */
+function leaveToPortal(portal="../../jogos.html"){
+  if(leavingNow)return;leavingNow=true;
+  const steps=fakeEntries+1,ref=document.referrer||"";
+  if(ref&&ref!==location.href&&/jogos\.html(\?|#|$)/.test(ref)&&history.length>steps){
+    const fb=setTimeout(()=>location.replace(portal),600);
+    addEventListener("pagehide",()=>clearTimeout(fb),{once:true});
+    try{history.go(-steps);return;}catch(e){clearTimeout(fb);}
+  }
+  location.replace(portal);
+}
 /* Grande vitória: desbloqueia o próximo item do boneco e avisa. */
 function grantWin(){const got=addWin();if(got)setTimeout(()=>toast(t("unlockNew").replace("{a}",t("a_"+got)),5200,true),1400);return got;}
 
@@ -2345,6 +2374,48 @@ function setKind(k){
   else if(KIND_SKIN[prev]&&look.c[0]===KIND_SKIN[prev])look.c[0]=DEF.c[0];
   if((k==="m"||k==="f")&&!HAIRS[k].includes(look.h))look.h=HAIRS[k][0];
 }
+/* ---- editor do personagem no padrão do Apagão: abas + aleatório/cancelar/salvar (25/11/2026) ---- */
+const ED_TABS=["kind","hair","colors","acc","face"];
+let edTab="kind",lookBak=null;
+function edChips(parent,values,cur,label,fn){values.forEach(v=>chip(parent,label(v),v===cur,()=>fn(v)));}
+function buildEditor(){
+  const TB=$("edTabs");if(!TB)return;
+  TB.innerHTML="";ED_TABS.forEach(k=>chip(TB,t("tab_"+k),k===edTab,()=>{edTab=k;buildEditor();}));
+  const O=$("edOpts");O.innerHTML="";
+  const lab=(key)=>{const l=document.createElement("label");l.className="l";l.textContent=t(key);O.appendChild(l);};
+  const row=(key,cols,cur,fn)=>{const r=document.createElement("div");r.className="crow";
+    const l=document.createElement("div");l.className="cl";l.textContent=t(key);r.appendChild(l);
+    const sw=document.createElement("div");sw.className="sws";swatches(sw,cols,cur,fn);r.appendChild(sw);O.appendChild(r);};
+  const chipsBox=()=>{const d=document.createElement("div");d.className="chips";O.appendChild(d);return d;};
+  const human=look.g==="m"||look.g==="f";
+  if(edTab==="kind"){
+    lab("gender");edChips(chipsBox(),KINDS,look.g,g=>t("g_"+g),g=>{setKind(g);saveLook();buildEditor();buildMenu();});
+    row(look.g==="fox"?"headFur":"head",PALETTE,look.c[0],c=>{look.c[0]=c;saveLook();buildEditor();});
+  }
+  if(edTab==="hair"){
+    if(human){lab("hair");edChips(chipsBox(),HAIRS[look.g],look.h,h=>t("h_"+h),h=>{look.h=h;saveLook();buildEditor();});}
+    else{
+      const i=document.createElement("div");i.className="info";i.textContent=t("noHair");O.appendChild(i);
+      edChips(chipsBox(),["m","f"],null,g=>t("g_"+g),g=>{setKind(g);saveLook();buildEditor();buildMenu();});
+    }
+    row("hairColor",HAIRCOLS,look.hc,c=>{look.hc=c;saveLook();buildEditor();});
+  }
+  if(edTab==="colors"){row("torso",PALETTE,look.c[1],c=>{look.c[1]=c;saveLook();buildEditor();});row("legs",PALETTE,look.c[3],c=>{look.c[3]=c;saveLook();buildEditor();});}
+  if(edTab==="acc"){
+    lab("acc");const A=chipsBox();
+    ACCS.forEach(a=>{                                   // trancados ficam translúcidos com 🔒
+      const open=accUnlocked(a);
+      const b=document.createElement("button");b.textContent=(open?"":"🔒 ")+t("a_"+a);
+      b.className=(look.a===a?"sel":"")+(open?"":" locked");
+      b.onclick=()=>{ if(open){Snd.play("click");look.a=a;saveLook();buildEditor();} else {Snd.play("wrong");toast("🔒 "+t("lockHint"),3200);} };
+      A.appendChild(b);});
+  }
+  if(edTab==="face"){
+    if(look.g==="horse"||look.g==="smiley"||look.g==="zombie"){const i=document.createElement("div");i.className="info";i.textContent=t("noFace");O.appendChild(i);}
+    else{lab("face");edChips(chipsBox(),FACES,look.f,f=>t("f_"+f),f=>{look.f=f;saveLook();buildEditor();});}
+  }
+  $("lockInfo").textContent=t("lockHint");
+}
 function buildMenu(){
   document.documentElement.lang=lang==="pt"?"pt-BR":lang;
   document.querySelectorAll("[data-i]").forEach(el=>{el.textContent=t(el.dataset.i);});
@@ -2352,35 +2423,11 @@ function buildMenu(){
   $("nameIn").placeholder=t("namePh");
   const L=$("langs");L.innerHTML="";
   [["pt","🇧🇷 PT"],["en","🇺🇸 EN"],["es","🇪🇸 ES"]].forEach(([k,lbl])=>chip(L,lbl,k===lang,()=>{lang=k;store("ezobby_lang",k);buildMenu();meChar.setLook(look);signs.forEach(drawSign);gates.forEach(drawGate);}));
-  const G=$("genders");G.innerHTML="";
-  KINDS.forEach(g=>chip(G,t("g_"+g),look.g===g,()=>{setKind(g);saveLook();buildMenu();}));
-  const FC=$("faces");FC.innerHTML="";
-  FACES.forEach(f=>chip(FC,t("f_"+f),look.f===f,()=>{look.f=f;saveLook();buildMenu();}));
-  const human=look.g==="m"||look.g==="f";
-  FC.parentElement.querySelector('[data-i="face"]').classList.toggle("hidden",look.g==="horse"||look.g==="smiley"||look.g==="zombie");FC.classList.toggle("hidden",look.g==="horse"||look.g==="smiley"||look.g==="zombie");
-  $("hairBlock").classList.toggle("hidden",!human);$("hairColRow").classList.toggle("hidden",!(look.g==="horse"||(human&&look.h!=="none")));
-  const H=$("hairs");H.innerHTML="";
-  if(human)HAIRS[look.g].forEach(h=>chip(H,t("h_"+h),look.h===h,()=>{look.h=h;saveLook();buildMenu();}));
-  const HC=$("hairCols");HC.innerHTML="";swatches(HC,HAIRCOLS,look.hc,c=>{look.hc=c;saveLook();buildMenu();});
-  const CR=$("colorRows");CR.innerHTML="";
-  ["head","torso","arms","legs"].forEach((k,i)=>{
-    const row=document.createElement("div");row.className="crow";
-    const l=document.createElement("div");l.className="cl";l.textContent=t(i===0&&look.g==="fox"?"headFur":k);row.appendChild(l);
-    const sw=document.createElement("div");sw.className="sws";swatches(sw,PALETTE,look.c[i],c=>{look.c[i]=c;saveLook();buildMenu();});
-    row.appendChild(sw);CR.appendChild(row);
-  });
-  const A=$("accs");A.innerHTML="";
-  ACCS.forEach(a=>{                                   // trancados ficam translúcidos com 🔒 (25/11/2026)
-    const open=accUnlocked(a);
-    const b=document.createElement("button");b.textContent=(open?"":"🔒 ")+t("a_"+a);
-    b.className=(look.a===a?"sel":"")+(open?"":" locked");
-    b.onclick=()=>{ if(open){Snd.play("click");look.a=a;saveLook();buildMenu();} else {Snd.play("wrong");toast("🔒 "+t("lockHint"),3200);} };
-    A.appendChild(b);
-  });
-  $("lockInfo").textContent=t("lockHint");
+  buildEditor();
   $("charName").textContent=(look.n||"").trim()||t("namePh");
   $("editChar").title=t("editChar");
   $("charTitle").textContent="🧍 "+t("charTitle");$("charOk").textContent="✔ "+t("saveChar");
+  $("charRnd").textContent="🎲 "+t("rndChar");$("charCancel").textContent=t("cancelChar");
   $("cfgTitle").textContent="⚙️ "+t("options");$("cfgOk").textContent=t("back");
   const O=$("opts");O.innerHTML="";
   chip(O,botsOn?t("botsOn"):t("botsOff"),botsOn,()=>{botsOn=!botsOn;store("ezobby_bots",botsOn?"1":"0");buildMenu();});
@@ -2411,14 +2458,16 @@ function buildMenu(){
 }
 function saveLook(){store("ezobby_look2",JSON.stringify(look));meChar.setLook(look);refreshPreview();sendLook();}
 /* ---- editor do personagem (abre só no botão) e configurações ---- */
-function charOpen(){$("charOv").classList.remove("hidden");resizePreview();}
+function charOpen(){lookBak=JSON.stringify(look);edTab="kind";buildEditor();$("charOv").classList.remove("hidden");resizePreview();}
 function charClose(){$("charOv").classList.add("hidden");buildMenu();}
 function cfgOpen(){buildMenu();$("cfgOv").classList.remove("hidden");}
 function cfgClose(){$("cfgOv").classList.add("hidden");}
 setTimeout(()=>{
   $("editChar").onclick=()=>{Snd.play("click");charOpen();};
   $("charX").onclick=()=>{Snd.play("click");charClose();};
-  $("charOk").onclick=()=>{Snd.play("ok");charClose();};
+  $("charOk").onclick=()=>{Snd.play("ok");lookBak=null;charClose();};
+  $("charCancel").onclick=()=>{Snd.play("click");if(lookBak){look=sanitizeLook(JSON.parse(lookBak));saveLook();}lookBak=null;charClose();};
+  $("charRnd").onclick=()=>{const n=look.n;look=randomLook();look.n=n;saveLook();$("nameIn").value=look.n;buildEditor();buildMenu();Snd.play("pop");};
   $("cfgBtn").onclick=()=>{Snd.play("click");cfgOpen();};
   $("cfgX").onclick=()=>{Snd.play("click");cfgClose();};
   $("cfgOk").onclick=()=>{Snd.play("click");cfgClose();};
@@ -2528,7 +2577,7 @@ function upsertRemote(p){
   else if(r.lkKey!==lkKey){r.ch.setLook(lk);r.lkKey=lkKey;r.look=lk;}
   r.tx=pos[0];r.ty=pos[1];r.tz=pos[2];
   const rot=num(pr.r,-100,100);if(rot!==null)r.trot=rot;
-  {const iv=Array.isArray(pr.inv)?pr.inv.filter(x=>PW[x]).slice(0,MAXINV):[];r.ch.setIcons(iv.map(x=>PW[x].e).join(""));
+  {r.ch.setIcons("");   /* idem para os outros jogadores */
    r.ch.setFx({gh:pr.gh,bt:pr.bt,fz:pr.fz,dz:pr.dz});
    if(Array.isArray(pr.tk)){const now=performance.now();for(const id of pr.tk.slice(0,30)){const bx=pwBoxes[id];if(bx&&!bx.takenUntil)boxTaken(bx,now);}}
    if(pr.use&&typeof pr.use==="object"&&pr.use.k!==r.useK){const first=r.useK===undefined;r.useK=pr.use.k;
@@ -2765,10 +2814,13 @@ function renderBoard(){
 /* ================= powers ================= */
 const PW={fart:{e:"💨",c:0x84cc16},water:{e:"🪣",c:0x3b82f6},ice:{e:"🧊",c:0x67e8f9},ghost:{e:"👻",c:0xe5e7eb},boots:{e:"🥾",c:0xf59e0b},angel:{e:"😇",c:0xfde047},reverse:{e:"🔄",c:0xa855f7},cream:{e:"🍦",c:0xf9a8d4},choc:{e:"🍫",c:0x92400e}};
 const PW_IDS=Object.keys(PW);const MAXINV=5;
-let inv=[];try{const a=JSON.parse(load("ezobby_inv")||"[]");if(Array.isArray(a))inv=a.filter(x=>PW[x]).slice(0,MAXINV);}catch(e){}
+/* Este jogo NÃO tem poderes/ações: a mochila fica sempre vazia e nada de ícone em cima da cabeça.
+   Antes ele lia a chave "ezobby_inv" (mesma origem do EZ Obby) e mostrava os ícones de lá
+   num jogo que nem tem ação — bug relatado pelo dono em 25/11/2026. */
+let inv=[];
 let invSel=0,pwUseK=0,atkK=0,lastAtk=null;
 const fxState={ghost:0,boots:0,frozen:0};
-function saveInv(){store("ezobby_inv",JSON.stringify(inv));renderInv();sendInv();}
+function saveInv(){inv=[];renderInv();sendInv();}   /* sem poderes aqui: não grava nem herda os do EZ Obby */
 function pwName(id){return t("pw_"+id);}
 // ---- seeded daily layout of boxes (same for everyone on the same day)
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t2=Math.imul(a^a>>>15,1|a);t2=t2+Math.imul(t2^t2>>>7,61|t2)^t2;return((t2^t2>>>14)>>>0)/4294967296;};}
@@ -2835,7 +2887,7 @@ function renderInv(){
   const ab=$("actBtn");ab.textContent=inv[invSel]?PW[inv[invSel]].e:"⚡";ab.classList.toggle("dim",!inv[invSel]||isPassive(inv[invSel]));
   $("pwHint").textContent=isTouch?"":t("pwHint");
   const II=$("invInfo");if(II)II.innerHTML="<b>⭐ "+pts+" "+t("pts")+"</b>";
-  meChar.setIcons(inv.map(x=>PW[x].e).join(""));
+  meChar.setIcons("");   /* sem ícone de ação em cima da cabeça (não há poderes neste jogo) */
 }
 function isPassive(id){return id==="angel"||id==="reverse";}
 function camFwd(){return {x:-Math.sin(yaw),z:-Math.cos(yaw)};}

@@ -6,7 +6,7 @@
 import { THREE, part, h, t, toast, Audio } from "../../engine/ez.js";
 import { wearPack } from "./menu.js";
 
-export function setupSocial({ world, room, remotes, me, bag, openMenu, busy, onGround }) {
+export function setupSocial({ world, room, remotes, me, bag, openMenu, busy, onGround, guard }) {
   const S = world.scene, ground = new Map();
   let seq = 0, pending = null, pendT = 0, lastBg = -1;
   const nameOf = (id) => { const r = remotes.get(id); return (r && r.ch.look && r.ch.look.n) || t("tr_player"); };
@@ -49,6 +49,9 @@ export function setupSocial({ world, room, remotes, me, bag, openMenu, busy, onG
     return best;
   }
   function pickGround(it) {
+    // alguém de olho no item (morador da casa, por exemplo): não dá para levar
+    const why = guard && guard(it);
+    if (why) { toast(why, 3200); Audio.play("wrong"); return; }
     if (!bag.fits(it.k)) { toast(t("full"), 3000); Audio.play("wrong"); return; }
     if (!takeGround(it.id, true)) return;
     bag.give(it.k, it.n); Audio.play("coin"); toast("+ " + bag.label(it.k), 1200);
@@ -122,7 +125,7 @@ export function setupSocial({ world, room, remotes, me, bag, openMenu, busy, onG
     /** O que dá para fazer aqui agora (item no chão tem prioridade; depois, jogador por perto). */
     near(allowPlayer = true) {
       const it = nearGround();
-      if (it) return { text: t("gr_pick", { x: bag.label(it.k) }), act: () => pickGround(it) };
+      if (it) return { text: (guard && guard(it) ? "🚫 " : "") + t("gr_pick", { x: bag.label(it.k) }), act: () => pickGround(it) };
       const id = allowPlayer && !pending ? nearPlayer() : null;
       if (id) return { text: "🤝 " + t("tr_with", { n: nameOf(id) }), act: () => openTrade(id) };
       return null;

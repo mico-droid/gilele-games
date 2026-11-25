@@ -183,6 +183,13 @@ const S = {
   r5: ["📻 Pontos de distribuição de água serão montados nas escolas. Vá cedo e em grupo pequeno.", "📻 Water distribution points will be set up at schools. Go early, in small groups.", "📻 Habrá puntos de reparto de agua en las escuelas. Vaya temprano y en grupo pequeño."],
 
   // Crowd
+  // moradores do bairro e casas abertas (pedido do dono, 25/11/2026)
+  dwAgg: ["Um morador nervoso te empurrou. Melhor não ficar discutindo na rua.", "An angry resident shoved you. Better not argue in the street.", "Un vecino nervioso te empujó. Mejor no discutir en la calle."],
+  dwAgg_k: ["Alguém te empurrou sem querer na correria. Saia de perto e respire.", "Someone bumped into you in the rush. Step away and breathe.", "Alguien te empujó en la prisa. Aléjate y respira."],
+  dwThiefCash: ["🥷 Um ladrão passou correndo e levou R$ {v}!", "🥷 A thief ran past and took R$ {v}!", "🥷 ¡Un ladrón pasó corriendo y se llevó R$ {v}!"],
+  dwThiefItem: ["🥷 Um ladrão arrancou {x} da sua mochila!", "🥷 A thief snatched {x} from your bag!", "🥷 ¡Un ladrón te arrancó {x} de la mochila!"],
+  dwThiefNone: ["🥷 Um ladrão tentou te roubar, mas não achou nada.", "🥷 A thief tried to rob you but found nothing.", "🥷 Un ladrón intentó robarte, pero no encontró nada."],
+  hGuard: ["O morador está de olho: isso aqui é dele. Procure numa casa vazia.", "The resident is watching: this is theirs. Look in an empty house.", "El vecino está mirando: esto es suyo. Busca en una casa vacía."],
   crowdLost: ["Na confusão, alguém levou R$ {v} do seu bolso.", "In the chaos, someone took R$ {v} from your pocket.", "En la confusión, alguien te sacó R$ {v} del bolsillo."],
   crowdLost_k: ["Na confusão, você deixou cair R$ {v}.", "In the chaos, you dropped R$ {v}.", "En la confusión, se te cayeron R$ {v}."],
 

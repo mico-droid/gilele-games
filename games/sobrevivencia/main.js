@@ -48,7 +48,7 @@ function newState(cfg) {
     stock: { ...Object.fromEntries(Object.entries(MARKET).map(([k, v]) => [k, v[2]])), ...Object.fromEntries(Object.entries(PHARMA).map(([k, v]) => [k, v[2]])), map: NEWS.map[2] },
     f: { meet: 0, warned: 0, coInside: 0, helpedZe: 0, ateSpoiled: 0, radio: 0, cashB: null, foodB: null, lightB: null, fuelB: null, waterMax: 0.5, crowdMin: 0, gen: 0 },
     fired: {}, tips: [], news: [], pos: { x: HOME.x, z: HOME.z + 2 }, ended: 0,
-    map: MAP_NOW, place: osmPack ? osmPack.label || "" : "", ground: OSM ? osmLoot() : [],
+    map: MAP_NOW, place: osmPack ? osmPack.label || "" : "", ground: OSM ? osmLoot() : houseLoot(),
   };
 }
 let st = null;
@@ -102,6 +102,19 @@ function osmPlaces() {
   if (sq) Object.assign(ZONES.square, { x: sq.x, z: sq.z });
   return P;
 }
+/** Itens no chão das casas abertas do bairro padrão (as que a regra 50/50/50 marcou com itens). */
+function houseLoot() {
+  const POOL = ["water", "can", "biscuit", "kit", "candle", "batt", "matches", "bottle", "bread", "rice", "ors"];
+  const out = []; let n = 0;
+  (city.houses || []).filter((hh) => hh.loot).forEach((hh, hi) => {
+    (hh.spots || []).forEach((sp, si) => {
+      if (si >= 2 + (hi % 2)) return;                       // 2 ou 3 itens por casa
+      const k = POOL[(hi * 3 + si * 5) % POOL.length];
+      out.push({ id: "H" + n++, k, n: 1, x: Math.round(sp.x * 10) / 10, z: Math.round(sp.z * 10) / 10 });
+    });
+  });
+  return out;
+}
 /** Itens espalhados no mapa real: 30% das casas abertas/com porta + muitos nas lojas do tipo certo (até 70). */
 function osmLoot() {
   const L = { house: ["water", "can", "biscuit", "kit", "candle", "batt", "matches", "bottle", "bread"], market: ["water", "can", "biscuit", "rice", "water"], bakery: ["bread", "biscuit"], pharmacy: ["kit", "ors", "kit", "bleach"], hospital: ["kit", "ors"], fuel: ["gascan", "water"], hardware: ["flash", "batt", "candle", "matches", "bleach"], water: ["water"], school: ["water", "biscuit"] };
@@ -138,6 +151,50 @@ const people = OSM ? Array.from({ length: Math.min(OSM.botPoints.length, isMobil
   const b = createBot({ world, phys, look: randomLook(""), area: { x0: q.x - 14, z0: q.z - 14, x1: q.x + 14, z1: q.z + 14 }, speed: 0.3 + OSM.rand() * 0.2 });
   b.ch.showLabel = false; b.ch.makeLabel(); return b;
 }) : [];
+// ---- moradores do bairro (pedido do dono, 25/11/2026) ----
+// Quantidade = número de ruas do bairro (8: quatro no sentido x e quatro no z).
+// 10% agressivos (empurram) e 10% ladrões (levam dinheiro ou um item e fogem).
+const STREET_LINES = [-72, -24, 24, 72];
+const nStreet = STREET_LINES.length * 2;
+const nAgg = Math.max(1, Math.round(nStreet * 0.1)), nThief = Math.max(1, Math.round(nStreet * 0.1));
+const dwellers = OSM ? [] : Array.from({ length: nStreet }, (_, i) => {
+  const along = STREET_LINES[i % STREET_LINES.length], horiz = i < STREET_LINES.length;
+  const c = (-60 + ((i * 37) % 120));            // ponto de partida espalhado pela rua
+  const area = horiz ? { x0: c - 18, x1: c + 18, z0: along - 3, z1: along + 3 }
+                     : { x0: along - 3, x1: along + 3, z0: c - 18, z1: c + 18 };
+  const role = i < nAgg ? "agg" : i < nAgg + nThief ? "thief" : "calm";
+  const look = randomLook("");
+  const b = createBot({ world, phys, look, area, speed: role === "agg" ? 0.5 : role === "thief" ? 0.55 : 0.34 });
+  b.role = role; b.cd = 0; b.ch.showLabel = false; b.ch.makeLabel();
+  if (role !== "calm") b.ch.root.scale.setScalar(1.02);
+  return b;
+});
+/** Moradores: andam sempre; os agressivos e ladrões só agem depois do apagão. */
+function updateDwellers(dt) {
+  for (const b of dwellers) {
+    b.update(dt);
+    if (b.role === "calm" || !after() || !playing || menuOpen) continue;
+    b.cd -= dt; if (b.cd > 0) continue;
+    const d = Math.hypot(b.body.x - me.x, b.body.z - me.z);
+    if (b.role === "agg" && d < 2.6) {
+      b.cd = 7; Audio.play("push"); b.ch.say("😠");
+      me.body.push((me.x - b.body.x) / (d || 1), (me.z - b.body.z) / (d || 1), 3.4, 9);
+      st.s.health = clamp(st.s.health - (kid() ? 2 : 4)); st.s.mood = clamp(st.s.mood - 4);
+      toast(tx(kid() ? "dwAgg_k" : "dwAgg"), 2800); updHud();
+    } else if (b.role === "thief" && d < 2.2) {
+      b.cd = 30; Audio.play("wrong"); b.ch.say("😈");
+      const keys = Object.keys(st.bag).filter((k) => IT[k] && st.bag[k] > 0 && k !== "gascan");
+      if (st.cash > 0 && (!keys.length || Math.random() < 0.5)) {
+        const v = Math.max(5, Math.round(st.cash * 0.4)); st.cash -= Math.min(v, st.cash);
+        toast(tx("dwThiefCash", { v }), 3200);
+      } else if (keys.length) {
+        const k = keys[Math.floor(Math.random() * keys.length)];
+        add(st.bag, k, -1); toast(tx("dwThiefItem", { x: itName(k) }), 3200);
+      } else toast(tx("dwThiefNone"), 2600);
+      updHud();
+    }
+  }
+}
 Object.values(crowds).flat().forEach((b) => { b.ch.root.visible = false; b.ch.showLabel = false; b.ch.makeLabel(); });
 const crowdOn = (z) => after() && (z === "market" ? st.T > B() + 0.8 && st.T < B() + 14 : st.T > B() + 2 && st.T < B() + 40);
 
@@ -534,12 +591,12 @@ function shopOpts(list) {
   });
 }
 spot(0, 36.5, 3.2, "i_market", () => {
-  if (after() && st.T > B() + 10) { toast(t("closed")); return; }
+  if (after() && st.T > B() + (st.diff === "hard" ? 14 : 26)) { toast(t("closed")); return; }
   minutes(after() ? 45 : 10);
   openMenu(() => ({ title: "🛒 " + t("i_market"), info: [t("cash", { v: st.cash }) + (after() ? "" : " · " + t("bank", { v: st.bankBal })), after() ? t("cardOff") : null, after() ? t("priceUp") : null], opts: shopOpts(MARKET) }));
 });
 spot(40, 32.5, 2.6, "i_pharma", () => {
-  if (after() && st.T > B() + 3) { toast(t("closed")); return; }
+  if (after() && st.T > B() + (st.diff === "hard" ? 6 : 14)) { toast(t("closed")); return; }
   openMenu(() => ({ title: "💊 " + t("i_pharma"), info: [after() ? t("cardOff") : null], opts: shopOpts(PHARMA) }));
 });
 spot(20, 31.5, 2.6, "i_newsstand", () => {
@@ -675,8 +732,13 @@ const btn = (e, fn, title) => h("button.ez-rbtn", { title, onclick: fn }, e);
 const chatBtn = btn("💬", () => openQuickChat(sayChat));
 const bagBtn = btn("🎒", () => openBag(), "I");
 var badge = bagBadge(h, bagBtn);
+const phoneBtn = btn("📱", () => openComm(), "Q");
+// O percentual da bateria fica DENTRO do ícone do celular, para economizar espaço no topo
+// (pedido do dono, 25/11/2026).
+const phonePct = h("span.sv-batt", "--");
+phoneBtn.style.position = "relative"; phoneBtn.appendChild(phonePct);
 const topEl = h("div.ez-top", clockPill, powerPill, cashPill, roomPill(room), h("div.ez-spacer"),
-    bagBtn, btn("📱", () => openComm(), "Q"), btn("🔦", () => toggleFlash(), "F"), chatBtn, btn("✕", () => pause(), t("closeT")));
+    bagBtn, phoneBtn, btn("🔦", () => toggleFlash(), "F"), chatBtn, btn("✕", () => pause(), t("closeT")));
 const guideEl = h("div.sv-guide.ez-hidden", h("span.arr", "⬆"), h("span.txt"));
 const hud = h("div.ez-hud.ez-hidden", topEl,
   barsEl,
@@ -769,7 +831,10 @@ function updHud() {
   clockPill.textContent = "🕒 " + fmtT();
   powerPill.textContent = after() ? t("powerOff", { h: Math.floor(st.T - B()) }) : t("powerOn");
   powerPill.style.background = after() ? "rgba(127,29,29,.8)" : "";
-  cashPill.textContent = "💵 R$ " + st.cash + " · 📱 " + Math.round(st.phone) + "%";
+  cashPill.textContent = "💵 R$ " + st.cash;
+  const pc = Math.round(st.phone);
+  phonePct.textContent = pc + "%";
+  phonePct.style.background = pc <= 10 ? "#ef4444" : pc <= 30 ? "#f59e0b" : "rgba(15,23,42,.85)";
   const top = topEl.getBoundingClientRect().bottom + 6;
   barsEl.style.top = top + "px"; goalsEl.style.top = top + barsEl.offsetHeight + 8 + "px";
   bars.health.parentNode.parentNode.style.display = st.s.health < 95 ? "" : "none";
@@ -813,7 +878,7 @@ function showTitle() {
     scenicAt: me.body ? { x: me.body.x, y: me.body.y, z: me.body.z } : null,
     note: isTouch ? null : t("help"),
     buttons: modeHome(store, {
-      contReal: () => { close(); if (!mapOk(saved)) { location.href = "?acao=cont"; return; } load(saved); start(); },
+      contReal: () => { close(); if (!mapOk(saved)) { location.replace("?acao=cont"); return; } load(saved); start(); },
       newReal: () => { close(); showSetup(); },
     }, { reopen: showTitle, close }),
   });
@@ -835,8 +900,8 @@ function showSetup() {
         if (cfg.map === "osm" && room.connected) cfg.map = "gyn";
         store.setJSON("cfg", cfg);
         // mapa diferente do que está montado: recarrega a página já com o mapa certo
-        if (cfg.map === "osm") { const pk = pinnedPack("pick"); if (!pk) { choose(); return; } pinPack(pk, "game"); location.href = "?acao=novo:osm"; return; }
-        if (MAP_NOW !== "gyn") { location.href = "?acao=novo:gyn"; return; }
+        if (cfg.map === "osm") { const pk = pinnedPack("pick"); if (!pk) { choose(); return; } pinPack(pk, "game"); location.replace("?acao=novo:osm"); return; }
+        if (MAP_NOW !== "gyn") { location.replace("?acao=novo:gyn"); return; }
         scr.close(); load(newState(cfg)); showIntro();
       } }, "▶ " + t("start")),
       h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); showTitle(); } }, t("back")),
@@ -899,7 +964,22 @@ addEventListener("keydown", (e) => {
 
 // ---------------------------------------------------------------- jogar junto: chão, troca, mochila nas costas
 const unitOf = (k) => (k === "water" || k === "raw" ? Math.min(1, st.bag[k] || 0) : 1);
+// Moradores dentro das casas abertas com itens (a regra 50/50/50 do dono marcou quais):
+// ficam na sala e NÃO deixam ninguém levar as coisas deles.
+const residents = (city.houses || []).filter((hh) => hh.npc).map((hh) => {
+  const b = createBot({ world, phys, look: randomLook(""), area: { x0: hh.x - 2.4, x1: hh.x + 2.4, z0: hh.z - 2, z1: hh.z + 2 }, speed: 0.22 });
+  b.house = hh; b.ch.showLabel = false; b.ch.makeLabel(); return b;
+});
+/** Item vigiado? (está dentro de uma casa que tem morador e o morador está por perto) */
+function guardedItem(it) {
+  for (const r of residents) {
+    if (!r.house.inside(it.x, it.z)) continue;
+    if (Math.hypot(r.body.x - it.x, r.body.z - it.z) < 7) return tx("hGuard");
+  }
+  return null;
+}
 const social = setupSocial({ world, room, remotes, me, openMenu, busy: () => menuOpen || !playing,
+  guard: guardedItem,
   onGround: (list) => { if (st && !room.connected) st.ground = list; },
   bag: {
     list: () => Object.keys(st.bag).filter((k) => IT[k] && st.bag[k] > 0),
@@ -956,6 +1036,9 @@ world.onUpdate((dt) => {
   }
   if (st) {
     for (const [k, list] of Object.entries(crowds)) { const on = crowdOn(k); list.forEach((b) => { b.ch.root.visible = on; if (on) b.update(dt); }); }
+    updateDwellers(dt);                      // moradores das ruas (agressivos e ladrões depois do apagão)
+    residents.forEach((b) => b.update(dt));  // moradores dentro das casas
+    city.updateHouses(me.x, me.z);           // telhado da casa em que o jogador entrou
     for (const s of SPOTS) if (s.sprite) { s.sprite.visible = !!s.mark(); s.sprite.position.y = 4.6 + Math.sin(performance.now() / 300) * 0.2; }
     const cp = world.camera.position, camIn = cp.y < 18 && cp.x > HOME.x - HOME.w / 2 - 5 && cp.x < HOME.x + HOME.w / 2 + 1.5 && cp.z > HOME.z - HOME.d / 2 - 1.5 && cp.z < HOME.z + HOME.d / 2 + 2.5;
     const inside = city.insideHome(me.x, me.z); city.roof.visible = !inside && !camIn; city.homeLabel.visible = Math.hypot(me.x - HOME.x, me.z - HOME.z) > 16;
