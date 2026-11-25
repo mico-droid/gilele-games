@@ -139,8 +139,14 @@
     seja, só se ouvia a batida. Agora a parte melódica carrega o volume.
   - **Limitador** (`DynamicsCompressorNode`, threshold −8, ratio 8) entre o master e a saída, nos dois lados:
     com ganhos altos os picos passavam de 1. Picos medidos hoje: 0,3 a 0,76.
-  - Para refazer a medição: o renderizador fica em `/tmp/meas` durante a sessão; é um script de ~80 linhas que
-    importa `engine/audio.js` com `SONGS` exportado. Vale recriar se mexer nas trilhas.
+  - **Música x efeitos** (conferência pedida logo depois): medidos os sons de ação com o mesmo renderizador,
+    a música tinha ficado ~1,5x acima do pulo. Acertado com `MUSIC_VOL` 0,28 → **0,24** e `SFX_VOL` 0,55 →
+    **0,62** (constante nova, nos dois lados). Resultado medido: música 0,0197 · pulo 0,0171 · moeda 0,0168 ·
+    checkpoint 0,0287 · média dos sons de ação dos avulsos 0,0239. Pouso e clique ficam de propósito bem
+    mais baixos (0,003–0,004). Ao mexer em qualquer volume, refazer as duas medições juntas.
+  - Para refazer a medição: o renderizador fica em `/tmp/meas` durante a sessão; são ~80 linhas que importam
+    `engine/audio.js` com `SONGS`/`SFX` exportados (e, para os avulsos, extraem `SONGS`/`fx` do HTML por texto).
+    Vale recriar se mexer nas trilhas.
 - **Botão Voltar do celular** (`guardBack()` em `engine/ui.js`, cópia nos avulsos): o jogo mantém sempre uma
   entrada falsa no histórico (`history.pushState`); ao voltar, o navegador consome essa entrada, o jogo
   pergunta "Quer mesmo sair?" e repõe a entrada. Apertar voltar de novo fecha a pergunta. Assim não dá para

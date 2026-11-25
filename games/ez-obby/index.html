@@ -669,7 +669,7 @@ const Snd=(function(){
   /* Volume da trilha: subiu de 0,13 para 0,28 em 25/11/2026 (o dono achou a música baixa perto
      do som do pulo). Junto com isso o médio das trilhas ficou mais forte e o sub-grave mais fraco:
      alto-falante de celular não toca abaixo de ~200 Hz, o grave só gastava volume sem ser ouvido. */
-  const MUSIC_VOL=0.28;
+  const MUSIC_VOL=0.24;const SFX_VOL=0.62;
   const HAPPY_MEL=[
     [76,_,79,_,84,_,79,_,76,_,74,_,72,_,74,_],[74,_,79,_,83,_,79,_,74,_,_,_,71,_,74,_],
     [72,_,76,_,81,_,76,_,72,_,76,_,81,_,79,_],[81,_,77,_,72,_,77,_,81,_,79,_,76,_,74,_],
@@ -793,7 +793,7 @@ const Snd=(function(){
     lim.connect(ctx.destination);
     master=ctx.createGain();master.gain.value=0.9;master.connect(lim);
     musicG=ctx.createGain();musicG.gain.value=musicOn?MUSIC_VOL:0;musicG.connect(master);
-    sfxG=ctx.createGain();sfxG.gain.value=sfxOn?0.55:0;sfxG.connect(master);
+    sfxG=ctx.createGain();sfxG.gain.value=sfxOn?SFX_VOL:0;sfxG.connect(master);
     const ws=ctx.createWaveShaper();const cv=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/512-1;cv[i]=Math.tanh(x*4);}ws.curve=cv;
     const lp=ctx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2200;
     rockBus=ctx.createGain();rockBus.gain.value=0.5;rockBus.connect(ws);ws.connect(lp);lp.connect(musicG);
@@ -881,7 +881,7 @@ const Snd=(function(){
     else if(!on&&rumbleSrc){const s=rumbleSrc;rumbleG.gain.setTargetAtTime(0.0001,ctx.currentTime,0.1);setTimeout(()=>{try{s.stop();}catch(e){}},500);rumbleSrc=null;}
   }
   function setMusic(v){musicOn=v;store("ezobby_music",v?"1":"0");applyGain();}
-  function setSfx(v){sfxOn=v;store("ezobby_sfx",v?"1":"0");if(sfxG)sfxG.gain.setTargetAtTime(v?0.55:0,ctx.currentTime,0.05);}
+  function setSfx(v){sfxOn=v;store("ezobby_sfx",v?"1":"0");if(sfxG)sfxG.gain.setTargetAtTime(v?SFX_VOL:0,ctx.currentTime,0.05);}
   function suspend(){try{if(ctx&&ctx.state==="running")ctx.suspend();}catch(e){}}
   function resume(){try{if(ctx&&ctx.state==="suspended")ctx.resume();}catch(e){}}
   return {init,play,setMusic,setSfx,setSong,rumble,suspend,resume,song(){return pending||song},get musicOn(){return musicOn},get sfxOn(){return sfxOn}};

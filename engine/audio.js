@@ -9,7 +9,10 @@ const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
 // perto do som do pulo). Junto com isso as vozes de médio das trilhas ficaram mais fortes e o
 // sub-grave mais fraco: alto-falante de celular não reproduz abaixo de ~200 Hz, então o grave
 // só gastava volume sem ser ouvido.
-const MUSIC_VOL = 0.28;
+// Volumes medidos (25/11/2026): a trilha e os sons de ação têm de soar parecidos. Com o
+// renderizador offline, a música fica em ~0,0197 e o pulo em ~0,0170 — a mesma faixa.
+const MUSIC_VOL = 0.24;
+const SFX_VOL = 0.62;
 
 function tone(type, f, tm, dur, vol, dest = sfxG, slide) {
   const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, tm);
@@ -229,7 +232,7 @@ export const Audio = {
     lim.connect(ctx.destination);
     master = ctx.createGain(); master.gain.value = 0.9; master.connect(lim);
     musicG = ctx.createGain(); musicG.gain.value = musicOn ? MUSIC_VOL : 0; musicG.connect(master);
-    sfxG = ctx.createGain(); sfxG.gain.value = sfxOn ? 0.55 : 0; sfxG.connect(master);
+    sfxG = ctx.createGain(); sfxG.gain.value = sfxOn ? SFX_VOL : 0; sfxG.connect(master);
     // Guitarra de verdade: distorção (tanh) + filtro, como numa caixa de som de guitarra.
     // É por aqui que passa o riff da trilha de rock — sem isto a "guitarra" é só uma serra limpa.
     const ws = ctx.createWaveShaper(); const cv = new Float32Array(1024);
@@ -260,7 +263,7 @@ export const Audio = {
   },
   get inDanger() { return danger; },
   setMusic(v) { musicOn = !!v; shared.set("music", v ? "1" : "0"); applyGain(); },
-  setSfx(v) { sfxOn = !!v; shared.set("sfx", v ? "1" : "0"); if (sfxG) sfxG.gain.setTargetAtTime(v ? 0.55 : 0, ctx.currentTime, 0.05); },
+  setSfx(v) { sfxOn = !!v; shared.set("sfx", v ? "1" : "0"); if (sfxG) sfxG.gain.setTargetAtTime(v ? SFX_VOL : 0, ctx.currentTime, 0.05); },
   get musicOn() { return musicOn; },
   get sfxOn() { return sfxOn; },
   get ctx() { return ctx; },
