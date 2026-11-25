@@ -224,8 +224,17 @@ export function gameLinkParts(gameName, { portal = "../../jogos.html", small = t
   };
   drawInstall(); onInstallable(drawInstall);
   if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps().then((a) => { if (a && a.length) { mark(); drawInstall(); } }).catch(() => {});
+  // Sair do jogo pergunta antes: o 🏠 estava levando embora com um toque só (pedido do dono, 25/11/2026)
+  const leave = () => {
+    const scr = screen([
+      h("h2", "🏠 " + t("leaveTitle")),
+      h("p", t("leaveAsk")),
+      h("button.ez-btn.ok.wide", { "data-k": "next", onclick: () => { location.href = portal; } }, t("leaveYes")),
+      h("button.ez-btn.gray.wide", { style: { marginTop: "8px" }, "data-k": "back", onclick: () => scr.close() }, t("leaveNo")),
+    ], { dim: true, x: true });
+  };
   return {
-    portal: h("a.ez-btn.gray" + sz, { href: portal, style: { textDecoration: "none" } }, "🏠 " + t("portal")),
+    portal: h("button.ez-btn.gray" + sz, { onclick: leave }, "🏠 " + t("portal")),
     privacy: h("a.ez-btn.gray" + sz, { href: portal.replace(/jogos\.html$/, "") + "privacidade.html", style: { textDecoration: "none" } }, "🔒 " + t("privacy")),
     install: instSlot,
     share: h("button.ez-btn.blue" + sz, { onclick: share }, "📤 " + t("share")),

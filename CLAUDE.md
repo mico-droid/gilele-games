@@ -112,3 +112,17 @@
   pentatônico). O acessório **capacete saiu** da lista (o dono quis evitar a linha sobrando no editor).
 - `jogos.html`: o logo do topo apontava para `./` (a página comercial) — era o "voltar" que levava o dono
   para o lugar errado. Agora fica na própria página; e a barra ganhou **🏫 Para escolas e empresas**.
+- Rodada de 25/11/2026 (tarde):
+  - **Volume por faixa**: cada trilha agora tem `gain` próprio (`applyGain()` no motor e nos avulsos, chamado
+    quando a música troca). As trilhas antigas foram compostas com notas bem mais baixas que as novas e sumiam
+    dentro do jogo: `chill` 2.3, `chase` 1.9/1.8, `happy` 2.0, `funk` 1.7, `apagao` 2.4 (em `menu.js`).
+  - **Guitarra de verdade no motor**: `engine/audio.js` ganhou o `gtrBus` (WaveShaper tanh + lowpass 2400 →
+    musicG), exposto como `k.gtr`; o riff da `adventure` passa por ele. Os avulsos já tinham o `rockBus`
+    (agora 0,5 em vez de 0,35).
+  - **`rock` virou power metal** nos avulsos (168 bpm, Mi menor, galope colcheia+2 semicolcheias, bumbo duplo,
+    solo em notas longas). É a trilha da maioria dos temas, então é ela que toca dentro do jogo. O Apagão
+    mantém a trilha própria (`apagao`), que reage ao perigo em 3 níveis — só subiu de volume.
+  - **Sair do jogo pergunta antes**: o 🏠 virou botão (não é mais `<a href>`) e abre "Quer mesmo sair?" com
+    Sim/Não — no motor via `gameLinkParts.leave()`, nos avulsos via `askLeave()`.
+  - `jogos.html`: ordem dos jogos prontos passou a ser Apagão → Parkour Tabuada → EZ Obby → Playground →
+    Tabuada Simples (o dono quis o Apagão em primeiro e a Tabuada Simples por último).

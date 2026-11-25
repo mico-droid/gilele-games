@@ -183,6 +183,7 @@ let musicLevel = 0;
 export function installMusic(Audio) {
   const BASS = [45, 41, 38, 40], CH = [[0, 3, 7], [0, 4, 7], [0, 3, 7], [0, 4, 8]];
   Audio.addSong("apagao", {
+    gain: 2.4,   // trilha composta baixa demais: sumia dentro do jogo (ajuste de 25/11/2026)
     get bpm() { return [104, 118, 132][musicLevel]; }, len: 64,
     play(s, tm, k) {
       const L = musicLevel, bar = Math.floor(s / 16), st = s % 16, r = BASS[bar], m = k.music, f = k.mtof;

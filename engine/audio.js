@@ -2,7 +2,7 @@
 // Games can add their own: Audio.addSfx("horn", ({tone, noise, now, out}) => {...}); Audio.addSong("drive", {...}).
 import { shared } from "./storage.js";
 
-let ctx = null, master, musicG, sfxG, noiseBuf = null, nextT = 0, step = 0, fast = false;
+let ctx = null, master, musicG, sfxG, gtrBus = null, noiseBuf = null, nextT = 0, step = 0, fast = false;
 let musicOn = shared.get("music", "1") === "1", sfxOn = shared.get("sfx", "1") === "1";
 const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
 // Volume da trilha. Subiu de 0,13 para 0,28 em 25/11/2026 (o dono achou a música baixa demais
@@ -23,7 +23,7 @@ function noise(tm, dur, vol, dest = sfxG, hp = 1000) {
   s.connect(f); f.connect(g); g.connect(dest); s.start(tm); s.stop(tm + dur + 0.02);
 }
 const now = () => ctx.currentTime + 0.005;
-const kit = () => ({ tone, noise, now, mtof, ctx, out: sfxG, music: musicG });
+const kit = () => ({ tone, noise, now, mtof, ctx, out: sfxG, music: musicG, gtr: gtrBus || musicG });
 
 const SFX = {
   jump: ({ tone, now }) => tone("square", 320, now(), 0.14, 0.22, sfxG, 720),
@@ -66,6 +66,7 @@ const SFX = {
 const SONGS = {
   // calminha (a antiga) — menus e cenários tranquilos
   chill: {
+    gain: 2.3,
     bpm: 108, len: 64,
     play(s, tm, k) {
       const bar = Math.floor(s / 16), st = s % 16, roots = [60, 57, 53, 55];
@@ -98,13 +99,11 @@ const SONGS = {
       // --- guitarra abafada: serra curta em semicolcheia, acento nas batidas
       const open = st === 0 || st === 8;
       if (open) {                                                                     // acorde aberto, deixa soar
-        [f0, f5, f8].forEach((f, n) => k.tone("sawtooth", f, tm, 0.34, n === 2 ? 0.07 : 0.1, musicG));
-        k.tone("square", f8, tm, 0.3, 0.05, musicG);
-      } else if (st % 2 === 0 || st === 7 || st === 11 || st === 15) {                // palhetada curta
-        const v = KICK[st] ? 0.1 : 0.062;
-        k.tone("sawtooth", f0, tm, 0.055, v, musicG);
-        k.tone("sawtooth", f5, tm, 0.05, v * 0.8, musicG);
-        k.tone("square", f8, tm, 0.04, v * 0.4, musicG);
+        [f0, f5, f8].forEach((f, n) => k.tone("sawtooth", f, tm, 0.34, n === 2 ? 0.3 : 0.42, k.gtr));
+      } else if (st % 2 === 0 || st === 7 || st === 11 || st === 15) {                // palhetada abafada
+        const v = KICK[st] ? 0.42 : 0.27;
+        k.tone("sawtooth", f0, tm, 0.055, v, k.gtr);
+        k.tone("sawtooth", f5, tm, 0.05, v * 0.8, k.gtr);
       }
       // --- baixo: oitava abaixo, seguindo o bumbo
       if (st % 2 === 0 || KICK[st]) { k.tone("triangle", mtof(root - 12), tm, 0.12, 0.42, musicG); k.tone("sine", mtof(root - 24), tm, 0.16, 0.26, musicG); }
@@ -119,8 +118,8 @@ const SONGS = {
       if (nt !== null && nt !== undefined) {
         const f = mtof(45 + nt);
         const bend = (bar % 4 === 3 && st === 10) ? mtof(45 + nt + 2) : 0;            // puxada de corda
-        k.tone("sawtooth", f, tm, bend ? 0.42 : 0.17, 0.17, musicG, bend || undefined);
-        k.tone("square", f * 2, tm, 0.1, 0.05, musicG);                               // brilho da guitarra
+        k.tone("sawtooth", f, tm, bend ? 0.42 : 0.17, 0.5, k.gtr, bend || undefined);
+        k.tone("square", f * 2, tm, 0.1, 0.1, musicG);                                // brilho da guitarra
       }
     },
   },
@@ -177,6 +176,7 @@ const SONGS = {
   },
   // correria / contagem regressiva — rápido e nervoso, mesma pegada grave
   chase: {
+    gain: 1.9,
     bpm: 150, len: 64,
     play(s, tm, k) {
       const bar = Math.floor(s / 16) % 4, st = s % 16;
@@ -192,11 +192,21 @@ const SONGS = {
 };
 let song = "adventure", pending = null, prevSong = null, danger = false;
 
+/**
+ * Cada trilha tem seu próprio volume (`gain`): as mais antigas foram compostas com notas bem mais
+ * baixas que as novas, e sem isto a música sumia dentro do jogo (o dono reclamou em 25/11/2026).
+ */
+function applyGain() {
+  if (!musicG) return;
+  const S = SONGS[song];
+  musicG.gain.setTargetAtTime(musicOn ? MUSIC_VOL * ((S && S.gain) || 1) : 0, ctx.currentTime, 0.05);
+}
+
 function schedule() {
   if (!ctx || ctx.state !== "running") return;
   if (nextT < ctx.currentTime - 0.5) nextT = ctx.currentTime + 0.05;
   while (nextT < ctx.currentTime + 0.15) {
-    if (pending && (fast || step % 16 === 0)) { song = pending; pending = null; fast = false; step = 0; }
+    if (pending && (fast || step % 16 === 0)) { song = pending; pending = null; fast = false; step = 0; applyGain(); }
     const S = SONGS[song];
     if (musicOn && S) { try { S.play(step, nextT, kit()); } catch (e) {} }
     nextT += 60 / (S ? S.bpm : 120) / 4; step = (step + 1) % (S ? S.len : 16);
@@ -212,6 +222,13 @@ export const Audio = {
     master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
     musicG = ctx.createGain(); musicG.gain.value = musicOn ? MUSIC_VOL : 0; musicG.connect(master);
     sfxG = ctx.createGain(); sfxG.gain.value = sfxOn ? 0.55 : 0; sfxG.connect(master);
+    // Guitarra de verdade: distorção (tanh) + filtro, como numa caixa de som de guitarra.
+    // É por aqui que passa o riff da trilha de rock — sem isto a "guitarra" é só uma serra limpa.
+    const ws = ctx.createWaveShaper(); const cv = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++) { const x = i / 512 - 1; cv[i] = Math.tanh(x * 4); }
+    ws.curve = cv;
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
+    gtrBus = ctx.createGain(); gtrBus.gain.value = 0.5; gtrBus.connect(ws); ws.connect(lp); lp.connect(musicG);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     nextT = ctx.currentTime + 0.1; setInterval(schedule, 25);
@@ -234,7 +251,7 @@ export const Audio = {
     else if (prevSong) { Audio.setSong(prevSong, { now: true }); prevSong = null; }
   },
   get inDanger() { return danger; },
-  setMusic(v) { musicOn = !!v; shared.set("music", v ? "1" : "0"); if (musicG) musicG.gain.setTargetAtTime(v ? MUSIC_VOL : 0, ctx.currentTime, 0.05); },
+  setMusic(v) { musicOn = !!v; shared.set("music", v ? "1" : "0"); applyGain(); },
   setSfx(v) { sfxOn = !!v; shared.set("sfx", v ? "1" : "0"); if (sfxG) sfxG.gain.setTargetAtTime(v ? 0.55 : 0, ctx.currentTime, 0.05); },
   get musicOn() { return musicOn; },
   get sfxOn() { return sfxOn; },
