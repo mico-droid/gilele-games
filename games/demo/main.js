@@ -192,7 +192,7 @@ const hud = h("div.ez-hud.ez-hidden",
     h("button.ez-rbtn", { title: "Chat", onclick: () => openQuickChat(sayChat) }, "💬"),
     h("button.ez-rbtn", { title: "👥", onclick: () => { pause(false); openRoomPanel(room, { onClose: resume }); } }, "👥"),
     h("button.ez-rbtn", { title: "👕", onclick: () => { pause(false); openAvatarEditor(me.ch.look, (lk) => { me.setLook(lk); resume(); }, { onCancel: resume }); } }, "👕"),
-    h("button.ez-rbtn", { title: "⏸", onclick: () => pause() }, "⏸"),
+    h("button.ez-rbtn", { title: t("paused"), onclick: () => pause() }, "✕"),   // ✕ sempre no topo DIREITO (padrão, 25/11/2026)
   ));
 hud.appendChild(hintPill);
 document.body.appendChild(hud);

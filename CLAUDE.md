@@ -275,3 +275,16 @@
   vence o padrão sem avisar. Nos HTML avulsos é o `toMenu` dos três blocos de idioma.
   **Regra: botão de sair da partida sempre `t("exitMenu")`; não escrever o texto à mão.**
   A Tabuada Simples ficou de fora: é 2D, não tem menu de pausa (sai pelos botões ◀ e 🏠 Início).
+- **Itens 8b, 11 e 12 (25/11/2026) — motor 0.5.8, `CACHE` `gilele-v52`:**
+  - **Tabuada Simples** também bloqueia o `contextmenu` da página (toque longo abria o menu do
+    navegador por cima dos cartões); campos de texto continuam livres.
+  - **✕ sempre no topo DIREITO**: nos HTML avulsos o `#pauseBtn` era o PRIMEIRO item do `#topbar`
+    (ficava à esquerda); agora é o último da primeira linha, com `margin-left:auto`. No Playground e
+    na Auto Escola o botão da pausa ainda era "⏸" — virou **✕**, como nos outros (já ficava à
+    direita por causa do `.ez-spacer`). **Padrão: o ✕ fecha/pausa e mora no canto superior direito,
+    tanto na tela inicial quanto no HUD.**
+  - **Nome do jogador ao lado do boneco**: no motor o `cv` e a pílula do nome passaram a viver dentro
+    de `div.ez-home-char` (`position: relative`), com `.ez-home-name` em `position: absolute` à
+    direita e centrada na vertical (`max-width: 44%`). O canvas do boneco ganhou a altura que a
+    pílula ocupava. Mesma coisa à mão nos HTML avulsos: a `.homename` entrou para dentro da
+    `.homemid` (que virou `position: relative`) e flutua à direita.

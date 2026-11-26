@@ -290,7 +290,7 @@ const mini = h("canvas.ae-mini", { width: 150, height: 150 });
 const camBtn = h("button.ez-rbtn", { title: t("cam_in"), onclick: () => setCamera(camMode === "in" ? "out" : "in") }, "🎥");
 const rotateHint = h("div.ae-rotate.ez-hidden", t("rotate"));
 const hud = h("div.ez-hud.ez-hidden",
-  h("div.ez-top", modePill, ptsPill, domPill, h("div.ez-spacer"), camBtn, h("button.ez-rbtn", { onclick: () => pause() }, "⏸")),
+  h("div.ez-top", modePill, ptsPill, domPill, h("div.ez-spacer"), camBtn, h("button.ez-rbtn", { title: t("paused"), onclick: () => pause() }, "✕")),   // ✕ sempre no topo DIREITO (padrão, 25/11/2026)
   speech, mini, dashPill, rotateHint);
 document.body.append(hud, objBox);
 function updateButtons() {

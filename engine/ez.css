@@ -118,9 +118,12 @@ input { font-family: inherit; }
 .ez-home-mid { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 4px 12px 0; }
 .ez-home-title { margin: 2px 0 0; font-size: clamp(26px, 7vw, 44px); font-weight: 800; letter-spacing: -0.02em; text-align: center; text-shadow: 0 3px 14px rgba(0, 0, 0, 0.6); }
 .ez-home-sub { margin: 4px 0 0; font-size: clamp(13px, 3.4vw, 17px); opacity: 0.92; text-align: center; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
-canvas.ez-hero { flex: 1; min-height: 120px; width: min(460px, 100%); display: block; touch-action: none; }
-.ez-home-name { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.92); color: var(--ez-ink);
-  border-radius: 999px; padding: 5px 6px 5px 15px; font-size: 16px; font-weight: 800; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); max-width: 80vw; }
+/* Boneco e pílula do nome lado a lado: a pílula flutua à direita, verticalmente centrada, e o
+   boneco fica com toda a altura que sobra (pedido do dono, 25/11/2026). */
+.ez-home-char { position: relative; flex: 1; min-height: 120px; width: min(460px, 100%); display: flex; align-items: stretch; justify-content: center; }
+canvas.ez-hero { flex: 1; min-height: 0; width: 100%; display: block; touch-action: none; }
+.ez-home-name { position: absolute; right: 0; top: 50%; transform: translateY(-50%); max-width: 44%; z-index: 1; display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.92); color: var(--ez-ink);
+  border-radius: 999px; padding: 5px 6px 5px 15px; font-size: 15px; font-weight: 800; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); }
 .ez-home-name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ez-editpill { width: 30px; height: 30px; border-radius: 50%; background: var(--ez-blue); color: #fff; font-size: 14px; line-height: 1; flex: none; }
 .ez-home-extra { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 10px 12px 0; }
@@ -142,4 +145,4 @@ canvas.ez-hero { flex: 1; min-height: 120px; width: min(460px, 100%); display: b
 .ez-card .ez-sub { text-align: center; opacity: 0.7; margin: 0 0 12px; font-size: 15px; }
 /* No PC cabe tudo numa linha só, como antes */
 @media (min-width: 720px) { .ez-home-base { width: auto; } .ez-home-base .ez-btn { flex: 0 1 auto; } .ez-home-base .ez-btn.main { order: 0; flex-basis: auto; } }
-@media (max-height: 560px) { .ez-home-title { font-size: 22px; } .ez-home-sub { display: none; } canvas.ez-hero { min-height: 90px; } }
+@media (max-height: 560px) { .ez-home-title { font-size: 22px; } .ez-home-sub { display: none; } .ez-home-char { min-height: 90px; } }

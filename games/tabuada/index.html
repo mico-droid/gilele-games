@@ -468,6 +468,9 @@ const LEAVE_T={
   pt:['🏠 Sair do jogo','Quer mesmo sair? Seu progresso fica salvo.','Sim, sair','Não'],
   en:['🏠 Leave the game','Do you really want to leave? Your progress is saved.','Yes, leave','No'],
   es:['🏠 Salir del juego','¿Seguro que quieres salir? Tu progreso queda guardado.','Sí, salir','No']};
+/* Menu de contexto do navegador bloqueado também aqui (pedido do dono, 25/11/2026): o toque longo
+   no celular abria o menu por cima dos cartões. Campos de texto continuam livres. */
+addEventListener('contextmenu',e=>{const el=e.target;if(el&&el.closest&&el.closest("input,textarea,select,[contenteditable=''],[contenteditable='true']"))return;e.preventDefault();});
 function askLeave(){
   const L=LEAVE_T[lang()]||LEAVE_T.pt;
   const m=document.createElement('div');m.className='modal';

@@ -397,10 +397,12 @@ export function homeScreen(o = {}) {
     h("div.ez-home-mid",
       h("h1.ez-home-title", (icon ? icon + " " : "") + title),
       subtitle ? h("p.ez-home-sub", subtitle) : null,
-      cv,
-      h("div.ez-home-name",
-        h("b", charName),
-        h("button.ez-editpill", { title: t("editChar"), "aria-label": t("editChar"), onclick: editChar }, "✏️"))),
+      // A pílula com o nome fica AO LADO do boneco (não embaixo), para sobrar altura e o boneco
+      // aparecer maior — pedido do dono em 25/11/2026.
+      h("div.ez-home-char", cv,
+        h("div.ez-home-name",
+          h("b", charName),
+          h("button.ez-editpill", { title: t("editChar"), "aria-label": t("editChar"), onclick: editChar }, "✏️")))),
     extra ? h("div.ez-home-extra", extra) : null,
     h("div.ez-home-base", ...btns),
     h("div.ez-home-foot", parts.share, parts.portal, parts.privacy),

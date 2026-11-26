@@ -113,12 +113,14 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
   #menu>.card::before{top:0;height:32%;background:linear-gradient(rgba(3,18,32,.6),rgba(3,18,32,0))}
   #menu>.card::after{bottom:0;height:48%;background:linear-gradient(rgba(3,18,32,0),rgba(3,18,32,.75))}
   #menu>.card>*{position:relative;z-index:1}
-  .homemid{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding:2px 12px 0}
+  .homemid{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding:2px 12px 0}
   .hometitle{margin:2px 0 0;font-size:clamp(26px,7vw,44px);font-weight:900;letter-spacing:-.02em;text-align:center;
     text-shadow:0 3px 14px rgba(0,0,0,.6);color:#fff}
   .homesub{margin:4px 0 0;font-size:clamp(13px,3.4vw,17px);text-align:center;color:#eaf2f8;text-shadow:0 2px 8px rgba(0,0,0,.6)}
-  .homename{display:flex;align-items:center;gap:8px;align-self:center;background:rgba(255,255,255,.93);color:#1f2937;
-    border-radius:999px;padding:5px 6px 5px 15px;font-size:16px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:80vw}
+  /* nome AO LADO do boneco (não embaixo): sobra altura e o boneco fica maior — 25/11/2026 */
+  .homename{position:absolute;right:12px;top:50%;transform:translateY(-50%);max-width:44%;z-index:2;
+    display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.93);color:#1f2937;
+    border-radius:999px;padding:5px 6px 5px 15px;font-size:15px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.3)}
   .homename b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .editpill{width:30px;height:30px;border-radius:50%;background:#2563eb;color:#fff;font-size:14px;padding:0;flex:none}
   /* O dono pediu (25/11/2026): parkour ataque, parkour tabuada e multijogador em LARGURA CHEIA,
@@ -232,11 +234,11 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
     <button class="rbtn hidden" id="menuBtn" title="Menu">⚙</button>
     <button class="rbtn hidden" id="musicBtn" title="Música">♫</button>
     <button class="rbtn hidden" id="sfxBtn" title="Sons">🔊</button>
-    <button class="rbtn" id="pauseBtn" title="Pausa">✕</button>
     <div class="pill" id="stageLbl">Tutorial</div>
     <div class="pill" id="ptsLbl">⭐ 0</div>
     <div class="pill" id="net"><span class="dot"></span><span id="netTxt">...</span></div>
     <button id="skipBtn" class="hidden">⏭</button>
+    <button class="rbtn" id="pauseBtn" title="Pausa" style="margin-left:auto">✕</button>
     <div style="flex-basis:100%;height:0"></div>
     <div class="pill" id="timerLbl">⏱ --</div>
   </div>
@@ -273,8 +275,8 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
       <h1 class="logo hometitle">EZ <span>Obby</span></h1>
       <p class="homesub" id="subLine"></p>
       <div id="pwaIos" class="hidden" style="background:#fff7ed;border:3px solid #f59e0b;border-radius:14px;padding:10px;margin:6px auto;font-weight:700;color:#7c2d12;font-size:14px;max-width:420px"></div>
+      <div class="homename"><b id="charName"></b><button id="editChar" class="editpill" aria-label="✏️">✏️</button></div>
     </div>
-    <div class="homename"><b id="charName"></b><button id="editChar" class="editpill" aria-label="✏️">✏️</button></div>
     <div class="modes">
       <button class="mode atk" id="playBtn"></button>
       <button class="sec hidden" id="restartBtn" data-i="restart" style="margin-top:0"></button>
