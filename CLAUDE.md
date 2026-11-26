@@ -237,3 +237,18 @@
     em `strings.js`, `intro` do Aprendizado em `learn.js`). As linhas de ajuda dos dois modos do
     Apagão agora dizem também **Espaço: pular**. Regra: ação = **J** (ou botão direito), pulo =
     **Espaço** (ou clique esquerdo curto).
+- **Pulo e botão direito (25/11/2026, itens 7 e 8) — motor 0.5.5, `CACHE` `gilele-v49`:**
+  - **Pulo 50% mais alto e 50% mais demorado**: altura e tempo de voo são os dois proporcionais a
+    `1/g`, então basta dividir a gravidade **do boneco** por 1,5 — a velocidade inicial do pulo
+    (`JUMP`/`C.jump` = 12,8) não muda. No motor virou `C.gScale = 2/3` em `createBody` (`physics.js`),
+    aplicado em `const g = phys.gravity * (C.gScale || 1)`; o `phys.gravity` (34) continua o mesmo
+    para o resto do mundo. Nos HTML avulsos, `GRAV` passou a ser `34*2/3` (lá o `GRAV` só é usado
+    pelo corpo do boneco). Efeito colateral de propósito: cair de uma borda também é ~22% mais lento.
+    Não mexer só no `JUMP`: subir a velocidade aumenta a altura ao quadrado e o tempo só linearmente.
+  - **Menu de contexto do navegador bloqueado**: o botão direito é a ação (igual ao J), mas o
+    `contextmenu` só estava bloqueado no `canvas` — o HUD, os botões e as telas ficam por cima dele,
+    então o menu aparecia assim mesmo. Agora o bloqueio é na **página inteira**
+    (`addEventListener("contextmenu", …)` no topo do `engine/input.js`, que todo jogo do motor
+    carrega via `ez.js`, e uma cópia nos dois HTML avulsos), com exceção de `input`, `textarea`,
+    `select` e `contenteditable`, para não atrapalhar o colar. A Tabuada Simples não entrou: é 2D e
+    não tem ação no botão direito.

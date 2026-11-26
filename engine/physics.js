@@ -88,7 +88,10 @@ export function createPhysics(opt = {}) {
  * cfg: { halfWidth, height, speed, jump, stepUp }
  */
 export function createBody(phys, x, y, z, cfg = {}) {
-  const C = Object.assign({ halfWidth: 0.45, height: 2.7, speed: 8.2, jump: 12.8, stepUp: 0.55 }, cfg);
+  // gScale: gravidade SÓ do boneco (o mundo continua em phys.gravity). 2/3 deixa o pulo 50% mais
+  // alto E 50% mais demorado de uma vez (altura e tempo são ambos ∝ 1/g), mantendo a mesma
+  // velocidade inicial — pedido do dono em 25/11/2026.
+  const C = Object.assign({ halfWidth: 0.45, height: 2.7, speed: 8.2, jump: 12.8, gScale: 2 / 3, stepUp: 0.55 }, cfg);
   const b = { x, y, z, vx: 0, vy: 0, vz: 0, kx: 0, kz: 0, grounded: false, coyote: 0, ground: null, cfg: C, inside: new Set() };
   const HW = C.halfWidth;
   const ov = (o, px, py, pz) => px + HW > o.min[0] && px - HW < o.max[0] && py + C.height > o.min[1] && py < o.max[1] && pz + HW > o.min[2] && pz - HW < o.max[2];
@@ -110,7 +113,7 @@ export function createBody(phys, x, y, z, cfg = {}) {
     if (b.grounded && b.ground && b.ground.vel) { b.x += b.ground.vel[0]; b.y += b.ground.vel[1]; b.z += b.ground.vel[2]; }
     b.coyote -= dt; if (b.grounded) b.coyote = 0.1;
     if (jumpNow && b.coyote > 0) { b.vy = C.jump; b.coyote = 0; b.grounded = false; ev.jumped = true; }
-    const g = phys.gravity;
+    const g = phys.gravity * (C.gScale || 1);
     if (!held && b.vy > 4) b.vy -= g * 1.6 * dt;
     b.vy -= g * (b.vy < 0 ? 1.5 : 1) * dt; if (b.vy < -55) b.vy = -55;
 

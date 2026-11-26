@@ -9,6 +9,16 @@ const DEFAULT_KEYS = {
 };
 const PAD = { jump: 0, act: 2, reset: 3, pause: 9, run: 10 }; // standard gamepad button indexes
 
+// O botão direito do mouse é a AÇÃO (igual à tecla J). Sem isto o navegador abre o menu de contexto
+// por cima do jogo — e não basta bloquear no canvas, porque o HUD, os botões e as telas ficam em
+// cima dele. Bloqueamos na página inteira, menos em campo de texto (para não atrapalhar o colar).
+// Pedido do dono em 25/11/2026.
+addEventListener("contextmenu", (e) => {
+  const el = e.target;
+  if (el && el.closest && el.closest("input, textarea, select, [contenteditable=''], [contenteditable='true']")) return;
+  e.preventDefault();
+});
+
 /**
  * createInput({ canvas, keys, onLook(dx,dy,isTouch), onZoom(delta), enabled:()=>bool })
  * API: axis() → {x,y} in [-1,1] (y forward), down(action), pressed(action) (edge, consumed per frame),
