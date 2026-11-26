@@ -69,11 +69,13 @@ export function modeHome(store, on, { reopen, close } = {}) {
     // os handlers do próprio jogo já fecham a tela inicial; só fechamos quando vamos recarregar
     if (here === mode && on[k]) on[k](); else { close && close(); go(mode, "novo"); }
   };
+  // Sem ".main" aqui de propósito: na tela inicial os botões vão DOIS POR LINHA, e o .main ocuparia
+  // a linha toda. Sem jogo salvo, "Novo Jogo Apagão" fica verde (.ok) mas do mesmo tamanho.
   const first = !(hasReal || hasLearn);
-  out.push(h("button.ez-btn" + (first ? ".ok.main" : ".blue"), { onclick: startNew("real", "newReal", "confirmNewR", hasReal) }, t("newReal")));
+  out.push(h("button.ez-btn" + (first ? ".ok" : ".blue"), { onclick: startNew("real", "newReal", "confirmNewR", hasReal) }, t("newReal")));
   out.push(h("button.ez-btn.blue", { onclick: startNew("learn", "newLearn", "confirmNewL", hasLearn) }, t("newLearn")));
-  // modo de teste (mapa da cidade real) continua ao alcance, mas discreto
-  out.push(h("button.ez-btn.gray", { onclick: () => { close && close(); location.replace("?modo=cidade"); } }, t("m_city")));
+  // modo de teste (mapa real da cidade) continua ao alcance, mas discreto e com nome curto
+  out.push(h("button.ez-btn.gray", { onclick: () => { close && close(); location.replace("?modo=cidade"); } }, t("m_cityHome")));
   return out;
 }
 

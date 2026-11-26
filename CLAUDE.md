@@ -252,3 +252,16 @@
     carrega via `ez.js`, e uma cópia nos dois HTML avulsos), com exceção de `input`, `textarea`,
     `select` e `contenteditable`, para não atrapalhar o colar. A Tabuada Simples não entrou: é 2D e
     não tem ação no botão direito.
+- **Botões da tela inicial (25/11/2026, itens 9 e 10) — motor 0.5.6, `CACHE` `gilele-v50`:**
+  - **Dois por linha no celular**: `.ez-home-base` virou flex com `flex: 1 1 calc(50% - 9px)`, numa
+    caixa de `min(520px, 94vw)` centralizada. O `.main` ocupa a linha inteira (`flex-basis: 100%`) e
+    um botão sozinho na última linha cresce e preenche. No PC (≥720px) volta ao `flex: 0 1 auto` de
+    antes, tudo numa linha só.
+  - Apagão: os botões de jogo novo **perderam o `.main`** (senão o verde ocuparia a linha toda) e o
+    "🏙️ Explorar minha cidade" virou **"🗺️ Mapa real"** na tela inicial (`m_cityHome`; a `modeMenu`
+    continua com o nome longo). Resultado no celular: ▶ Continuar (quando há save) numa linha,
+    depois 🆕 Novo Jogo Apagão · 🎓 Novo Jogo Treino e 🗺️ Mapa real · 👥 Multijogador.
+  - **Altura dos botões −15%**: `.ez-home-base .ez-btn` 11px → **8px** de padding (fonte 16 → 15),
+    `.main` 14px → **10px** (fonte 19 → 18), rodapé 7px → **5px**; mesma coisa no `#menu .modes` dos
+    HTML avulsos. Objetivo é deixar o cenário 3D do fundo aparecer. A Tabuada Simples ficou de fora:
+    é 2D, não tem cenário atrás dos botões.

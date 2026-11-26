@@ -19,6 +19,7 @@ const S = {
   m_real: ["🌑 Apagão Real", "🌑 Real Blackout", "🌑 Apagón Real"],
   m_learn: ["📚 Aprendizado", "📚 Learning", "📚 Aprendizaje"],
   m_city: ["🏙️ Explorar minha cidade", "🏙️ Explore my city", "🏙️ Explorar mi ciudad"],
+  m_cityHome: ["🗺️ Mapa real", "🗺️ Real map", "🗺️ Mapa real"],   // versão curta, para o botão da tela inicial (cabem 2 por linha)
   secTest: ["🧪 Em testes", "🧪 Testing", "🧪 En pruebas"],
   cityDescM: ["Ande livre pelo seu bairro real. Para jogar o apagão nele: Apagão Real → Mapa → 📍 Minha cidade.", "Walk freely around your real neighborhood. To play the blackout there: Real Blackout → Map → 📍 My city.", "Camina libre por tu barrio real. Para jugar el apagón allí: Apagón Real → Mapa → 📍 Mi ciudad."],
   map: ["Mapa", "Map", "Mapa"],
