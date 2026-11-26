@@ -191,3 +191,20 @@
     (`houseLoot()`) e 50% destas com um **morador** que não deixa levar nada (`guard` novo no
     `setupSocial`/`social.js`). E **moradores de rua**: um por rua (8), 10% agressivos (empurram) e 10%
     ladrões (levam dinheiro ou um item) — só agem depois do apagão (`updateDwellers`).
+- **Ajustes de 26/11/2026 (madrugada) — o que faltou da rodada da noite:**
+  - **Itens das casas não apareciam**: `houseLoot()` só roda no `newState()`, então quem **continuou**
+    o jogo salvo ficava com `st.ground` vazio — e era exatamente o caso do dono. `load()` agora
+    completa uma vez (`st.f.hloot`) quando o save é antigo. Jogo novo já nasce com a marca.
+  - **"Não está 50%"**: as 21 casas da lista ficavam todas longe (o quarteirão de casa só tinha os
+    vizinhos, que são caixas fechadas). Agora `HOUSE_SPOTS` é **ordenada pela distância de `HOME`**
+    antes de aplicar a regra, e a casa anônima do próprio quarteirão (10,−15) entrou na lista — ou
+    seja, a casa mais perto de casa é aberta, com item e com morador. São 22 casas: 11 abertas,
+    6 com item, 3 com morador. Conferir no console: `GAME.casas()`, `GAME.bots()`, `GAME.itens()`.
+  - **Bots: o dobro de dia.** 8 à noite, **16 de dia** (`nDay = nNight * 2`); os `dayOnly` somem
+    quando `isDark()`. Papéis: 2 agressivos, 2 ladrões, e **metade do total conversa** (`b.talk`) —
+    dessa metade, metade topa trocar (`b.trades`) e metade diz que não quer trocar nada.
+  - **Conversa com frases prontas + troca** (`talkTo`, `nearestTalker`): usa o `openMenu` padrão do
+    jogo; 3 perguntas prontas com resposta diferente antes e depois do apagão, e a troca de 1 item
+    por 1 item (`setupTrade` sorteia o que ele dá e os 3 que aceita). **Nunca texto livre** (ECA).
+  - **Morador da casa**: metade troca, metade não. Quem **fecha uma troca com o morador** vira amigo
+    (`b.friend`) e passa a poder pegar os itens daquela casa — antes o morador só bloqueava.

@@ -145,7 +145,6 @@ export function buildCity(world, phys, opt = {}) {
   building(14, -2, 7, 8, 3.2, "#fbcfe8");        // Dona Cida (a garagem do seu carro fica entre as casas)
   building(-8, -12, 10, 8, 3.2, "#e9d5ff");      // Seu Valdir
   part(4, 2.6, 0.2, "#6b7280", -8, 1.3, -16.1, S); // portão da garagem do Valdir
-  building(10, -14, 8, 8, 3.2, "#fed7aa");
   const homeLabel = roofSign("🏢 " + t("l_building"), H.x - 1.5, WH + 11.2, H.z, "#b45309");
 
 
@@ -153,10 +152,13 @@ export function buildCity(world, phys, opt = {}) {
   // Regra do dono: 50% das casas ABERTAS (com porta de verdade, dá para entrar);
   // destas, 50% COM ITENS no chão; e destas, 50% com um MORADOR (NPC) que não deixa levar nada.
   // A lista é fixa (não sorteada) para o jogo salvo continuar combinando com o mapa.
+  // Ordenadas pela distância de casa: a regra 50/50/50 é aplicada nessa ordem, então as casas
+  // MAIS PERTO já trazem exemplo de casa aberta, de casa com item e de casa com morador — antes
+  // todas as abertas caíam longe e o dono andava o bairro inteiro sem achar nenhuma (26/11/2026).
   const HOUSE_SPOTS = [
-    [-46, -10], [46, 6], [46, 54], [60, -40], [0, -50], [14, -54], [-14, -54], [46, -10], [-12, 62], [14, 60], [60, 40],
+    [10, -15], [-46, -10], [46, 6], [46, 54], [60, -40], [0, -50], [14, -54], [-14, -54], [46, -10], [-12, 62], [14, 60], [60, 40],
     [34, 14], [34, -12], [60, -12], [60, 12], [58, 34], [36, 60], [60, 60], [34, -34], [-34, -12], [-34, 12],
-  ];
+  ].sort((a, b) => Math.hypot(a[0] - HOME.x, a[1] - HOME.z) - Math.hypot(b[0] - HOME.x, b[1] - HOME.z));
   const HCOL = ["#fde68a", "#c7d2fe", "#fecaca", "#d9f99d", "#e0e7ff", "#fae8ff", "#cffafe", "#fef9c3", "#e2e8f0", "#fee2e2", "#dcfce7"];
   const houses = [];
   /** Casa aberta: quatro paredes com vão de porta virado para +z, piso e telhado que some quando você entra. */

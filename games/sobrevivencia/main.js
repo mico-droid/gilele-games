@@ -46,7 +46,7 @@ function newState(cfg) {
     shelf: { flash: 1, radio: 1, candle: 2, docs: 1, pbank: 1 },
     homeWater: 0, homeRaw: 0, tankWater: hard ? 20 : 35, phone: 35, pbankPct: 30, flashH: 0, radioH: 0, flashOn: false, phoneLight: false, candleUntil: -1, carFuel: 15,
     stock: { ...Object.fromEntries(Object.entries(MARKET).map(([k, v]) => [k, v[2]])), ...Object.fromEntries(Object.entries(PHARMA).map(([k, v]) => [k, v[2]])), map: NEWS.map[2] },
-    f: { meet: 0, warned: 0, coInside: 0, helpedZe: 0, ateSpoiled: 0, radio: 0, cashB: null, foodB: null, lightB: null, fuelB: null, waterMax: 0.5, crowdMin: 0, gen: 0 },
+    f: { hloot: 1, meet: 0, warned: 0, coInside: 0, helpedZe: 0, ateSpoiled: 0, radio: 0, cashB: null, foodB: null, lightB: null, fuelB: null, waterMax: 0.5, crowdMin: 0, gen: 0 },
     fired: {}, tips: [], news: [], pos: { x: HOME.x, z: HOME.z + 2 }, ended: 0,
     map: MAP_NOW, place: osmPack ? osmPack.label || "" : "", ground: OSM ? osmLoot() : houseLoot(),
   };
@@ -151,27 +151,42 @@ const people = OSM ? Array.from({ length: Math.min(OSM.botPoints.length, isMobil
   const b = createBot({ world, phys, look: randomLook(""), area: { x0: q.x - 14, z0: q.z - 14, x1: q.x + 14, z1: q.z + 14 }, speed: 0.3 + OSM.rand() * 0.2 });
   b.ch.showLabel = false; b.ch.makeLabel(); return b;
 }) : [];
-// ---- moradores do bairro (pedido do dono, 25/11/2026) ----
-// Quantidade = número de ruas do bairro (8: quatro no sentido x e quatro no z).
-// 10% agressivos (empurram) e 10% ladrões (levam dinheiro ou um item e fogem).
+// ---- moradores do bairro (25/11/2026; ampliado em 26/11/2026) ----
+// Base = número de ruas do bairro (8). DE DIA são o DOBRO (16): metade some ao escurecer.
+// 10% agressivos (empurram) e 10% ladrões. METADE do total conversa com frases prontas, e
+// dessa metade uns topam trocar item e outros não querem trocar nada (pedido do dono).
 const STREET_LINES = [-72, -24, 24, 72];
-const nStreet = STREET_LINES.length * 2;
-const nAgg = Math.max(1, Math.round(nStreet * 0.1)), nThief = Math.max(1, Math.round(nStreet * 0.1));
-const dwellers = OSM ? [] : Array.from({ length: nStreet }, (_, i) => {
-  const along = STREET_LINES[i % STREET_LINES.length], horiz = i < STREET_LINES.length;
+const nNight = STREET_LINES.length * 2, nDay = nNight * 2;
+const dwellers = OSM ? [] : Array.from({ length: nDay }, (_, i) => {
+  const along = STREET_LINES[i % STREET_LINES.length], horiz = (i % nNight) < STREET_LINES.length;
   const c = (-60 + ((i * 37) % 120));            // ponto de partida espalhado pela rua
   const area = horiz ? { x0: c - 18, x1: c + 18, z0: along - 3, z1: along + 3 }
                      : { x0: along - 3, x1: along + 3, z0: c - 18, z1: c + 18 };
-  const role = i < nAgg ? "agg" : i < nAgg + nThief ? "thief" : "calm";
-  const look = randomLook("");
-  const b = createBot({ world, phys, look, area, speed: role === "agg" ? 0.5 : role === "thief" ? 0.55 : 0.34 });
-  b.role = role; b.cd = 0; b.ch.showLabel = false; b.ch.makeLabel();
+  const role = i < 2 ? "agg" : i < 4 ? "thief" : "calm";
+  const b = createBot({ world, phys, look: randomLook(""), area, speed: role === "agg" ? 0.5 : role === "thief" ? 0.55 : 0.34 });
+  b.role = role; b.cd = 0;
+  b.talk = role === "calm" && i < 4 + nDay / 2;   // metade do total conversa
+  b.trades = b.talk && i % 4 < 2;                 // metade dos que conversam topa trocar
+  b.dayOnly = i % 2 === 1;                        // estes só aparecem de dia (o dobro de bots)
+  if (b.trades) setupTrade(b);
+  b.ch.showLabel = false; b.ch.makeLabel();
   if (role !== "calm") b.ch.root.scale.setScalar(1.02);
   return b;
 });
+/** Sorteia o que o morador oferece e o que aceita em troca. */
+function setupTrade(b) {
+  const give = ["water", "biscuit", "candle", "batt", "matches", "kit", "bread", "rice", "ors", "bottle"].filter((k) => IT[k]);
+  b.offer = give[Math.floor(Math.random() * give.length)];
+  b.wants = give.filter((x) => x !== b.offer).sort(() => Math.random() - 0.5).slice(0, 3);
+}
+/** Aparece agora? (os "dayOnly" entram de dia e somem quando escurece) */
+const dwellerOn = (b) => !b.dayOnly || !isDark();
 /** Moradores: andam sempre; os agressivos e ladrões só agem depois do apagão. */
 function updateDwellers(dt) {
   for (const b of dwellers) {
+    const on = dwellerOn(b);
+    b.ch.root.visible = on;
+    if (!on) continue;
     b.update(dt);
     if (b.role === "calm" || !after() || !playing || menuOpen) continue;
     b.cd -= dt; if (b.cd > 0) continue;
@@ -194,6 +209,43 @@ function updateDwellers(dt) {
       updHud();
     }
   }
+}
+/** Morador mais perto com quem dá para conversar (os de rua e os de dentro das casas). */
+function nearestTalker() {
+  let best = null, bd = 3.2;
+  for (const b of dwellers) {
+    if (!b.talk || !dwellerOn(b)) continue;
+    const d = Math.hypot(b.body.x - me.x, b.body.z - me.z); if (d < bd) { bd = d; best = b; }
+  }
+  for (const r of residents) {
+    if (!r.talk) continue;
+    const d = Math.hypot(r.body.x - me.x, r.body.z - me.z); if (d < bd) { bd = d; best = r; }
+  }
+  return best;
+}
+/**
+ * Conversa com um morador: só frases prontas (nunca texto livre — ECA) e, quando ele topa,
+ * troca de um item por outro. Quem não troca diz na hora que não quer trocar nada.
+ */
+function talkTo(b) {
+  let said = "";
+  openMenu(() => {
+    const bag = Object.keys(st.bag).filter((k) => IT[k] && st.bag[k] > 0);
+    const canGive = b.trades ? b.wants.filter((k) => bag.includes(k)) : [];
+    const ask = (k, e) => ({ label: tx("npcQ_" + k), fn: () => { b.ch.say(e); said = tx("npc_" + k + (after() ? "_a" : "_b")); } });
+    const opts = [ask("hi", "👋"), ask("water", "💧"), ask("news", "📰")];
+    if (!b.trades) opts.push({ label: "🔄 " + tx("npcQ_trade"), fn: () => { b.ch.say("🙅"); said = tx("npcNoTrade"); } });
+    else if (!canGive.length) opts.push({ label: "🔄 " + tx("npcQ_trade"), fn: () => { b.ch.say("🤔"); said = tx("npcWants", { x: b.wants.map((k) => itName(k)).join(", "), y: itName(b.offer) }); } });
+    else canGive.forEach((k) => opts.push({ cls: ".ok", label: "🔄 " + tx("npcGive", { x: itName(k), y: itName(b.offer) }), fn: () => {
+      if (!fits(b.offer, 1)) { toast(tx("npcFull"), 2600); Audio.play("wrong"); return; }
+      add(st.bag, k, -1); add(st.bag, b.offer, unitOf(b.offer));
+      Audio.play("ok"); b.ch.say("🤝"); toast(tx("npcTradeOk", { x: itName(k), y: itName(b.offer) }), 3200);
+      if (b.resident && !b.friend) { b.friend = true; toast(tx("hFriend"), 3600); }   // agora ele deixa pegar as coisas da casa
+      setupTrade(b); save(); return "close";
+    } }));
+    return { title: "🧍 " + tx("npcTitle"), who: tx(b.resident ? "npcWhoH" : "npcWho"),
+      info: [said || tx(b.trades ? "npcHi" : "npcHiCold")], opts, closeLabel: tx("npcBye") };
+  });
 }
 Object.values(crowds).flat().forEach((b) => { b.ch.root.visible = false; b.ch.showLabel = false; b.ch.makeLabel(); });
 const crowdOn = (z) => after() && (z === "market" ? st.T > B() + 0.8 && st.T < B() + 14 : st.T > B() + 2 && st.T < B() + 40);
@@ -924,8 +976,11 @@ function showIntro() {
   pagedScreen(h, screen, { title: "🌆 " + t("sub"), text: t("intro"), nextLabel: t("nextP"), backLabel: t("backP"), endLabel: "▶ " + t("play"), onEnd: start });
 }
 function load(s) {
-  setTimeout(() => social.loadGround((s && s.ground) || []), 0);
   st = s; setKidMode(st.age === "kid");
+  // Save antigo (de antes das casas abertas) não tinha item nenhum no chão: completa uma vez só.
+  // Era por isso que o dono entrava nas casas abertas e não achava nada (26/11/2026).
+  if (!OSM && st.f && !st.f.hloot) { st.f.hloot = 1; st.ground = (st.ground || []).concat(houseLoot()); }
+  setTimeout(() => social.loadGround(st.ground || []), 0);
   allowRespawn = true; me.respawn({ x: st.pos.x, y: 0.05, z: st.pos.z }); allowRespawn = false;
   city.setPower(!after()); city.setTowerLight(st.T < B() + 8); city.setDoor(!!st.locked);
   city.gen.visible = !!st.f.gen || !!st.f.warned; if (st.f.warned) city.gen.position.set(-8, 0, -18.5);
@@ -966,13 +1021,16 @@ addEventListener("keydown", (e) => {
 const unitOf = (k) => (k === "water" || k === "raw" ? Math.min(1, st.bag[k] || 0) : 1);
 // Moradores dentro das casas abertas com itens (a regra 50/50/50 do dono marcou quais):
 // ficam na sala e NÃO deixam ninguém levar as coisas deles.
-const residents = (city.houses || []).filter((hh) => hh.npc).map((hh) => {
+const residents = (city.houses || []).filter((hh) => hh.npc).map((hh, i) => {
   const b = createBot({ world, phys, look: randomLook(""), area: { x0: hh.x - 2.4, x1: hh.x + 2.4, z0: hh.z - 2, z1: hh.z + 2 }, speed: 0.22 });
-  b.house = hh; b.ch.showLabel = false; b.ch.makeLabel(); return b;
+  b.house = hh; b.resident = true; b.talk = true; b.trades = i % 2 === 0;   // metade troca, metade não
+  if (b.trades) setupTrade(b);
+  b.ch.showLabel = false; b.ch.makeLabel(); return b;
 });
 /** Item vigiado? (está dentro de uma casa que tem morador e o morador está por perto) */
 function guardedItem(it) {
   for (const r of residents) {
+    if (r.friend) continue;                       // já trocou com ele: virou amigo e pode pegar
     if (!r.house.inside(it.x, it.z)) continue;
     if (Math.hypot(r.body.x - it.x, r.body.z - it.z) < 7) return tx("hGuard");
   }
@@ -1008,6 +1066,7 @@ world.onUpdate((dt) => {
     if (st.s.health <= 0) { faint(); return; }
     // interação
     near = nearestSpot();
+    if (!near) { const tb = nearestTalker(); if (tb) near = { key: "npcNear", open: () => talkTo(tb) }; }
     if (!near && OSM) { const d = OSM.nearDoor(me.x, me.z); if (d) near = { key: d.open ? "osmDoorClose" : "osmDoorOpen", open: () => { OSM.toggleDoor(d); Audio.play("click"); } }; }
     const soc = social.near(!near);   // item no chão tem prioridade; troca só longe dos lugares
     const useSoc = soc && (!near || soc.text.startsWith("⬆"));
@@ -1059,4 +1118,8 @@ allowRespawn = true; me.respawn(spawn); allowRespawn = false;
 cam.update(0.016, me.body);
 if (bootRoom(room, store)) toast(t("mpConnecting"));
 showTitle();
-window.GAME = { world, phys, me, room, city, cam, input, get st() { return st; }, advance: (hh) => { advance(hh); runEvents(); }, newState, load, start, SPOTS };
+window.GAME = { world, phys, me, room, city, cam, input, get st() { return st; }, advance: (hh) => { advance(hh); runEvents(); }, newState, load, start, SPOTS,
+  // conferência rápida no console: contagem das casas e dos moradores
+  casas: () => ({ total: city.houses.length, abertas: city.houses.filter((x) => x.open).length, comItem: city.houses.filter((x) => x.loot).length, comMorador: city.houses.filter((x) => x.npc).length, lista: city.houses.map((x) => ({ x: x.x, z: x.z, aberta: x.open, item: x.loot, morador: x.npc })) }),
+  bots: () => ({ total: dwellers.length, agora: dwellers.filter(dwellerOn).length, conversam: dwellers.filter((b) => b.talk).length, trocam: dwellers.filter((b) => b.trades).length, moradores: residents.length }),
+  itens: () => (st.ground || []).length };
