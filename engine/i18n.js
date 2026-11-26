@@ -8,7 +8,7 @@ export const LANG_NAMES = { pt: "Português", en: "English", es: "Español" };
 const BASE = {
   pt: {
     play: "Jogar", back: "Voltar", save: "Salvar", cancel: "Cancelar", close: "Fechar", random: "Aleatório",
-    paused: "Pausado", resume: "Continuar", menu: "Menu", exitMenu: "🏠 Sair para o menu", settings: "Configurações", language: "Idioma",
+    paused: "Pausado", resume: "Continuar", menu: "Menu", exitMenu: "🏠 Sair para o menu", nameBad: "Esse apelido não pode. Escolha outro 🙂", settings: "Configurações", language: "Idioma",
     music: "Música", sfx: "Efeitos", quality: "Gráficos", q_auto: "Auto", q_low: "Leve", q_medium: "Equilibrado", q_high: "Realista", q_note: "Leve ↔ Equilibrado/Realista muda ao reabrir o jogo.",
     privacy: "Privacidade", install: "Instalar app", installIos: "No iPhone: toque em Compartilhar e depois em \"Adicionar à Tela de Início\".",
     portal: "Gilelê Games", share: "Compartilhar", shareText: "Vem jogar {g} comigo! 🎮", linkCopied: "Link copiado! Cole numa conversa para compartilhar.",
@@ -39,7 +39,7 @@ const BASE = {
   },
   en: {
     play: "Play", back: "Back", save: "Save", cancel: "Cancel", close: "Close", random: "Random",
-    paused: "Paused", resume: "Resume", menu: "Menu", exitMenu: "🏠 Exit to menu", settings: "Settings", language: "Language",
+    paused: "Paused", resume: "Resume", menu: "Menu", exitMenu: "🏠 Exit to menu", nameBad: "That nickname is not allowed. Pick another one 🙂", settings: "Settings", language: "Language",
     music: "Music", sfx: "Sound FX", quality: "Graphics", q_auto: "Auto", q_low: "Fast", q_medium: "Balanced", q_high: "Realistic", q_note: "Fast ↔ Balanced/Realistic applies when you reopen the game.",
     privacy: "Privacy", install: "Install app", installIos: "On iPhone: tap Share, then \"Add to Home Screen\".",
     portal: "Gilelê Games", share: "Share", shareText: "Come play {g} with me! 🎮", linkCopied: "Link copied! Paste it in a chat to share.",
@@ -70,7 +70,7 @@ const BASE = {
   },
   es: {
     play: "Jugar", back: "Volver", save: "Guardar", cancel: "Cancelar", close: "Cerrar", random: "Aleatorio",
-    paused: "Pausado", resume: "Continuar", menu: "Menú", exitMenu: "🏠 Salir al menú", settings: "Ajustes", language: "Idioma",
+    paused: "Pausado", resume: "Continuar", menu: "Menú", exitMenu: "🏠 Salir al menú", nameBad: "Ese apodo no se puede. Elige otro 🙂", settings: "Ajustes", language: "Idioma",
     music: "Música", sfx: "Efectos", quality: "Gráficos", q_auto: "Auto", q_low: "Ligero", q_medium: "Equilibrado", q_high: "Realista", q_note: "Ligero ↔ Equilibrado/Realista cambia al reabrir el juego.",
     privacy: "Privacidad", install: "Instalar app", installIos: "En iPhone: toca Compartir y luego \"Agregar a inicio\".",
     portal: "Gilelê Games", share: "Compartir", shareText: "¡Ven a jugar {g} conmigo! 🎮", linkCopied: "¡Enlace copiado! Pégalo en un chat para compartir.",

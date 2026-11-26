@@ -5,6 +5,7 @@ import {
   KINDS, HAIRS, HAIRCOLS, PALETTE, SKINS, ACCS, FACES, KIND_SKIN, sanitizeLook, randomLook, saveLook, createAvatarPreview, openAccs,
 } from "./avatar.js";
 import { accOrder, isUnlocked } from "./unlocks.js";
+import { isBadName, NAME_MAX } from "./words.js";
 import { canInstall, promptInstall, isIos, isStandalone, onInstallable } from "./pwa.js";
 import { track } from "./analytics.js";
 
@@ -93,7 +94,7 @@ export function openAvatarEditor(look, onSave, { onCancel } = {}) {
   let lk = sanitizeLook(look);
   const cv = h("canvas");
   const pv = createAvatarPreview(cv);
-  const name = h("input.ez-input", { maxlength: 14, value: lk.n, placeholder: t("namePh"), oninput: (e) => { lk.n = e.target.value; } });
+  const name = h("input.ez-input", { maxlength: NAME_MAX, value: lk.n, placeholder: t("namePh"), oninput: (e) => { lk.n = e.target.value; } });
   const opts = h("div.opts");
   const tabs = ["kind", "hair", "colors", "acc", "face"];
   let tab = "kind";
@@ -141,7 +142,11 @@ export function openAvatarEditor(look, onSave, { onCancel } = {}) {
       h("button.ez-btn.warn.small", { onclick: () => { const n = lk.n; lk = randomLook(n, { accs: openAccs() }); redraw(); Audio.play("pop"); } }, "🎲 " + t("random")),
       h("div.ez-row",
         h("button.ez-btn.gray.small", { onclick: () => { pv.stop(); scr.close(); onCancel && onCancel(); } }, t("cancel")),
-        h("button.ez-btn.small", { onclick: () => { lk.n = name.value; lk = sanitizeLook(lk); saveLook(lk); pv.stop(); scr.close(); Audio.play("ok"); onSave && onSave(lk); } }, "✔ " + t("save")))),
+        h("button.ez-btn.ok.small", { onclick: () => {
+          // Apelido ofensivo: avisa e deixa o jogador corrigir (apagar calado parecia bug)
+          if (isBadName(name.value)) { toast(t("nameBad"), 2600); name.focus(); return; }
+          lk.n = name.value; lk = sanitizeLook(lk); saveLook(lk); pv.stop(); scr.close(); Audio.play("ok"); onSave && onSave(lk);
+        } }, "✔ " + t("save")))),
   ], { dim: true, x: () => { pv.stop(); scr.close(); onCancel && onCancel(); } });
   pv.start(); redraw();
   return scr;

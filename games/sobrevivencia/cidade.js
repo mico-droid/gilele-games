@@ -203,7 +203,7 @@ export function openPicker(opt) {
       h("p.ez-msg", { style: { textAlign: "center" } }, t("statsT", { r: p.roads.length, b: p.blds.length, p: nIn })),
       h("p.ez-msg", { style: { textAlign: "center" } }, exitText(p, p.user.x, p.user.z)),
       p.blds.length / ((4 * p.r * p.r) / 1e4) < 18 ? h("p.ez-msg", { style: { textAlign: "center" } }, "ℹ️ " + t("fewB")) : null,
-      h("button.ez-btn.wide", { onclick: () => { scr.close(); opt.onPack(p); } }, opt.okLabel || t("playHere")),
+      h("button.ez-btn.ok.wide", { "data-k": "next", onclick: () => { scr.close(); opt.onPack(p); } }, opt.okLabel || t("playHere")),   // confirmação final = verde
       h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); start(); } }, t("geoOther")),
       h("p.ez-msg", { style: { textAlign: "center", fontSize: "11px" } }, t("osm")),
     ], { x: () => { scr.close(); start(); } });

@@ -288,3 +288,21 @@
     direita e centrada na vertical (`max-width: 44%`). O canvas do boneco ganhou a altura que a
     pílula ocupava. Mesma coisa à mão nos HTML avulsos: a `.homename` entrou para dentro da
     `.homemid` (que virou `position: relative`) e flutua à direita.
+- **Apelido filtrado e botão Salvar verde (25/11/2026, itens 12b e 14) — motor 0.6.0, `CACHE` `gilele-v53`:**
+  - **`engine/words.js`** (novo, exportado pelo `ez.js`): `cleanName(s)`, `isBadName(s)` e `NAME_MAX`
+    (14). Normaliza só para CONFERIR (tira acento, desfaz leet `0→o 1→i 3→e 4→a 5→s 7→t @→a $→s`,
+    troca pontuação por espaço, encolhe letra repetida) e usa duas listas: **WORD** (curtas e
+    ambíguas — só no começo de palavra, senão "cu" pega "curitiba" e "puta" pega "disputa") e
+    **TIGHT** (5+ letras, sem ambiguidade — valem também no texto colado, para pegar
+    "c.a.r.a.l.h.o" e "xXputinhaXx"). PT, EN e ES.
+  - **Onde roda**: `sanitizeLook()` chama `cleanName`, então o filtro vale para o nome digitado **e
+    para o que chega pela rede** (sala pública mostra o apelido de estranhos — é o caso que importa
+    para o ECA). No editor, digitar não apaga nada: o palavrão é avisado ao **salvar**
+    (`toast(t("nameBad"))`), senão parecia bug. Apelido reprovado vira `""` → mostra "Jogador".
+  - Cópia espelhada do bloco nos dois HTML avulsos (`BAD_WORD`/`BAD_TIGHT`/`normName`/`isBadName`/
+    `trimName`/`cleanName`, logo antes do `sanitizeLook`). **Mudou a lista num → mudar nos dois.**
+    Ao mexer: nunca pôr palavra curta na TIGHT e testar com Curitiba, Assunção, Cuca, Disputa,
+    Computador, Pinto, Veadeiros antes de subir.
+  - **Botão Salvar/confirmar é SEMPRE verde** (`.ez-btn.ok`): o ✔ Salvar do editor do motor estava
+    com a cor do tema (âmbar no Apagão) e o "✔ Usar este lugar" do mapa real também. Nos HTML
+    avulsos a classe `.play` já era verde. Regra: confirmação final = `.ok`; Voltar/Cancelar = cinza.

@@ -3,6 +3,7 @@
 // { n: name, g: kind, h: hair, hc: hairColor, c: [skin, detalhe, (livre), pants], a: accessory, f: face }
 // A camiseta é sempre branca com a marca (uniforme); c[1] pinta gola, punho e barra.
 import * as THREE from "./three.js";
+import { cleanName } from "./words.js";
 import { part, getMat } from "./core.js";
 import { shared } from "./storage.js";
 import { t } from "./i18n.js";
@@ -29,7 +30,7 @@ export function sanitizeLook(o) {
   if (!o || typeof o !== "object") o = {};
   const c = Array.isArray(o.c) && o.c.length === 4 && o.c.every(okColor) ? o.c.slice() : DEFAULT_LOOK.c.slice();
   return {
-    n: (typeof o.n === "string" ? o.n : "").replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮<>]/g, "").slice(0, 14),
+    n: cleanName(o.n),   // tamanho + palavrão (words.js): vale para o nome local e para o que chega pela rede
     g: KINDS.includes(o.g) ? o.g : "m",
     h: ALLHAIR.includes(o.h) ? o.h : "none",
     hc: okColor(o.hc) ? o.hc : DEFAULT_LOOK.hc,

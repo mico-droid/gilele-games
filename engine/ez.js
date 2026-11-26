@@ -2,12 +2,13 @@
 //   import { THREE, createWorld, createPhysics, createBody, Character, ... } from "../../engine/ez.js";
 import * as THREE from "./three.js";
 export { THREE };
-export const VERSION = "0.5.8";
+export const VERSION = "0.6.0";
 export * from "./core.js";
 export * from "./storage.js";
 export * from "./i18n.js";
 export * from "./physics.js";
 export * from "./input.js";
+export * from "./words.js";
 export * from "./camera.js";
 export * from "./avatar.js";
 export * from "./audio.js";
