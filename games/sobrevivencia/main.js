@@ -769,7 +769,7 @@ function endChapter(how = "forced") {
   track("game_end", { mode: "real", score: total, difficulty: st.diff });
   const stars = total >= 80 ? "⭐⭐⭐" : total >= 55 ? "⭐⭐" : "⭐";
   screen([h("h1", stars), h("h2", { style: { textAlign: "center" } }, t(how === "car" ? "endCar" : how === "foot" ? "endFoot" : "endForced")), h("p", t("endSub")), debrief(), h("p", t("best", { v: best })), h("p.ez-msg", t("next")),
-    h("button.ez-btn.wide", { onclick: () => { party.stop(); location.reload(); } }, "🏠 " + t("menu"))], { dim: true });
+    h("button.ez-btn.wide", { onclick: () => { party.stop(); location.reload(); } }, t("exitMenu"))], { dim: true });
 }
 
 // ---------------------------------------------------------------- HUD

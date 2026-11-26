@@ -521,7 +521,7 @@ function showReport(res) {
   body.push(h("div.ez-row", { style: { justifyContent: "center", marginTop: "12px" } },
     res.next ? h("button.ez-btn", { onclick: () => { scr.close(); res.next(); } }, "▶ " + t("next")) : null,
     h("button.ez-btn.blue", { onclick: () => { scr.close(); res.again ? res.again() : startMode(mode.factory, mode.arg); } }, "↺ " + t("again")),
-    h("button.ez-btn.gray", { onclick: () => { scr.close(); showTitle(); } }, "🏠 " + t("menu"))));
+    h("button.ez-btn.gray", { onclick: () => { scr.close(); showTitle(); } }, t("exitMenu"))));
   const scr = screen(body, { dim: true });
 }
 function chooseGearbox(then) {
@@ -572,7 +572,7 @@ function pause() {
       h("button.ez-btn.blue.wide", { onclick: () => { pauseScr.close(); startMode(mode.factory, mode.arg); } }, "↺ " + t("again")),
       h("button.ez-btn.gray.wide", { onclick: () => { pauseScr.close(); openSettings({ world, onClose: () => { playing = true; pause(); } }); } }, "⚙️ " + t("settings")),
       h("p.ez-msg", t(car.transmission === "auto" ? "help_keys_auto" : "help_keys")),
-      h("button.ez-btn.gray.wide", { onclick: () => { pauseScr.close(); showTitle(); } }, "🏠 " + t("menu"))),
+      h("button.ez-btn.gray.wide", { onclick: () => { pauseScr.close(); showTitle(); } }, t("exitMenu"))),
   ], { dim: true });
 }
 function resume() { playing = true; world.setPaused(false); car.enableSound(); }

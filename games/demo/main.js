@@ -229,7 +229,7 @@ function pause(showMenu = true) {
     h("div.ez-col",
       h("button.ez-btn.wide", { onclick: () => { pauseScr.close(); resume(); } }, "▶ " + t("resume")),
       h("button.ez-btn.gray.wide", { onclick: () => { pauseScr.close(); openSettings({ world, onClose: () => pause() }); } }, "⚙️ " + t("settings")),
-      h("button.ez-btn.gray.wide", { onclick: () => { pauseScr.close(); showTitle(); } }, "🏠 " + t("menu"))),
+      h("button.ez-btn.gray.wide", { onclick: () => { pauseScr.close(); showTitle(); } }, t("exitMenu"))),
   ], { dim: true });
 }
 function resume() { start(); }

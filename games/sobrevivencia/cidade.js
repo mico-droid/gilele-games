@@ -56,7 +56,6 @@ const S = {
   noPlaces: ["Nenhum local estratégico encontrado a 2,5 km.", "No strategic places found within 2.5 km.", "Ningún lugar estratégico a 2,5 km."],
   menuT: ["Menu", "Menu", "Menú"],
   cont: ["▶ Continuar", "▶ Continue", "▶ Continuar"],
-  toMain: ["🏠 Sair para Menu", "🏠 Exit to Menu", "🏠 Salir al Menú"],
   osm: ["Mapa: © colaboradores do OpenStreetMap", "Map: © OpenStreetMap contributors", "Mapa: © colaboradores de OpenStreetMap"],
   cityHow: ["Ande pelo bairro. Placas mostram mercados, farmácias, postos, hospitais e delegacias. Algumas casas estão abertas, outras têm porta (✋ para abrir) e metade está trancada. Procure itens 💧🥫🩹 dentro delas e nas lojas. A luz verde (ou amarela) é a saída da cidade.", "Walk around. Signs show markets, pharmacies, gas stations, hospitals and police. Some houses are open, some have a door (✋ to open) and half are locked. Look for items 💧🥫🩹 inside them and in shops. The green (or yellow) light is the way out of town.", "Camina por el barrio. Los letreros muestran mercados, farmacias, gasolineras, hospitales y policía. Algunas casas están abiertas, otras tienen puerta (✋ para abrir) y la mitad está cerrada. Busca objetos 💧🥫🩹 dentro y en las tiendas. La luz verde (o amarilla) es la salida de la ciudad."],
   osmDoorOpen: ["🚪 Abrir a porta", "🚪 Open the door", "🚪 Abrir la puerta"],
@@ -261,7 +260,7 @@ export function runExplorer() {
     openPicker({
       kid: cfg.age !== "teen", size: cfg.citySize, onSize: (v) => { cfg.citySize = v; store.setJSON("cfg", cfg); },
       extra: () => [h("p.ez-msg", { style: { textAlign: "center" } }, "🧪 " + t("cityTest")), msg ? h("p.ez-msg", { style: { color: "#ef4444" } }, msg) : null, h("h3", t("age")), h("div.ez-row", chip("kid", t("age_kid")), chip("teen", t("age_teen")))],
-      footer: () => [h("button.ez-btn.gray.wide", { onclick: () => { location.replace("./"); } }, t("toMain")), gameLinks(t("title"))],
+      footer: () => [h("button.ez-btn.gray.wide", { onclick: () => { location.replace("./"); } }, t("exitMenu")), gameLinks(t("title"))],
       onPack: play, onCancel: () => { location.replace("./"); },
     });
   }
@@ -299,7 +298,7 @@ export function runExplorer() {
         h("button.ez-btn.wide", { onclick: back }, t("cont")),
         h("button.ez-btn.blue.wide", { onclick: () => { scr.close(); showStart(); } }, t("geoOther")),
         h("button.ez-btn.gray.wide", { onclick: () => { scr.close(); openSettings({ world, onClose: () => openMenu() }); } }, "⚙️"),
-        h("button.ez-btn.gray.wide", { onclick: () => { location.replace("./"); } }, t("toMain")),
+        h("button.ez-btn.gray.wide", { onclick: () => { location.replace("./"); } }, t("exitMenu")),
       ], { x: back });
     });
   }

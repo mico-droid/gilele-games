@@ -265,3 +265,13 @@
     `.main` 14px → **10px** (fonte 19 → 18), rodapé 7px → **5px**; mesma coisa no `#menu .modes` dos
     HTML avulsos. Objetivo é deixar o cenário 3D do fundo aparecer. A Tabuada Simples ficou de fora:
     é 2D, não tem cenário atrás dos botões.
+- **"Sair para o menu" padronizado (25/11/2026, item 3 revisto) — motor 0.5.7, `CACHE` `gilele-v51`:**
+  O dono não encontrou a saída no Parkour Tabuada porque lá o botão da pausa dizia só "🏠 Menu".
+  O texto agora é **um só, no motor**: `exitMenu` em `engine/i18n.js` ("🏠 Sair para o menu" ·
+  "🏠 Exit to menu" · "🏠 Salir al menú"). Usam a chave do motor: Playground, Auto Escola (pausa e
+  fim de prova), Apagão (pausa e fim de jogo), Aprendizado e Explorar a cidade. As cópias locais
+  foram **apagadas** (`exitMenu` de `sobrevivencia/strings.js` e `toMain` de `cidade.js`) para não
+  divergirem de novo — `addStrings` sobrescreve as chaves do motor, então texto repetido no jogo
+  vence o padrão sem avisar. Nos HTML avulsos é o `toMenu` dos três blocos de idioma.
+  **Regra: botão de sair da partida sempre `t("exitMenu")`; não escrever o texto à mão.**
+  A Tabuada Simples ficou de fora: é 2D, não tem menu de pausa (sai pelos botões ◀ e 🏠 Início).

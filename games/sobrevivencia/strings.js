@@ -337,7 +337,6 @@ const S = {
   // v0.4 — rotina guiada: objetivo do capítulo, missões, partida, mochila 3×3, comunicação
   tipTitle: ["📘 Instruções", "📘 Instructions", "📘 Instrucciones"],
   tipsBook: ["📘 Instruções que você já viu", "📘 Instructions you've seen", "📘 Instrucciones que ya viste"],
-  exitMenu: ["🏠 Sair para o Menu", "🏠 Exit to Menu", "🏠 Salir al Menú"],
   friends: ["👥 Jogar com amigos", "👥 Play with friends", "👥 Jugar con amigos"],
   closeT: ["Fechar / pausar", "Close / pause", "Cerrar / pausar"],
   objMain: ["🎯 Objetivo do capítulo: em 72 horas, monte sua mochila de emergência e deixe tudo pronto para partir para a zona rural.", "🎯 Chapter goal: in 72 hours, pack your emergency backpack and get everything ready to leave for the countryside.", "🎯 Objetivo del capítulo: en 72 horas, arma tu mochila de emergencia y deja todo listo para partir al campo."],
