@@ -299,6 +299,9 @@ export function gameLinkParts(gameName, { portal = "../../jogos.html", small = t
     install: instSlot,
     share: h("button.ez-btn.blue" + sz, { onclick: share }, "📤 " + t("share")),
     settings: h("button.ez-btn.gray" + sz, { title: t("settings"), "aria-label": t("settings"), onclick: () => (onSettings ? onSettings() : openSettings({ world })) }, "⚙️"),
+    // ✕ da tela inicial (pedido do dono, 25/11/2026): mesma janela "Quer mesmo sair?" do 🏠
+    close: h("button.ez-btn.gray" + sz, { title: t("leaveTitle"), "aria-label": t("leaveTitle"), onclick: leave }, "✕"),
+    leave,
   };
 }
 
@@ -390,7 +393,7 @@ export function homeScreen(o = {}) {
   scr = screen([
     h("div.ez-home-top",
       langRow,
-      h("div.ez-row.ez-home-tools", parts.install, parts.settings)),
+      h("div.ez-row.ez-home-tools", parts.install, parts.settings, parts.close)),
     h("div.ez-home-mid",
       h("h1.ez-home-title", (icon ? icon + " " : "") + title),
       subtitle ? h("p.ez-home-sub", subtitle) : null,

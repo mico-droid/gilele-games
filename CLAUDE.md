@@ -211,3 +211,29 @@
   - De brinde: o prompt de interação do Apagão ainda dizia "E · " (a tecla E saiu em 24/11/2026);
     agora diz "J · " nos dois modos. E `GAME.bots()`/`GAME.itens()` não quebram mais se chamados
     na tela inicial (quando `st` ainda é null).
+
+- **Rodada de 25/11/2026 (noite, 2ª lista do dono) — motor 0.5.4, `CACHE` `gilele-v48`:**
+  - **Prints do portal comercial**: o `index.html` mostrava Parkour Tabuada + EZ Obby, e nenhum dos
+    dois deixava ver matéria escolar. Agora o notebook usa o print novo do Parkour (lousa com
+    `3 × 2 = ?`) e o celular usa `shots/apagao-phone.jpg` (recorte 9:18 do Apagão). O print
+    `shots/sobrevivencia.jpg` do portal infantil também foi trocado pelo novo.
+  - **✕ na tela inicial de todo jogo**: `gameLinkParts()` passou a devolver `close` (botão ✕) e
+    `leave` (a função), e o `homeScreen()` põe o ✕ no canto de cima, ao lado do ⚙️ — abre a mesma
+    janela "Quer mesmo sair?" do 🏠. Nos HTML avulsos é o `#homeX` do bloco `.hometools`, chamando
+    `askLeave()`; na Tabuada Simples (2D) é o `data-a="leave"` da `topBar()` com a caixa própria
+    (`LEAVE_T`/`askLeave`), já que ela não tem o motor.
+  - **Menu do ✕ durante a partida**: conferido em todos — Playground e Auto Escola (`🏠 menu`),
+    Apagão e Aprendizado (`exitMenu`), Explorar a cidade (`toMain`), Parkour e EZ Obby (`pMenuBtn`),
+    Tabuada Simples (`data-a="back"`/`home`). Todos voltam para a tela inicial.
+  - **Parkour Tabuada, plataformas maiores**: a plataforma da conta foi de 12×4 para **16×6** (e a
+    parede subiu de 14 para 18 de largura, senão dava para contorná-la) e as duas de chegada depois
+    das respostas foram de 6×6 e 6×5 para **10×8** e **10×7**. As quatro plataformas das respostas
+    continuam pequenas de propósito.
+  - **Apagão, tela inicial**: o botão único 🆕 Novo jogo (que abria uma caixa com a lista de modos)
+    virou **🆕 Novo Jogo Apagão** + **🎓 Novo Jogo Treino**, com 🏙️ Explorar minha cidade em cinza
+    embaixo (`modeHome` em `menu.js`; strings `newReal`/`newLearn`). A `modeMenu` continua existindo
+    para telas antigas. Quem tem jogo salvo segue vendo ▶ Continuar como botão principal.
+  - **Tecla de ação**: os últimos textos que ainda diziam "aperte E" saíram (`how2` e `bagEmptyHint`
+    em `strings.js`, `intro` do Aprendizado em `learn.js`). As linhas de ajuda dos dois modos do
+    Apagão agora dizem também **Espaço: pular**. Regra: ação = **J** (ou botão direito), pulo =
+    **Espaço** (ou clique esquerdo curto).

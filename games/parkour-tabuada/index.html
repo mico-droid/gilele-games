@@ -270,6 +270,7 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
       <div class="hometools">
         <button id="pwaBtn" class="tbtn hidden"></button>
         <button id="cfgBtn" class="tbtn">⚙️</button>
+        <button id="homeX" class="tbtn" aria-label="✕" title="✕">✕</button>
       </div>
     </div>
     <div class="homemid">
@@ -2469,6 +2470,7 @@ setTimeout(()=>{
   $("charCancel").onclick=()=>{Snd.play("click");if(lookBak){look=sanitizeLook(JSON.parse(lookBak));saveLook();}lookBak=null;charClose();};
   $("charRnd").onclick=()=>{const n=look.n;look=randomLook();look.n=n;saveLook();$("nameIn").value=look.n;buildEditor();buildMenu();Snd.play("pop");};
   $("cfgBtn").onclick=()=>{Snd.play("click");cfgOpen();};
+  $("homeX").onclick=()=>{Snd.play("click");askLeave();};   // ✕ da tela inicial: janela "Quer mesmo sair?"
   $("cfgX").onclick=()=>{Snd.play("click");cfgClose();};
   $("cfgOk").onclick=()=>{Snd.play("click");cfgClose();};
 },0);
@@ -3048,19 +3050,22 @@ function tabMakeUnit(){
   const z0=TB.nextZ,Q=tabNextQ();
   const q=tabQ(Q.op,Q.t,Q.m);const u={t:Q.t,m:Q.m,op:Q.op,txt:q.txt,res:q.res,random:Q.random,last:!Q.random&&Q.m===9,solved:false,boxes:[],sprites:[],ans:[],labels:[]};
   const col=[0xfde68a,0xfca5a5,0x93c5fd,0x86efac,0xd8b4fe][TB.units.length%5];
-  const qb=plat(TABX,0,z0+2,12,4,0xe2e8f0,"solid",{tabQ:u});u.boxes.push(qb);u.q={x:TABX,y:0,z:z0+1.6};
-  const az=z0+4+1.5;
+  // Plataformas maiores antes e depois das respostas (pedido do dono, 25/11/2026): a da conta
+  // passou de 12x4 para 16x6 e as duas de chegada de 6x6/6x5 para 10x8/10x7 — dá espaço para ler
+  // a lousa com calma e para cair em pé depois de acertar.
+  const qb=plat(TABX,0,z0+2.5,16,6,0xe2e8f0,"solid",{tabQ:u});u.boxes.push(qb);u.q={x:TABX,y:0,z:z0+2};
+  const az=z0+5.5+1.5;
   [-4.5,-1.5,1.5,4.5].forEach((xx,i)=>{const b=plat(TABX+xx,0,az,2.6,3,0xfef3c7,"solid",{tabA:u,k:i});u.boxes.push(b);u.ans.push(b);
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true}));sp.scale.set(1.6,1.6,1);sp.position.set(TABX+xx,1.6,az);scene.add(sp);u.labels.push(sp);u.sprites.push(sp);});
   const bd=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true}));bd.scale.set(6,2.35,1);bd.position.set(TABX,5.2,az+1.2);scene.add(bd);u.sprites.push(bd);
   setSpriteCanvas(bd,boardCanvas(u.txt+" = ?"));
   [-3.1,3.1].forEach(dx=>{const p=pbox(TABX+dx,0,az+1.6,0.25,4.3,0.25,0x7c4a1e,false);u.boxes.push(p);});
-  u.wall=addBox(TABX,4,az+1.8,14,8,0.4,null,"solid");u.boxes.push(u.wall);
+  u.wall=addBox(TABX,4,az+1.8,18,8,0.4,null,"solid");u.boxes.push(u.wall);   // acompanha a largura da plataforma da conta
   u.azEnd=az+1.5;
-  const ez1=az+1.5+1.5+3;u.boxes.push(plat(TABX,0,ez1,6,6,col,"solid",{}));
-  const ex2=TABX+(TB.units.length%2?1.5:-1.5),ez2=ez1+3+1.5+2.5;u.boxes.push(plat(ex2,0,ez2,6,5,[0x93c5fd,0x86efac,0xfca5a5][TB.units.length%3],"solid",{}));
+  const ez1=az+1.5+1.5+4;u.boxes.push(plat(TABX,0,ez1,10,8,col,"solid",{}));
+  const ex2=TABX+(TB.units.length%2?1.5:-1.5),ez2=ez1+4+1.5+3.5;u.boxes.push(plat(ex2,0,ez2,10,7,[0x93c5fd,0x86efac,0xfca5a5][TB.units.length%3],"solid",{}));
   u.e1={x:TABX,z:ez1};u.e2={x:ex2,z:ez2};
-  u.end=ez2+2.5;TB.nextZ=u.end+1.5;
+  u.end=ez2+3.5;TB.nextZ=u.end+1.5;
   tabOptions(u);TB.units.push(u);return u;
 }
 function tabRemoveUnit(u){u.boxes.forEach(b=>{if(b.mesh&&!boxes.includes(b))scene.remove(b.mesh);removeBoxObj(b);});u.sprites.forEach(sp=>{if(sp.material.map)sp.material.map.dispose();scene.remove(sp);});}

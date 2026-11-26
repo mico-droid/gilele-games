@@ -464,6 +464,20 @@ function showModal(title,body){
   m.addEventListener('click',e=>{if(e.target===m||e.target.closest('button'))m.remove()});
   document.body.appendChild(m);
 }
+const LEAVE_T={
+  pt:['🏠 Sair do jogo','Quer mesmo sair? Seu progresso fica salvo.','Sim, sair','Não'],
+  en:['🏠 Leave the game','Do you really want to leave? Your progress is saved.','Yes, leave','No'],
+  es:['🏠 Salir del juego','¿Seguro que quieres salir? Tu progreso queda guardado.','Sí, salir','No']};
+function askLeave(){
+  const L=LEAVE_T[lang()]||LEAVE_T.pt;
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="box"><h2>${L[0]}</h2><p>${L[1]}</p><button class="btn" type="button" data-y="1">${L[2]}</button><button class="btn alt" type="button">${L[3]}</button></div>`;
+  m.addEventListener('click',e=>{const b=e.target.closest('button');
+    if(!b&&e.target!==m)return;
+    m.remove();
+    if(b&&b.dataset.y)location.href='../../jogos.html';});
+  document.body.appendChild(m);
+}
 async function installDiag(){ // mostra o que falta para o navegador oferecer a instalação
   const out=[],ok=(b,x)=>out.push((b?'✅ ':'❌ ')+x);
   ok(location.protocol==='https:'||location.hostname==='localhost','HTTPS');
@@ -482,6 +496,7 @@ function topBar(){
   return `<div class="topbar"><div class="lvl" title="${t('levelHint',{a:LEVEL_EVERY-c.into})}"><span>⭐ ${t('level',{n:c.lv})}</span><div class="lvbar"><i style="width:${c.into/LEVEL_EVERY*100}%"></i></div></div>
   <select class="langsel" data-change="lang" aria-label="${t('langAria')}">${LANGS.map(l=>`<option value="${l}" ${lang()===l?'selected':''}>${{pt:'PT-BR',en:'EN',es:'ES'}[l]}</option>`).join('')}</select>
   <a class="tb" href="../../jogos.html" style="text-decoration:none" aria-label="Gilelê Games"><span>🏠</span>Gilelê</a>
+  <button class="tb" data-a="leave" aria-label="✕" title="✕"><span>✕</span></button>
   <button class="tb" data-a="shareapp"><span>📤</span>${t('shareApp')}</button>
   ${isStandalone()||(!DEFERRED&&(()=>{try{return localStorage.getItem('ez:installed:'+location.pathname)==='1'}catch(_){return false}})())?'':`<button class="tb" data-a="install"><span>📲</span>${t('addApp')}</button>`}</div>`;
 }
@@ -697,6 +712,7 @@ const shareApp=()=>doShare(t('shareAppText'));
 /* ============ 10. EVENTOS ============ */
 const ACTIONS={
   home,
+  leave:askLeave,
   avatars:avatarsScreen,
   setav:d=>{cfg().av=cfg().av||{};cfg().av[age()]=d.e;store.save(SAVE);home()},
   age:d=>{TRK('age_band',{age_band:String(d.v)});cfg().age=+d.v;store.save(SAVE);home()},

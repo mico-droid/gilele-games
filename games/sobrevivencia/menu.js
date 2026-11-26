@@ -2,7 +2,7 @@
 //   ▶ Continuar jogo anterior  → só aparece se houver jogo salvo (Aulas e/ou Apagão Real)
 //   🆕 Novo jogo               → 📚 Aprendizado (primeiro) e 🌑 Apagão Real
 // Trocar de modo recarrega a página com ?modo=…&acao=cont|novo; consumeAction() lê a ação pedida.
-import { h, t, screen, THREE, part, toast } from "../../engine/ez.js";
+import { h, t, THREE, part, toast } from "../../engine/ez.js";
 import { LESSONS } from "./lessons.js";
 
 const here = new URLSearchParams(location.search).get("modo") === "aprender" ? "learn" : "real";
@@ -41,10 +41,11 @@ export function modeMenu(store, on, { fromHome = false } = {}) {
 
 /**
  * Botões compactos da TELA INICIAL NOVA (25/11/2026): cabem na base da tela, sem rolagem.
- *   ▶ Continuar  (principal, só se houver jogo salvo)   ·   🆕 Novo jogo (abre a lista de modos)
- * A lista completa (Aprendizado, Apagão Real, Explorar a cidade) continua sendo a `modeMenu`,
- * agora dentro de uma caixa que abre no "Novo jogo".
- * @param reopen  como voltar para a tela inicial se o jogador fechar a caixa
+ *   ▶ Continuar (principal, só se houver jogo salvo) · 🆕 Novo Jogo Apagão · 🎓 Novo Jogo Treino
+ *   · 🏙️ Explorar minha cidade (em testes)
+ * Desde 25/11/2026 não há mais a caixa "Novo jogo": cada modo tem o seu botão direto na base.
+ * A `modeMenu` (lista completa numa caixa) continua para telas antigas.
+ * @param reopen  como voltar para a tela inicial se o jogador fechar uma caixa (não usado hoje)
  */
 export function modeHome(store, on, { reopen, close } = {}) {
   const real = store.getJSON("save", null), learn = store.getJSON("learn", null);
@@ -60,18 +61,19 @@ export function modeHome(store, on, { reopen, close } = {}) {
       else go("learn", "cont");
     } }, label));
   }
-  out.push(h("button.ez-btn" + (hasReal || hasLearn ? ".blue" : ".ok.main"), { onclick: () => {
-    close && close();
-    let scr = null;
-    const shut = () => { if (scr) { scr.close(); scr = null; } };
-    // A caixa tem de FECHAR ao escolher o modo: sem isso ela ficava por cima do jogo já rodando
-    // (o dono via "o jogo não inicia / não dá para ver o boneco"). Corrigido em 25/11/2026.
-    const pick = {};
-    for (const k of Object.keys(on)) pick[k] = (...a) => { shut(); return on[k](...a); };
-    scr = screen([h("h2", t("secNew")), ...modeMenu(store, pick, { fromHome: true }),
-      h("button.ez-btn.gray.wide", { style: { marginTop: "10px" }, "data-k": "back", onclick: () => { shut(); reopen && reopen(); } }, t("back"))],
-      { dim: true, x: () => { shut(); reopen && reopen(); } });
-  } }, t("newGame")));
+  // Dois botões de jogo novo (pedido do dono, 25/11/2026): antes era um só "Novo jogo" que abria
+  // uma caixa com a lista de modos. Toda ação fecha a tela inicial ANTES de começar o jogo.
+  const startNew = (mode, k, confirmKey, has) => () => {
+    if (has && !confirm(t(confirmKey))) return;
+    if (mode === "learn") store.setJSON("learn", {});
+    // os handlers do próprio jogo já fecham a tela inicial; só fechamos quando vamos recarregar
+    if (here === mode && on[k]) on[k](); else { close && close(); go(mode, "novo"); }
+  };
+  const first = !(hasReal || hasLearn);
+  out.push(h("button.ez-btn" + (first ? ".ok.main" : ".blue"), { onclick: startNew("real", "newReal", "confirmNewR", hasReal) }, t("newReal")));
+  out.push(h("button.ez-btn.blue", { onclick: startNew("learn", "newLearn", "confirmNewL", hasLearn) }, t("newLearn")));
+  // modo de teste (mapa da cidade real) continua ao alcance, mas discreto
+  out.push(h("button.ez-btn.gray", { onclick: () => { close && close(); location.replace("?modo=cidade"); } }, t("m_city")));
   return out;
 }
 

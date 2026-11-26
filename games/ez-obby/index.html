@@ -266,6 +266,7 @@ if(TRK_OFF)window.TRK=function(){};else (function(w,d,s,l,i){w[l]=w[l]||[];w[l].
       <div class="hometools">
         <button id="pwaBtn" class="tbtn hidden"></button>
         <button id="cfgBtn" class="tbtn">⚙️</button>
+        <button id="homeX" class="tbtn" aria-label="✕" title="✕">✕</button>
       </div>
     </div>
     <div class="homemid">
@@ -2539,6 +2540,7 @@ setTimeout(()=>{
   $("charCancel").onclick=()=>{Snd.play("click");if(lookBak){look=sanitizeLook(JSON.parse(lookBak));saveLook();}lookBak=null;charClose();};
   $("charRnd").onclick=()=>{const n=look.n;look=randomLook();look.n=n;saveLook();$("nameIn").value=look.n;buildEditor();buildMenu();Snd.play("pop");};
   $("cfgBtn").onclick=()=>{Snd.play("click");cfgOpen();};
+  $("homeX").onclick=()=>{Snd.play("click");askLeave();};   // ✕ da tela inicial: janela "Quer mesmo sair?"
   $("cfgX").onclick=()=>{Snd.play("click");cfgClose();};
   $("cfgOk").onclick=()=>{Snd.play("click");cfgClose();};
 },0);
