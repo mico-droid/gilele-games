@@ -1071,8 +1071,8 @@ world.onUpdate((dt) => {
     const soc = social.near(!near);   // item no chão tem prioridade; troca só longe dos lugares
     const useSoc = soc && (!near || soc.text.startsWith("⬆"));
     prompt.classList.toggle("ez-hidden", !near && !soc);
-    if (useSoc) { prompt.textContent = (isTouch ? "✋ " : "E · ") + soc.text; if (input.pressed("act")) soc.act(); }
-    else if (near) { prompt.textContent = (isTouch ? "✋ " : "E · ") + t(near.key); if (input.pressed("act")) { if (near.onTry) near.onTry(); near.open(); } }
+    if (useSoc) { prompt.textContent = (isTouch ? "✋ " : "J · ") + soc.text; if (input.pressed("act")) soc.act(); }
+    else if (near) { prompt.textContent = (isTouch ? "✋ " : "J · ") + t(near.key); if (input.pressed("act")) { if (near.onTry) near.onTry(); near.open(); } }
     // aglomeração
     const inCrowd = Object.entries(ZONES).some(([k, z]) => crowdOn(k) && Math.hypot(me.x - z.x, me.z - z.z) < z.r);
     if (music) {
@@ -1121,5 +1121,5 @@ showTitle();
 window.GAME = { world, phys, me, room, city, cam, input, get st() { return st; }, advance: (hh) => { advance(hh); runEvents(); }, newState, load, start, SPOTS,
   // conferência rápida no console: contagem das casas e dos moradores
   casas: () => ({ total: city.houses.length, abertas: city.houses.filter((x) => x.open).length, comItem: city.houses.filter((x) => x.loot).length, comMorador: city.houses.filter((x) => x.npc).length, lista: city.houses.map((x) => ({ x: x.x, z: x.z, aberta: x.open, item: x.loot, morador: x.npc })) }),
-  bots: () => ({ total: dwellers.length, agora: dwellers.filter(dwellerOn).length, conversam: dwellers.filter((b) => b.talk).length, trocam: dwellers.filter((b) => b.trades).length, moradores: residents.length }),
-  itens: () => (st.ground || []).length };
+  bots: () => ({ total: dwellers.length, agora: st ? dwellers.filter(dwellerOn).length : "(abra o jogo primeiro)", conversam: dwellers.filter((b) => b.talk).length, trocam: dwellers.filter((b) => b.trades).length, moradores: residents.length }),
+  itens: () => (st && st.ground ? st.ground.length : 0) };

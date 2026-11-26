@@ -208,3 +208,6 @@
     por 1 item (`setupTrade` sorteia o que ele dá e os 3 que aceita). **Nunca texto livre** (ECA).
   - **Morador da casa**: metade troca, metade não. Quem **fecha uma troca com o morador** vira amigo
     (`b.friend`) e passa a poder pegar os itens daquela casa — antes o morador só bloqueava.
+  - De brinde: o prompt de interação do Apagão ainda dizia "E · " (a tecla E saiu em 24/11/2026);
+    agora diz "J · " nos dois modos. E `GAME.bots()`/`GAME.itens()` não quebram mais se chamados
+    na tela inicial (quando `st` ainda é null).

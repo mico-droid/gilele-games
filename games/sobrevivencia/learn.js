@@ -766,8 +766,8 @@ world.onUpdate((dt) => {
     const soc = social.near(!near);
     const useSoc = soc && (!near || soc.text.startsWith("⬆"));
     prompt.classList.toggle("ez-hidden", !near && !soc);
-    if (useSoc) { prompt.textContent = (isTouch ? "✋ " : "E · ") + soc.text; if (input.pressed("act")) soc.act(); }
-    else if (near) { prompt.textContent = (isTouch ? "✋ " : "E · ") + near.name(); if (input.pressed("act")) near.open(); }
+    if (useSoc) { prompt.textContent = (isTouch ? "✋ " : "J · ") + soc.text; if (input.pressed("act")) soc.act(); }
+    else if (near) { prompt.textContent = (isTouch ? "✋ " : "J · ") + near.name(); if (input.pressed("act")) near.open(); }
     // ponto de encontro
     if (P.w.meet_pick && !P.w.meet_go) { const m = MEET[P.w.meet]; if (Math.hypot(m.x - me.x, m.z - me.z) < 3) flag("meet_go", u("meetOk")); }
     // multidão: portão A → B pelas bordas
