@@ -369,6 +369,10 @@ export function homeScreen(o = {}) {
     let ang = Math.random() * Math.PI * 2, alive = true;
     const off = world.onUpdate((dt) => {
       if (!alive) return;
+      // Segurança: se a tela inicial sumiu da página sem passar pelo close() (qualquer caminho
+      // novo que remova o elemento), a câmera de vitrine continuaria dando voltas e o jogo
+      // pareceria travado — a visão não muda por mais que o jogador ande. Solta a câmera.
+      if (scr && scr.el && !scr.el.isConnected) { stopScenic(); return; }
       ang += (o.scenicSpeed || 0.055) * Math.min(dt, 0.05);
       cam.position.set(at.x + Math.cos(ang) * R, (at.y || 0) + HI, at.z + Math.sin(ang) * R);
       cam.lookAt(at.x, (at.y || 0) + 2, at.z);   // vista de cima, como uma maquete: nunca entra dentro de parede

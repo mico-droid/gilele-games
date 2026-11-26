@@ -381,9 +381,9 @@ function openMenu(build) {
         d.noClose ? null : (h("button.ez-btn" + (d.closeLabel ? ".ok" : ".gray") + ".wide", { "data-k": d.closeLabel ? "next" : null, onclick: () => { close(); if (d.onClose) setTimeout(d.onClose, 0); } }, d.closeLabel || t("a_leave")))),
     ].filter(Boolean));
   }
-  draw();
-  scr = screen([card], { dim: true });
-  addX(h, scr, close);
+  scr = screen([card], { dim: true });           // a tela nasce antes do desenho: se build() falhar,
+  addX(h, scr, close);                          // ainda dá para fechar (antes ficava preso sem tela)
+  try { draw(); } catch (e) { console.error("[gilele] menu falhou", e); close(); throw e; }
   return { close, draw };
 }
 function takeOpts(o, onTake) {
@@ -1112,6 +1112,17 @@ world.onUpdate((dt) => {
   if (st) social.update(dt);
   endFrame(phys);
   input.endFrame();
+});
+// Rede de segurança (25/11/2026): se por algum motivo o jogo ficar marcado como "menu aberto"
+// mas NÃO houver nenhuma tela na página, o mundo congela com o HUD na frente — a câmera para
+// onde estava (às vezes dentro de uma parede: "metade da tela cinza") e andar não muda nada.
+// Em vez de deixar o jogador preso até o F5, destravamos sozinho depois de meio segundo.
+let stuckT = 0;
+world.onUpdate((dt) => {
+  if (menuOpen && !document.querySelector(".ez-screen")) {
+    stuckT += dt;
+    if (stuckT > 0.5) { stuckT = 0; menuOpen = false; if (playing) input.setVisible(true); console.warn("[gilele] menu fantasma: destravado"); }
+  } else stuckT = 0;
 });
 world.start();
 allowRespawn = true; me.respawn(spawn); allowRespawn = false;

@@ -306,3 +306,19 @@
   - **Botão Salvar/confirmar é SEMPRE verde** (`.ez-btn.ok`): o ✔ Salvar do editor do motor estava
     com a cor do tema (âmbar no Apagão) e o "✔ Usar este lugar" do mapa real também. Nos HTML
     avulsos a classe `.play` já era verde. Regra: confirmação final = `.ok`; Voltar/Cancelar = cinza.
+- **Jogo travado com meia tela cinza (25/11/2026, item 15) — motor 0.6.1, `CACHE` `gilele-v54`:**
+  Sintoma do dono, intermitente e só no celular: entra no Apagão Real, metade da tela fica cinza
+  (chão/parede), e **andar não muda a visão**; F5 resolve. Não foi reproduzido — o que existe agora
+  são três redes de segurança para o estado que explica exatamente esse sintoma (o mundo parado com
+  o HUD na frente e a câmera presa onde estava, às vezes dentro de uma parede):
+  - **Menu fantasma**: o loop do Apagão só roda com `playing && !menuOpen && st && !st.ended`. Se
+    `menuOpen` ficar `true` sem nenhuma tela na página, o jogo congela calado. Watchdog novo nos
+    dois modos: `menuOpen` + nenhum `.ez-screen` por mais de 0,5 s → destrava sozinho, devolve o
+    joystick e escreve `[gilele] menu fantasma` no console.
+  - **`openMenu` à prova de erro**: a tela passou a ser criada ANTES do `draw()`, e o `draw()` vai
+    num `try/catch` que fecha o menu. Antes, um erro dentro do `build()` deixava `menuOpen = true`
+    para sempre e sem tela nenhuma para fechar — o travamento perfeito.
+  - **Câmera de vitrine solta**: `homeScreen()` para a câmera cênica também quando o elemento da
+    tela sai do DOM sem passar pelo `close()`. Se ela continuasse rodando, ela mandaria na câmera e
+    a visão não mudaria com o jogador andando.
+  Se voltar a acontecer, pedir o console: `[gilele] menu fantasma` confirma a primeira hipótese.
